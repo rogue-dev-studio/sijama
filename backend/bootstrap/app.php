@@ -1,0 +1,61 @@
+<?php
+
+use App\Http\Middleware\EnsurePermission;
+use App\Http\Middleware\EnsureRole;
+use App\Http\Responses\ApiResponse;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+        $schedule->command('events:update-statuses')->everyFiveMinutes();
+    })
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->alias([
+            'role' => EnsureRole::class,
+            'permission' => EnsurePermission::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (ValidationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                $detail = collect($e->errors())->flatten()->first();
+
+                return ApiResponse::error(
+                    is_string($detail) && $detail !== '' ? $detail : 'Validasi gagal.',
+                    $e->errors(),
+                    422
+                );
+            }
+        });
+
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiResponse::error('Tidak terautentikasi.', null, 401);
+            }
+        });
+
+        $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiResponse::error('Data tidak ditemukan.', null, 404);
+            }
+        });
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiResponse::error('Endpoint tidak ditemukan.', null, 404);
+            }
+        });
+    })->create();

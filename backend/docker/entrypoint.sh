@@ -1,0 +1,49 @@
+#!/bin/bash
+set -euo pipefail
+
+cd /var/www/html
+
+if [ ! -f .env ]; then
+  if [ -f .env.example ]; then
+    cp .env.example .env
+  else
+    touch .env
+  fi
+fi
+
+mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+# Bind-mount can ship a host packages.php that references require-dev providers
+# while the vendor volume came from a --no-dev image layer.
+rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+
+if [ ! -f vendor/autoload.php ]; then
+  echo "Installing PHP dependencies (vendor volume empty)..."
+  composer install --no-interaction --prefer-dist --no-dev
+fi
+
+php artisan package:discover --ansi || true
+
+echo "Waiting for PostgreSQL at ${DB_HOST:-db}:${DB_PORT:-5432}..."
+until pg_isready -h "${DB_HOST:-db}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME:-sijama}" -d "${DB_DATABASE:-sijama}" > /dev/null 2>&1; do
+  sleep 2
+done
+echo "Database is ready."
+
+if [ -z "${APP_KEY:-}" ] && ! grep -qE '^APP_KEY=base64:[A-Za-z0-9+/=]+$' .env; then
+  echo "Generating application key..."
+  php artisan key:generate --force
+fi
+
+ROLE="${CONTAINER_ROLE:-web}"
+
+if [ "$ROLE" = "scheduler" ]; then
+  echo "Starting Laravel scheduler..."
+  exec php artisan schedule:work
+fi
+
+php artisan migrate --force
+
+exec apache2-foreground

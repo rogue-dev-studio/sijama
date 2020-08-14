@@ -1,0 +1,5123 @@
+[
+  {
+    "kode": "lok-d42657ad2d",
+    "nama": "AULA LDII \"AL AZIZIYAH A",
+    "jenis": "aula",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-483d3be4da",
+    "nama": "AULA LDII BANJER",
+    "jenis": "aula",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fb3d3a4fc2",
+    "nama": "Aula salunggabo 354 ldii",
+    "jenis": "aula",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-gsg-bandung-utara",
+    "nama": "GSG LDII Bandung Utara",
+    "jenis": "gsg",
+    "kota": "Bandung",
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3d6223ada0",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Halmahera Selatan",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-23ec1a0ddf",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kab. Timor Tengah Selatan",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6f4dfc91cc",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Aceh Singkil",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0964b97ac9",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Banggai",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-821a669051",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Barito Timur",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0ed40fbb4a",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Ende",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e8d3fa7503",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Jayawijaya",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ee04e37cb8",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Kubu Raya",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-49162e6d16",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Maluku Tengah",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b3c96b2226",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Paser",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7567bb31c6",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Sintang",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-de72cd51bf",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kabupaten Wakatobi",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-66b3b01042",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kota Ambon",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d9115ba543",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kota Balikpapan",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cc4c2f15e1",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kota Bitung",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-91c1ac4d32",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kota Bontang",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b49332396a",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kota Samarinda",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a224e6d3d0",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kota Singkawang",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-07687414bc",
+    "nama": "Dewan Pimpinan Daerah \"DPD\" LDII Kota Tidore",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-faf71ce829",
+    "nama": "Dewan Pimpinan Wilayah \"DPW\" LDII Papua Barat",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-95e81696df",
+    "nama": "Dewan Pimpinan Wilayah \"DPW\" LDII Provinsi Aceh",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5ebab2d49d",
+    "nama": "Dewan Pimpinan Wilayah \"DPW\" LDII Provinsi Maluku",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f589d7fe0d",
+    "nama": "Dewan Pimpinan Wilayah (DPW) LDII Provinsi Sulawesi Tengah",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e16c4220cd",
+    "nama": "Kantor Dewan Pimpinan Wilayah \"DPW\" LDII Propinsi Nusa Tenggara Timur",
+    "jenis": "kantor",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-dpp-ldii",
+    "nama": "Kantor DPP LDII Jakarta",
+    "jenis": "kantor",
+    "kota": "Jakarta Selatan",
+    "alamat": "Jl. Tentara Pelajar No. 28 Patal Senayan",
+    "lat": -6.2185,
+    "lng": 106.7972
+  },
+  {
+    "kode": "lok-555c8c88e9",
+    "nama": "ALHAFIDZUN LDII AIR BESAR",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4b69593120",
+    "nama": "Komplek LDII Sekuan Makmur",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-172b2b6a67",
+    "nama": "LDII Ampui (TPA Roudhatul Jannah)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e1d415db3d",
+    "nama": "LDII BUKIT RAYA Mushola",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1ee2168d6c",
+    "nama": "LDII HOUSE",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c107eed86a",
+    "nama": "LDII KOTA BANGUN",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4462bd4dd4",
+    "nama": "LDII SAMPIT - KOTAWARINGIN TIMUR: MASJID LDII di Berbagai Kota Indonesia",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3553e318b3",
+    "nama": "LDII Sungai Terik",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ef9019d559",
+    "nama": "LDIISampit ✕",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-98c03fd42c",
+    "nama": "Majelis Taklim AL HIDAYAH DOWORA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-46160753b0",
+    "nama": "Majlis ta'lim Al Barokah Malkon Temon (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-495b3f278c",
+    "nama": "MASJID \"BERKAH LUHUR\" LDII MARABAHAN",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ef86a9f1e5",
+    "nama": "MASJID Abdul Dhohir (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ca859ab18e",
+    "nama": "MASJID ABDULLAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e6e06b224e",
+    "nama": "Masjid ADDOHIRIN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7551689bbc",
+    "nama": "Masjid AGUNG KUMASARI SP2",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d5b516de34",
+    "nama": "Masjid Agung Nurul Falaq Labuan Bajo",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3d46fadb4c",
+    "nama": "Masjid Ainil Yaqin ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f012e9b516",
+    "nama": "MASJID AL - IKHLAS ( LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1490f9f968",
+    "nama": "Masjid Al - Miftahul Jannah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-dffadadbd0",
+    "nama": "Masjid Al A'la (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-594f9ade21",
+    "nama": "Masjid Al Akbar (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d19b908442",
+    "nama": "Masjid Al Amin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1362ca0738",
+    "nama": "Masjid Al Amin Nurulhuda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9eff243108",
+    "nama": "Masjid Al Anhar (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-45bbd930ac",
+    "nama": "Masjid Al AZIZIYAH",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cd535c0978",
+    "nama": "Masjid Al barokah ( LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1ccebb264f",
+    "nama": "Masjid Al Barokah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f96784832e",
+    "nama": "MASJID Al Barokah Seponti (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ac4087c4e7",
+    "nama": "Masjid AL BAYYINAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-344b3f3a05",
+    "nama": "Masjid AL FADILAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-bd7521bf4f",
+    "nama": "Masjid Al Falah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-89fc28d4fa",
+    "nama": "Masjid Al Falah Sidorukun (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fbf0cd4678",
+    "nama": "Masjid Al Faqih (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b8a643dc63",
+    "nama": "MASJID AL FATAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2bab33ade2",
+    "nama": "Masjid Al Fattah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f4db14e3df",
+    "nama": "MASJID Al Fattah Pimping (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3f49e1cf4a",
+    "nama": "Masjid Al Fattah(LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-96b9149efa",
+    "nama": "Masjid Al fauzan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-97012dbab1",
+    "nama": "MASJID Al Firdaus (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a37553c022",
+    "nama": "Masjid Al Firdaus Tirtabuana (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e3f1591524",
+    "nama": "Masjid Al Fitroh (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c86261d7cf",
+    "nama": "Masjid Al Furqon (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2159121e46",
+    "nama": "Masjid Al Hakim (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8e0160d85e",
+    "nama": "Masjid Al Haq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-167dd2b6fb",
+    "nama": "Masjid Al Haq Kampung Dul (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-437da2b339",
+    "nama": "Masjid Al Hidayah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-95ea10749f",
+    "nama": "Masjid Al Hidayah ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-be28e7c2e7",
+    "nama": "Masjid AL HIJRAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-626a5d4250",
+    "nama": "Masjid Al Hikmah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b36852ee6c",
+    "nama": "MASJID Al Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b0ee23a949",
+    "nama": "Masjid Al Huda Harapan Jaya (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6d88b631c0",
+    "nama": "MASJID Al Ihlas (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e3ab161822",
+    "nama": "MASJID AL IHSAN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c03fc2cef9",
+    "nama": "Masjid Al Ihsan - LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ef34ee1f08",
+    "nama": "MASJID Al Ikhlash (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d6871ea5b0",
+    "nama": "Masjid Al Ikhsan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a980a8e9c4",
+    "nama": "Masjid Al Islah DAMAI (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4fb209dfad",
+    "nama": "Masjid Al Jannatun (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-14e1408bcf",
+    "nama": "Masjid Al Jihad",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-22a8338010",
+    "nama": "Masjid Al Kautsar (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-17f064f27e",
+    "nama": "Masjid Al Khoir (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-562efbe9aa",
+    "nama": "Masjid Al Madinah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-78755240f0",
+    "nama": "Masjid Al Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-91d04ceb3d",
+    "nama": "Masjid Al Manshurin Jambak (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-04dbec22e1",
+    "nama": "Masjid Al Manshurin Kumai Hulu (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-02cd2fbbc9",
+    "nama": "Masjid Al Manshurin Lambolo (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-053d57387b",
+    "nama": "MASJID AL MANSHURIN NAMLEA ILATH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6dbbc8068b",
+    "nama": "MASJID AL MANSHURIN(LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2c438b7bb8",
+    "nama": "Masjid Al Mansurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-676ae4a075",
+    "nama": "Masjid al mansurin Ldii",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-57e69b6ee0",
+    "nama": "Masjid Al Mansyurin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4bbe3cd74b",
+    "nama": "MASJID Al Masykur (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-dc16f9902d",
+    "nama": "Masjid Al Mubarok (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1f423e4545",
+    "nama": "Masjid Al Mubarokah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-66f8716c59",
+    "nama": "MASJID AL MUFLIHUN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-428050fc8a",
+    "nama": "Masjid Al Muhajirin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-01819f8e6c",
+    "nama": "Masjid Al Muhajirin (LDII Kubar)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-277012f80c",
+    "nama": "Masjid Al Muhajirin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5bf075a8e5",
+    "nama": "MASJID AL MUHAJIRIN Darul qarar",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f8a2972a37",
+    "nama": "Masjid Al Muhajirin LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-76b08baed9",
+    "nama": "Masjid AL Muhklisin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-dfa6f27484",
+    "nama": "Masjid Al Mujahidin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c4597da109",
+    "nama": "MASJID AL MUJAHIDIN SIDOMUKTI (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ad27898809",
+    "nama": "Masjid Al Mukhlis (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-722fd6ee96",
+    "nama": "Masjid Al Mukhlishin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d1819f766d",
+    "nama": "MASJID AL MUKMIN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1f8a358594",
+    "nama": "MASJID AL MUKMININ (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ed2ddd3e21",
+    "nama": "Masjid Al Munajah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-33dc4882c7",
+    "nama": "Masjid Al Munawarah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-571aa3a7c7",
+    "nama": "Masjid Al MUNAWAROH (PAC LDII PALANGKA)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0bf296e391",
+    "nama": "Masjid Al Muqorrobun (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ff177eca92",
+    "nama": "Masjid Al Muttaqin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2a66dbe507",
+    "nama": "Masjid Al Muttaqin MANDALA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-946da0c5a5",
+    "nama": "Masjid Al-Abrar",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d0a8875e45",
+    "nama": "Masjid Al-Ajwah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-bb659b63d0",
+    "nama": "Masjid Al-Akbar",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6eb13374dc",
+    "nama": "Masjid Al-Akbar (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c7788e1802",
+    "nama": "Masjid Al-Awwabin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fc0fc6864c",
+    "nama": "Masjid Al-Barakah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-42ff56ea64",
+    "nama": "Masjid Al-Barakah LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d80a356fe6",
+    "nama": "Masjid Al-barokah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e7fabfd389",
+    "nama": "Masjid Al-Barokah ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-73eec50054",
+    "nama": "Masjid Al-fath LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a9de6aa047",
+    "nama": "Masjid Al-Fattah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-52b8c06ae3",
+    "nama": "Masjid Al-Hidayah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9a421607b6",
+    "nama": "Masjid Al-Hidayah Tada (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ab2a660822",
+    "nama": "Masjid Al-Hidayah ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-315d9d1191",
+    "nama": "Masjid Al-Huda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c3bde52fa0",
+    "nama": "Masjid Al-Ihsan",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ee7db4c5f7",
+    "nama": "Masjid AL-IHYA",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-328b9c5443",
+    "nama": "MASJID AL-IKHLAS",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-masjid-al-ikhlas",
+    "nama": "Masjid Al-Ikhlas (LDII)",
+    "jenis": "masjid",
+    "kota": "Bandung",
+    "alamat": "Jl. Masjid No. 10",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-60fd0d403e",
+    "nama": "Masjid Al-Ikhlas Polres Mabar",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cb494828bb",
+    "nama": "Masjid Al-Jihad (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2eeaca0ca8",
+    "nama": "Masjid Al-Kamal (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3ad1d2f38b",
+    "nama": "Masjid Al-Kautsar (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f62ee1feed",
+    "nama": "Masjid Al-Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-effb8cc437",
+    "nama": "MASJID AL-MANSHURIN LDII WANAM",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3e0a0c6077",
+    "nama": "MASJID AL-MISBAH BENGALON",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ace3856d43",
+    "nama": "Masjid Al-Mubarak LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c217ac3dcd",
+    "nama": "Masjid Al-Mubarokah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-083cd7a01d",
+    "nama": "Masjid Al-Muhajirin Kuala Secapah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4bdfff9d8a",
+    "nama": "Masjid Al-Mujahiddin Komplek PEPABRI Sungailiat, Bangka Belitung",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7e11e94e83",
+    "nama": "Masjid Al-Mujahidin Semoi Dua",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-71a1f5e98c",
+    "nama": "Masjid Al-Mukhlishin Gampong Ujong Drien",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ca0f2308b7",
+    "nama": "Masjid Al-Mukhlisin LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-df338ffd35",
+    "nama": "Masjid Al-muqlisin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0032888682",
+    "nama": "Masjid Al-Muttaqin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b58ecc3a82",
+    "nama": "Masjid Al-Ukhuwah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8a0b7e29b6",
+    "nama": "Masjid Al-Washiyyah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d427c39416",
+    "nama": "MASJID AL_HAQ(LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1941db07d1",
+    "nama": "Masjid Albarokah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7dd532f986",
+    "nama": "Masjid An Na'im (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-512487cced",
+    "nama": "Masjid An Nafiu (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-32d7997410",
+    "nama": "Masjid An Nasai (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-71a4a93f7b",
+    "nama": "MASJID An Nasir (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9617410ca9",
+    "nama": "Masjid An Nasrulloh (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8fcc3142a8",
+    "nama": "Masjid An Nur (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-72af4e2e02",
+    "nama": "Masjid An-Najah PC LDII Bekasi Barat",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-769bf23815",
+    "nama": "Masjid An-Nur Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7e03eb995b",
+    "nama": "Masjid Annur Buntok",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4bb7aa7af3",
+    "nama": "Masjid Ar Rahman (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-19759ca8ed",
+    "nama": "Masjid Ar Raudhah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0ac78a1523",
+    "nama": "Masjid AR ROFIQ Girimulyo (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e5c85dc96a",
+    "nama": "Masjid Ar Rosyid (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1d076fafc0",
+    "nama": "Masjid Ar Royan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-061dc69244",
+    "nama": "Masjid Ar-Rahman Waitoso (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-324be8f2ff",
+    "nama": "Masjid Ar-Rosyid (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7a48746bb5",
+    "nama": "Masjid Ar-Royan ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a3c41cedfb",
+    "nama": "Masjid ARDIANSHAFAA ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-490aca4b79",
+    "nama": "Masjid As Salam",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fc232cfdb8",
+    "nama": "Masjid As Shidiq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-002fedaeae",
+    "nama": "Masjid As Shobirin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-13c1ac18d8",
+    "nama": "Masjid As Sunnah Buntok",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-570960761e",
+    "nama": "Masjid AS Syifa(LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0bf0a7bfca",
+    "nama": "Masjid Ash-Shobiriin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5fa12eff6b",
+    "nama": "Masjid Ashabul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e794055a30",
+    "nama": "Masjid Ashodiqin ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-325939a10f",
+    "nama": "MASJID ASSYAUQQIAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1d4d640a0d",
+    "nama": "MASJID AT TAQWA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b4d2e03fb0",
+    "nama": "Masjid AT TAQWA Kamalaputi",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7c8fb88c72",
+    "nama": "Masjid At Tawwabin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ab61c2dd24",
+    "nama": "Masjid At Thoharuddin Balai Karangan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b22f7ed5d6",
+    "nama": "Masjid At-Taqwa LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a07f6cfa6b",
+    "nama": "Masjid At-Taufiq LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f51e4d8eea",
+    "nama": "Masjid At-Tawwabin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-48c02fbf6c",
+    "nama": "MASJID Baabul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-75aa37b4cc",
+    "nama": "Masjid Babul Barokah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-58582315c6",
+    "nama": "Masjid Babul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0f87f9da2d",
+    "nama": "Masjid Baburroyan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fa7647f6ab",
+    "nama": "MASJID BABUSSALAM (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9ab9a52a4b",
+    "nama": "Masjid Baitil A'la",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-30ad26f608",
+    "nama": "MASJID Baitil A'la (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2daf6b2692",
+    "nama": "Masjid Baitil Aziz (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-da07f8cce5",
+    "nama": "MASJID Baitul A'la (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cbfffc48cc",
+    "nama": "Masjid Baitul a'la (LDII) Desa Modang mas",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-028fb646d7",
+    "nama": "Masjid BAITUL A'LA Batui (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-28f4349768",
+    "nama": "Masjid Baitul A'la Kotaraya (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-224a34875d",
+    "nama": "MASJID BAITUL A'LA SINDANG SARI ( LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d88504483a",
+    "nama": "MASJID BAITUL A'RAF (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-391efb1085",
+    "nama": "Masjid Baitul Akbar ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-13b1ffccac",
+    "nama": "Masjid Baitul Ala Lilmuttaqim",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b34d38087f",
+    "nama": "MASJID BAITUL AMIN KARANG PACI (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c0a960690e",
+    "nama": "Masjid Baitul Arif (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-61c1489b93",
+    "nama": "Masjid Baitul Atiiq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9cb8b89f0b",
+    "nama": "Masjid Baitul Atiq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f9b1082f2b",
+    "nama": "MASJID BAITUL AZIZ (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ec97b3cb14",
+    "nama": "Masjid Baitul Baqi (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4ca71a29e9",
+    "nama": "Masjid Baitul Falakh (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1dbd3f2fed",
+    "nama": "MASJID Baitul Firdaus (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-60f27938ba",
+    "nama": "MASJID Baitul Haq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-33f957a7c2",
+    "nama": "Masjid Baitul Haq ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c83f5eff5a",
+    "nama": "MASJID BAITUL HASANAH",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5e30caa609",
+    "nama": "Masjid Baitul Hasib",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-98475405bd",
+    "nama": "Masjid Baitul Huda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ffafe95532",
+    "nama": "MASJID BAITUL HUDA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-23c26c9144",
+    "nama": "Masjid BAITUL IRSYAD TEMBALU (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6b38a78ccd",
+    "nama": "Masjid Baitul Istiqomah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5543645863",
+    "nama": "MASJID Baitul Izza (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b464f19243",
+    "nama": "Masjid Baitul Izza Aziziah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-06edb8f151",
+    "nama": "Masjid Baitul Izzah Bukit Mulia",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6900ad7f60",
+    "nama": "Masjid Baitul Jannah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2ea86ae428",
+    "nama": "Masjid Baitul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fa397f291d",
+    "nama": "Masjid BAITUL KARIM (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-09a9b66b2c",
+    "nama": "Masjid Baitul Ma'mur ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-de922967de",
+    "nama": "MASJID BAITUL MAKMUR (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2134704727",
+    "nama": "Masjid Baitul Makmur Al Aziz (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-dd7fb31027",
+    "nama": "Masjid Baitul Makmur Mopah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-498e9347ce",
+    "nama": "Masjid Baitul Malik (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b4d206b1c7",
+    "nama": "Masjid Baitul Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-63be21fa61",
+    "nama": "Masjid Baitul Manshurin BULA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8ffdc0ee97",
+    "nama": "Masjid Baitul Manshurin ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9afd47ebdc",
+    "nama": "Masjid Baitul Maqdis",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8256534509",
+    "nama": "Masjid Baitul Mubarok (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-da96a28720",
+    "nama": "MASJID Baitul Muhajirin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0d14655d97",
+    "nama": "Masjid Baitul Mukarromah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6f7ee0bc17",
+    "nama": "Masjid Baitul Mukminin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-024c6f0be0",
+    "nama": "MASJID Baitul Mukminin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-db52b12644",
+    "nama": "Masjid Baitul Munir (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6a562ab70d",
+    "nama": "Masjid Baitul Muqorrobin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3e7b33c594",
+    "nama": "Masjid Baitul Muqorrobin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6c1a0be440",
+    "nama": "Masjid Baitul Musthofa (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-785cbf5b85",
+    "nama": "Masjid Baitul Muttaqiin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-020009b0b5",
+    "nama": "Masjid Baitul Muttaqin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1bdeb57f0a",
+    "nama": "MASJID Baitul Muttaqin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3276c6b45f",
+    "nama": "Masjid Baitul Qudus (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-72e760e6d0",
+    "nama": "Masjid Baitul Rahmad (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d1ab70fb7e",
+    "nama": "Masjid BAITUL SALAM,LDIISANGKUaBANGKABARATt",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-38e8f1bc8b",
+    "nama": "Masjid Baitul Ula Tondano (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1a0127f292",
+    "nama": "Masjid Baitul Ulya (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f0df1a04bd",
+    "nama": "Masjid Baitul Ulya ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-59aeb3719c",
+    "nama": "Masjid BAITULLAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-346d70ac41",
+    "nama": "Masjid Baitun Nasirin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e4311fd33d",
+    "nama": "Masjid Baitur Rahim (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-19b275e1df",
+    "nama": "MASJID Baitur Rohmah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8e12764328",
+    "nama": "MASJID BAITUR ROHMAN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fb113dcd05",
+    "nama": "Masjid Baitur Rosyid (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6243f45f69",
+    "nama": "Masjid Baitur Rosyidin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b1606bbabe",
+    "nama": "Masjid Baiturrahim",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a131c9cbd6",
+    "nama": "MASJID BAITURRAHIM (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ab9057646d",
+    "nama": "Masjid BAITURRAHMAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-540254777b",
+    "nama": "Masjid Baiturrahman Dekat Bandara",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-854cc64024",
+    "nama": "Masjid Baiturrohim (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2552ef4e4e",
+    "nama": "Masjid Baiturrohman (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-51f89c3fad",
+    "nama": "MASJID BAITUS SOLIHIN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-03520f23ea",
+    "nama": "Masjid Baitussalam (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4c615c3a96",
+    "nama": "Masjid Baitussalam Rembang",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0f4c1751ff",
+    "nama": "Masjid Besar Baitul Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b68a05a392",
+    "nama": "Masjid Bitul Hudri",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-86047d4444",
+    "nama": "Masjid Budi luhur (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f747724b49",
+    "nama": "Masjid Burhanuddin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-086597a7f5",
+    "nama": "MASJID Da'watul Haq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-532571b967",
+    "nama": "Masjid Dakwah Tabligh Pondok Tanbihul Ghofilin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b378d94978",
+    "nama": "Masjid Darul Akhiroh (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-15560a1ace",
+    "nama": "Masjid Darul HAQ (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5d3bb7c21e",
+    "nama": "Masjid Darul Ilmi",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e497b7f37f",
+    "nama": "Masjid Darul Muttaqien (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0e7229f4fb",
+    "nama": "Masjid Darussalam (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6faeb7d581",
+    "nama": "Masjid Darussalam Al Arif",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-576b175ec1",
+    "nama": "Masjid Fajrul Falah (LDIl)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d53d29728c",
+    "nama": "Masjid Fathul Mukminin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-db85e7e833",
+    "nama": "Masjid Halful Fudhul",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ec743e7115",
+    "nama": "Masjid Hayatul Iman SARIPUTIH ( LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8bcb08736f",
+    "nama": "Masjid Hayyun Mubarok (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9c2f0c786e",
+    "nama": "Masjid Hidayatul A'la (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8015b09ff0",
+    "nama": "Masjid Hidayatul Ummah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b81d40a58b",
+    "nama": "Masjid Hidayatullah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-26b7884193",
+    "nama": "Masjid Hijir Ismail (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-86ebb369e5",
+    "nama": "Masjid Hijrotul A'la ( LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-80a80a8580",
+    "nama": "Masjid Hubbul Wathon",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4f77277d82",
+    "nama": "Masjid Istiqomah ( LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-18a2eaa0a0",
+    "nama": "Masjid Jabal Makmur (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7d39a12c76",
+    "nama": "Masjid Jabal NUR (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-199a36d8e5",
+    "nama": "Masjid Jabal Rohmah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2deb07180a",
+    "nama": "Masjid Jami Manba'ul Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-93de730b74",
+    "nama": "Masjid Jami' Al-Kautsar (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-45feda2a10",
+    "nama": "Masjid Jami' Baitul Hasan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1780a7a868",
+    "nama": "Masjid Jami' Baitul Latiif (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-86438c881d",
+    "nama": "Masjid Jami' Miftahul Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b144fc41e8",
+    "nama": "Masjid Jami'atul Muttaqin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4b512faf1d",
+    "nama": "Masjid Jamiatul Amaliyah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a7864fc185",
+    "nama": "Masjid Jamiatul Anshor ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-17b9f8a4c7",
+    "nama": "Masjid janatuttamro LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-01927f2bf5",
+    "nama": "MASJID KHOIRIL MUSTAQIM LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b9fa15d917",
+    "nama": "MASJID KHOIRUL BARIYAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3c82480c79",
+    "nama": "Masjid Khoirul Ihsan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a4764c38e6",
+    "nama": "Masjid Khoirul Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-96c74f1cbf",
+    "nama": "Masjid Khusnudzon Billah (PC LDII Singkawang Utara))",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-77a7d292f7",
+    "nama": "Masjid LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8844176220",
+    "nama": "Masjid LDII \"Al - Akbar",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e0e15e6875",
+    "nama": "Masjid LDII \"Al Akbar",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1c2b840413",
+    "nama": "Masjid LDII \"Al Muhajirin\" Mekarsari",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-73ca51c68d",
+    "nama": "Masjid LDII \"Al-Falah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-95dd51d368",
+    "nama": "Masjid LDII \"Al-Ikhlas",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-81b1db541c",
+    "nama": "Masjid LDII \"Al-Istiqomah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7bc734dd34",
+    "nama": "Masjid LDII \"An-Nur",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-88c3c0434c",
+    "nama": "MASJID LDII \"AS SODIQUN\" Satui Timur",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a5c0cc2b52",
+    "nama": "Masjid LDII \"Babussalam",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-770037890f",
+    "nama": "Masjid LDII \"Baitul Haq\" Mangkupalas",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0f6eb11aec",
+    "nama": "Masjid LDII \"Baitul Izza",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-773d6b26a8",
+    "nama": "Masjid LDII \"Baitul Jannah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-72e272fd79",
+    "nama": "Masjid LDII \"Baitul Makmur\" Wotu",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c513301c29",
+    "nama": "Masjid LDII \"Baitul Mukhlisin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8bad99931e",
+    "nama": "Masjid LDII \"Baitul Munir",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f9e4e0568f",
+    "nama": "Masjid LDII \"Baitul Muttaqin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7fcf57460d",
+    "nama": "Masjid LDII \"Baitur Rochman\" Mulyoharjo",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7aabe547e2",
+    "nama": "Masjid LDII \"Budi Luhur\" Purworejo",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0a9ec177db",
+    "nama": "Masjid LDII \"Da'watu Bil Hal\" Terjun",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-72a636bcbf",
+    "nama": "Masjid LDII \"Jabal Rohmah\" Margo Mulyo",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8339a85dbb",
+    "nama": "Masjid LDII \"Miftahul Huda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1b22cb2928",
+    "nama": "Masjid LDII \"Miftahul Huda\" Mayang Sari Jaya",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-638f664147",
+    "nama": "Masjid LDII \"Miftahul Jannah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9ea7d33fb4",
+    "nama": "Masjid LDII \"Nur Hasan\" BUKIT TUNGGAL",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-eca2ea086c",
+    "nama": "Masjid LDII \"Nurhasan",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-74dd4fc5f0",
+    "nama": "Masjid LDII \"Nurul Huda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f69c697d67",
+    "nama": "Masjid LDII \"Nurul Iman",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ce61aee261",
+    "nama": "Masjid LDII \"Nurul Islam\" Warakas",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1b87450d6f",
+    "nama": "Masjid LDII \"Sabilur Rosyad",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1d8d458bcd",
+    "nama": "Masjid LDII \"Shirotol Mustaqim\" Buntu Lenta",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a5c64a3bbf",
+    "nama": "Masjid LDII \"Tawakkal",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1e15a5e6a7",
+    "nama": "Masjid LDII 'Miftakhul Jannah'",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cba88fab44",
+    "nama": "MASJID LDII (Wali Barokah)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ee73d9cd7f",
+    "nama": "Masjid LDII - Nurul Khasanah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a1194ca5e1",
+    "nama": "MASJID LDII AL FATTAH (Al-Fattah Center)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-400757c76e",
+    "nama": "Masjid LDII al muhajirin 2 Kombeng",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3b35822b64",
+    "nama": "Masjid LDII Al-Furqon",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4f03bb4c7e",
+    "nama": "Masjid LDII Al-Jannatunnaim",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cba4d6b4f9",
+    "nama": "masjid LDII Al-Munawarah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4c92f860e5",
+    "nama": "Masjid LDII ALHIDAYAT",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-144b5c562d",
+    "nama": "Masjid LDII ATTHORIQUL JANNAH",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-27037f415d",
+    "nama": "Masjid LDII Baitul Haq",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a88993e459",
+    "nama": "MASJID LDII BAITUL JANNAH WOLIO",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-203e86c3d0",
+    "nama": "Masjid LDII BAITUL MUTTAQIN",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9d021c833d",
+    "nama": "Masjid LDII Baiturrohman asam asam",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2d02b73674",
+    "nama": "Masjid LDII balang butung",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6dc2906ff4",
+    "nama": "Masjid LDII BANDA NAIRA",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ac18e06b07",
+    "nama": "Masjid LDII Bandara Bersujud",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b2af37cd9b",
+    "nama": "Masjid LDII Belaban Tujuh",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a86cfa5644",
+    "nama": "Masjid ldii bkt9",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d9855af5c6",
+    "nama": "Masjid LDII Desa Cekdam Sari",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e2a43b4ba7",
+    "nama": "Masjid LDII di Indonesia",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cf8b4812d2",
+    "nama": "Masjid ldii gang nipah",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5a271980b6",
+    "nama": "masjid LDII gimpu",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5e0f599c96",
+    "nama": "Masjid LDII Gunungsari",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-741408c7a3",
+    "nama": "Masjid LDII Habunuha",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-560d1a24f6",
+    "nama": "MASJID LDII JAWAI",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-432513a77d",
+    "nama": "Masjid LDII Kalukubula",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ce1c18b32f",
+    "nama": "Masjid LDII Kamaru",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f56e69b29f",
+    "nama": "Masjid LDII Kampung Baru",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e390140d4c",
+    "nama": "Masjid LDII Kejawan Sluke",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fe1ea8b4ef",
+    "nama": "Masjid LDII Kerta Bhakti",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c95cf0a101",
+    "nama": "Masjid ldii kumbe",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3cd33e70b1",
+    "nama": "Masjid LDII Lende",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f309bf6fff",
+    "nama": "Masjid LDII Mamboro",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a4ac146523",
+    "nama": "MASJID LDII MATARAMAN",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-576fcbffa2",
+    "nama": "Masjid LDII Miftahul Huda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3067c21fa7",
+    "nama": "MASJID LDII MOUTONG",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a8ff6efcc2",
+    "nama": "Masjid LDII Ngalian",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8eae85e256",
+    "nama": "Masjid LDII Ngawen - Cluwak",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-510cd6aa57",
+    "nama": "Masjid LDII Nur Hasan Kaliorang",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d191b03464",
+    "nama": "MASJID LDII NURROHMAN KETIP",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9f9192fad7",
+    "nama": "Masjid LDII PAC Banyuurip",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-85a1aaddc5",
+    "nama": "Masjid LDII PAC Dorokandang",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e410e8a351",
+    "nama": "Masjid LDII Paguat",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-75ec3ca50c",
+    "nama": "Masjid LDII paleleh",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-26d98df947",
+    "nama": "Masjid LDII Panggung",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6040075e64",
+    "nama": "Masjid LDII Pantoloan",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-57e9098309",
+    "nama": "Masjid LDII Pecangaan",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cdc713407c",
+    "nama": "Masjid LDII Penajam",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0a1a04bb76",
+    "nama": "Masjid LDII Pencado",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-88474f59c1",
+    "nama": "Masjid LDII Purwosari",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6618fb8d6c",
+    "nama": "Masjid LDII Rasau Jaya",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-589bcb117d",
+    "nama": "Masjid LDII Sabung karaban",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c3d80441a6",
+    "nama": "Masjid LDII Sangihe",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0d1872499c",
+    "nama": "MASJID LDII SAWAHAN",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0d4684f679",
+    "nama": "Masjid LDII Simpang Bandara",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8586055c07",
+    "nama": "Masjid LDII Simpang Pelabuhan",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2137d28a13",
+    "nama": "MASJID LDII SIROTOL ANBIYA'A",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2630f8f578",
+    "nama": "Masjid LDII Sirotolmustaqim Kel. Cluwak",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-55767db407",
+    "nama": "Masjid LDII Sp1",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a89aa5a60e",
+    "nama": "Masjid LDII SP5",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-194ed37030",
+    "nama": "Masjid LDII SUB KM27",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-622f74c181",
+    "nama": "Masjid LDII sub Sembuluh",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3413d05a1a",
+    "nama": "Masjid LDII Sungai Raya",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1d4923d67f",
+    "nama": "MASJID LDII TABING RIMBAH",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1508fd27b1",
+    "nama": "Masjid LDII TAMBAN",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-168e064e1a",
+    "nama": "Masjid LDII Tayu",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-119b5ae575",
+    "nama": "Masjid LDII Tinggede",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3b14a4f833",
+    "nama": "MASJID LDII TLUWUK BARAT",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-92621248b6",
+    "nama": "Masjid LDII Totikum Selatan Kalumbatan",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e8483150d8",
+    "nama": "Masjid LDII Wai Kedai",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-683236acf7",
+    "nama": "Masjid LDII Waikabubak",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-246022f8a4",
+    "nama": "MASJID LDII WANARAYA",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-49094eec96",
+    "nama": "Masjid Luhur",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7380bd942c",
+    "nama": "Masjid Luhur Al Ubaidah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f12db04d77",
+    "nama": "MASJID LUHUR BAIRUHA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-91ccb44766",
+    "nama": "Masjid Luhur H. Dasiran (LDII 354)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c76783b986",
+    "nama": "Masjid Luhur Miftahul Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d1f35cb669",
+    "nama": "Masjid Luhur Nurul Ihsan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a4ecd38f8e",
+    "nama": "Masjid Manba'ul Huda (LDII) Babulu Darat",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b55fd309db",
+    "nama": "Masjid Miftahul Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-df5dfa8084",
+    "nama": "MASJID Miftahul Huda Lalundu (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a006a5d742",
+    "nama": "Masjid Miftahul Huda ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-bcd82246da",
+    "nama": "Masjid MIFTAHUL HUDA(LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-f09e12d052",
+    "nama": "masjid miftahul hudha",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-daaea56d06",
+    "nama": "MASJID MIFTAHUL JANNAH ( LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cbdc409016",
+    "nama": "Masjid Miftahul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e27c8f219d",
+    "nama": "Masjid Miftahul jannah LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d88b38254c",
+    "nama": "Masjid Miftahul Ulum (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-90d95ad734",
+    "nama": "Masjid Miftakhul HUDA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a595ea88ec",
+    "nama": "Masjid Muhajirin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b56c1129c5",
+    "nama": "Masjid Mukhlishin",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-92704bd719",
+    "nama": "Masjid Nashrullah (LDII) kp.bukit ketok",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ed7d20dfa7",
+    "nama": "Masjid Nashrullah (LDII) Lalang Panjang",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-442431bd5c",
+    "nama": "Masjid Nur Allah ( LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fad5e0a169",
+    "nama": "Masjid Nur Haq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d5411a24e6",
+    "nama": "Masjid Nur Hasan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-24ebefc74b",
+    "nama": "MASJID NUR HASIM LDII (PAC Mandati)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a239549175",
+    "nama": "Masjid Nur Hidayah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a079ca2fe3",
+    "nama": "Masjid Nur Huda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-23f0589798",
+    "nama": "MASJID Nur Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cb7829bd2c",
+    "nama": "Masjid Nur Huda ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-29ade7742c",
+    "nama": "Masjid NUR ILLAHI (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-391ffcd5df",
+    "nama": "Masjid Nur Laila (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-44fc2fe6ea",
+    "nama": "Masjid Nursyima Syarif (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-609005becb",
+    "nama": "MASJID Nurul Barokah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-1310c5277c",
+    "nama": "Masjid Nurul Barqi PLN Ambon",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-80117f73a6",
+    "nama": "Masjid Nurul Fajar Buntok",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-696e195a93",
+    "nama": "Masjid Nurul Haq (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-258969a034",
+    "nama": "Masjid Nurul Hidayah ( Binaan LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3d09b07ca8",
+    "nama": "Masjid Nurul Hijrah Padaraya Makmur (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-590fdcf321",
+    "nama": "Masjid Nurul Hikmah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5731a42443",
+    "nama": "Masjid Nurul Huda",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5073ddd343",
+    "nama": "MASJID Nurul Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-82f6e2215e",
+    "nama": "Masjid Nurul Huda LDII (PAC Liya)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-adf7c8b2a2",
+    "nama": "Masjid Nurul Iman",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c4458a61b8",
+    "nama": "Masjid Nurul Iman (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-cf017c098a",
+    "nama": "MASJID Nurul Iman Tanjung Buka (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-785a72f891",
+    "nama": "Masjid Nurul Islam (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e7aea7fe6c",
+    "nama": "Masjid Nurul Islam - LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ae1946289d",
+    "nama": "Masjid Nurul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-608b778378",
+    "nama": "MASJID NURUL MAHMUD (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8967167007",
+    "nama": "Masjid Nurul Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b5a0a3a470",
+    "nama": "Masjid Nurul Rohman (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-94aa8b8a5f",
+    "nama": "Masjid Nurul Yaqin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-dd5bdc08a4",
+    "nama": "Masjid Nurussalam (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c3141ff4f7",
+    "nama": "Masjid PC LDII Donorojo Jepara",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c5e312bdd5",
+    "nama": "Masjid Qudrotul Qudsi (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2c98e0a55e",
+    "nama": "MASJID RIYADUS SHOLIHIN",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e702673821",
+    "nama": "Masjid Roudhatul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b61195ea45",
+    "nama": "Masjid Roudhothul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c8b8981852",
+    "nama": "Masjid Roudhotul Firdaus (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-edc2c2c3b8",
+    "nama": "Masjid Roudhotul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9dd579a082",
+    "nama": "MASJID Sabila Rosyad (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c29ebdd50d",
+    "nama": "Masjid Sabilarrosyad (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6a1a6d9451",
+    "nama": "Masjid Sabilil Muttaqien (LDII) Loa Kulu",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8d129e0fe2",
+    "nama": "Masjid Sabilillah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ad1cebd7d7",
+    "nama": "MASJID Sabilul Muhtadin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5da9312dee",
+    "nama": "MASJID SABILUL ROYAN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8ccead4fe0",
+    "nama": "Masjid Saifur Rohman Pondok Indah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-feceba6eed",
+    "nama": "Masjid Shirothol Mustaqim",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-6c6d4497f5",
+    "nama": "Masjid Shirothol Mustaqim (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2a3373ddf7",
+    "nama": "Masjid Shirotol Mustaqim (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e586b20082",
+    "nama": "Masjid Shofa Marwah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-06a99ba10f",
+    "nama": "Masjid Simpadan Al Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a8b67d2e43",
+    "nama": "Masjid Sirothol Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8bf00d11e6",
+    "nama": "Masjid Sirothol Mustaqim (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2e054afb06",
+    "nama": "Masjid Sirotol Mustaqim ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-409bbe4c56",
+    "nama": "Masjid Sirotul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-87857dad20",
+    "nama": "Masjid Sukron Hidayatullah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-679fe56fc2",
+    "nama": "Masjid Sulthon Aulia (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-44e3a0be17",
+    "nama": "MASJID Sulton Aulia (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-80bce705cc",
+    "nama": "MASJID SYA'AIRULLAH (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-57fd08f68e",
+    "nama": "Masjid Thoriqul Jannah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7e199dff2d",
+    "nama": "Masjid Ulul Albab (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-28b3cb7318",
+    "nama": "Masjid Uswatun hasanah ( LDII )",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3f00226666",
+    "nama": "Masjid Wali Barokah ~ LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3f3adcf0ec",
+    "nama": "Masjid Warrosatul Ambiya (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-9c69944830",
+    "nama": "Mesjid ldii",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5aee1f17c5",
+    "nama": "Mesjid ldii pemangkat",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0f683ba0c5",
+    "nama": "Mesjid ldii tawaeli",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-0991560a4c",
+    "nama": "Mushalla Babussalam (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-46362ea03e",
+    "nama": "Mushola AL MANSHURIN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-7ec7874d50",
+    "nama": "Mushola LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-e3e6d677e9",
+    "nama": "Mushola LDII Gemba",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-020683b3ad",
+    "nama": "Mushola LDII Margapura",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-60f9f4109b",
+    "nama": "Mushola LDII Waihatu",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-5ebb70a461",
+    "nama": "Mushola LDII​ Al-islah , Argamulya",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ab99ce64ab",
+    "nama": "Mushola Mubarok (Masjid LDII SP1 Utara)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-15efec7d34",
+    "nama": "MUSHOLA NUR HASAN (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fe7778eec0",
+    "nama": "Musholla Al Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-914ce024f6",
+    "nama": "Musholla Al Kautsar Pembataan (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-90630dc175",
+    "nama": "Musholla Al Manshurin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-4c362bd6a3",
+    "nama": "Musholla Al Muhajirin (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-06133f2df9",
+    "nama": "Musholla Al Muttaqin KOBISONTA (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-ee02e3e91a",
+    "nama": "Musholla An Nur (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-00e0d20a87",
+    "nama": "Musholla Az Zahirah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-514aff8fc4",
+    "nama": "Musholla Ldii",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d182025105",
+    "nama": "Musholla LDII \"At-Taqwa\" Tarjun",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-035856fcec",
+    "nama": "Musholla LDII Sofifi",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-bf80206a2d",
+    "nama": "Musholla Miftahul Huda (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-d51e886654",
+    "nama": "Musholla Nasrum Minallah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-da31500638",
+    "nama": "Musholla Nurul Iman (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b1adcc50b7",
+    "nama": "Musola Al barokah (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-b66079f883",
+    "nama": "PC LDII Bangko Rokan",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-72c7356ecf",
+    "nama": "PC LDII Kelua Tabalong",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-fe0a4a7172",
+    "nama": "Pengajian LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-c101519406",
+    "nama": "Pondok Pesantren Baitul Izza (LDII)",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-3784861574",
+    "nama": "Pondok Pesantren LDII \"Shirotol Mustaqim",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-8f41a02275",
+    "nama": "Temukan Masjid LDII Terdekat",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-27fea4d845",
+    "nama": "TPA AL-HIDAYAH Kelompok Simpang 4 LDII",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-a70e68c1b4",
+    "nama": "TPA NUR ROHMAH [LDII]",
+    "jenis": "masjid",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-2041b9cff1",
+    "nama": "Pondok Pesantren Pelajar dan Mahasiswa \"PPPM\" Nurul Islam Samarinda (LDII)",
+    "jenis": "ppm",
+    "kota": null,
+    "alamat": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "kode": "lok-426eab4a22",
+    "nama": "PPM Al Faqih Mandiri Depok",
+    "jenis": "ppm",
+    "kota": "Depok",
+    "alamat": null,
+    "lat": -6.30218,
+    "lng": 106.319125
+  },
+  {
+    "kode": "lok-a7cfd61491",
+    "nama": "PPM Al Hikmah Semarang",
+    "jenis": "ppm",
+    "kota": "Semarang",
+    "alamat": null,
+    "lat": -6.560265,
+    "lng": 110.307936
+  },
+  {
+    "kode": "lok-921c0e0103",
+    "nama": "PPM Al Kautsar Malang",
+    "jenis": "ppm",
+    "kota": "Malang",
+    "alamat": null,
+    "lat": -7.792756,
+    "lng": 113.004212
+  },
+  {
+    "kode": "lok-27a457b168",
+    "nama": "PPM Al Mukhlis Makassar",
+    "jenis": "ppm",
+    "kota": "Makassar",
+    "alamat": null,
+    "lat": -4.940813,
+    "lng": 120.23215
+  },
+  {
+    "kode": "lok-a40bc15dcc",
+    "nama": "PPM Al Musawwa Sukoharjo",
+    "jenis": "ppm",
+    "kota": "Sukoharjo",
+    "alamat": null,
+    "lat": -7.411615,
+    "lng": 110.79596
+  },
+  {
+    "kode": "lok-233087b26b",
+    "nama": "PPM Ar-Royyaan Baitul Hamdi Yogyakarta",
+    "jenis": "ppm",
+    "kota": "Yogyakarta",
+    "alamat": null,
+    "lat": -7.38904,
+    "lng": 110.373854
+  },
+  {
+    "kode": "lok-bcc47cd87f",
+    "nama": "PPM Baitul Akbar Kota Palu",
+    "jenis": "ppm",
+    "kota": "Palu",
+    "alamat": null,
+    "lat": -0.852691,
+    "lng": 120.47223
+  },
+  {
+    "kode": "lok-a6314e4617",
+    "nama": "PPM Baitul Hamdi Yogyakarta",
+    "jenis": "ppm",
+    "kota": "Yogyakarta",
+    "alamat": null,
+    "lat": -7.585893,
+    "lng": 110.367493
+  },
+  {
+    "kode": "lok-99fed6f954",
+    "nama": "PPM Baitul Ilmaini Bogor",
+    "jenis": "ppm",
+    "kota": "Bogor",
+    "alamat": null,
+    "lat": -6.488314,
+    "lng": 106.725159
+  },
+  {
+    "kode": "lok-8df505a7e3",
+    "nama": "PPM Baitul Jannah Klaseman Malang",
+    "jenis": "ppm",
+    "kota": "Malang",
+    "alamat": null,
+    "lat": -7.885226,
+    "lng": 112.937301
+  },
+  {
+    "kode": "lok-e9c185c354",
+    "nama": "PPM Baitul Makmur Jetis Surabaya",
+    "jenis": "ppm",
+    "kota": "Surabaya",
+    "alamat": null,
+    "lat": -7.035554,
+    "lng": 112.975753
+  },
+  {
+    "kode": "lok-c251e9cab3",
+    "nama": "PPM Baitus Shodiq Lampung",
+    "jenis": "ppm",
+    "kota": "Lampung",
+    "alamat": null,
+    "lat": -5.157615,
+    "lng": 106.379192
+  },
+  {
+    "kode": "lok-31c5b4de52",
+    "nama": "PPM Baitussalam Yogyakarta",
+    "jenis": "ppm",
+    "kota": "Yogyakarta",
+    "alamat": null,
+    "lat": -7.720213,
+    "lng": 109.427796
+  },
+  {
+    "kode": "lok-6c1ec66de4",
+    "nama": "PPM Bina Insan Mulia Tangerang",
+    "jenis": "ppm",
+    "kota": "Tangerang",
+    "alamat": null,
+    "lat": -5.970549,
+    "lng": 106.726393
+  },
+  {
+    "kode": "lok-dad85323d2",
+    "nama": "PPM Bina Khoirul Insan Semarang",
+    "jenis": "ppm",
+    "kota": "Semarang",
+    "alamat": null,
+    "lat": -6.451109,
+    "lng": 110.307936
+  },
+  {
+    "kode": "lok-43128921ef",
+    "nama": "PPM Graha Cendikia Sleman",
+    "jenis": "ppm",
+    "kota": "Sleman",
+    "alamat": null,
+    "lat": -7.258279,
+    "lng": 110.571608
+  },
+  {
+    "kode": "lok-0b0444278c",
+    "nama": "PPM Hudatul Jannah Lidah Surabaya",
+    "jenis": "ppm",
+    "kota": "Surabaya",
+    "alamat": null,
+    "lat": -7.179238,
+    "lng": 112.129159
+  },
+  {
+    "kode": "lok-ba799effd1",
+    "nama": "PPM Jamiatul Amaliyah Palangkaraya",
+    "jenis": "ppm",
+    "kota": "Palangkaraya",
+    "alamat": null,
+    "lat": -1.938065,
+    "lng": 114.856891
+  },
+  {
+    "kode": "lok-5dcac1e5c1",
+    "nama": "PPM Khoirul Huda 1 Nginden Surabaya",
+    "jenis": "ppm",
+    "kota": "Surabaya",
+    "alamat": null,
+    "lat": -7.242442,
+    "lng": 113.092994
+  },
+  {
+    "kode": "lok-ab2a10ffd2",
+    "nama": "PPM Khoirul Huda 2 Keputih Surabaya",
+    "jenis": "ppm",
+    "kota": "Surabaya",
+    "alamat": null,
+    "lat": -7.214326,
+    "lng": 113.091466
+  },
+  {
+    "kode": "lok-ff092e96b6",
+    "nama": "PPM Khoirul Huda 3 Semampir Surabaya",
+    "jenis": "ppm",
+    "kota": "Surabaya",
+    "alamat": null,
+    "lat": -7.049944,
+    "lng": 112.695745
+  },
+  {
+    "kode": "lok-0480be60a4",
+    "nama": "PPM MINHAJUL HAQ Bandung",
+    "jenis": "ppm",
+    "kota": "Bandung",
+    "alamat": null,
+    "lat": -6.684762,
+    "lng": 107.977601
+  },
+  {
+    "kode": "lok-7392a94ee1",
+    "nama": "PPM Nur Muhammad Malang",
+    "jenis": "ppm",
+    "kota": "Malang",
+    "alamat": null,
+    "lat": -7.759315,
+    "lng": 112.607019
+  },
+  {
+    "kode": "lok-1fdc50de1c",
+    "nama": "PPM Nurul Islam Samarinda",
+    "jenis": "ppm",
+    "kota": "Samarinda",
+    "alamat": null,
+    "lat": -0.415182,
+    "lng": 117.802164
+  },
+  {
+    "kode": "lok-a6f25e76b8",
+    "nama": "PPM Roudhotul Jannah Solo",
+    "jenis": "ppm",
+    "kota": "Solo",
+    "alamat": null,
+    "lat": -7.414952,
+    "lng": 111.451207
+  },
+  {
+    "kode": "lok-fe6de2d71a",
+    "nama": "PPM Sulthon Aulia Jakarta Timur",
+    "jenis": "ppm",
+    "kota": "Jakarta Timur",
+    "alamat": null,
+    "lat": -5.884266,
+    "lng": 107.347631
+  }
+]
