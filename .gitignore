@@ -1,6 +1,8 @@
 .env
 .env.*
 !.env.example
+!.env.aiven.example
+!.env.production.example
 backend/.env
 backend/.env.*
 !backend/.env.example
@@ -36,8 +38,6 @@ backend/.phpunit.cache/
 backend/public/hot
 backend/public/storage
 
-docs/
 artifacts/
 notes/
-scripts/
 PROJECT.yaml

@@ -26,7 +26,9 @@ fi
 
 php artisan package:discover --ansi || true
 
-echo "Waiting for PostgreSQL at ${DB_HOST:-db}:${DB_PORT:-5432}..."
+export PGSSLMODE="${DB_SSLMODE:-prefer}"
+
+echo "Waiting for PostgreSQL at ${DB_HOST:-db}:${DB_PORT:-5432} (sslmode=${PGSSLMODE})..."
 until pg_isready -h "${DB_HOST:-db}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME:-sijama}" -d "${DB_DATABASE:-sijama}" > /dev/null 2>&1; do
   sleep 2
 done

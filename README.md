@@ -79,6 +79,11 @@ Wilayah berjenjang sampai unit terkecil, lalu data anggota.
 4. Pengajian, kegiatan, dan absensi pengajian (face recognition)
 5. Dashboard
 
+## Deploy (GitLab CI + Aiven)
+
+- DB cloud: [docs/database-aiven.md](docs/database-aiven.md)
+- CI/CD + VPS deploy: [docs/gitlab-ci.md](docs/gitlab-ci.md)
+
 ## Attribution
 
 Author catalog: [Rogue Development](https://github.com/rogue-dev-studio)

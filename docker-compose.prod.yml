@@ -1,0 +1,47 @@
+# Production stack: images from GitLab Container Registry + Aiven PostgreSQL.
+# Server needs /opt/sijama/.env.production (see docs/gitlab-ci.md).
+
+services:
+  backend:
+    image: ${SIJAMA_BACKEND_IMAGE:?set SIJAMA_BACKEND_IMAGE}
+    ports:
+      - "${BACKEND_PORT:-8080}:80"
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: pgsql
+      DB_SSLMODE: require
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      CONTAINER_ROLE: web
+    restart: unless-stopped
+
+  scheduler:
+    image: ${SIJAMA_BACKEND_IMAGE:?set SIJAMA_BACKEND_IMAGE}
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: pgsql
+      DB_SSLMODE: require
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      CONTAINER_ROLE: scheduler
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  frontend:
+    image: ${SIJAMA_FRONTEND_IMAGE:?set SIJAMA_FRONTEND_IMAGE}
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
