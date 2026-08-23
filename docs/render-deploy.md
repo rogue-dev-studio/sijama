@@ -1,0 +1,104 @@
+# SIJAMA — Deploy ke Render.com
+
+Hosting app online (bukan database). **PostgreSQL tetap di Aiven.**
+
+## Arsitektur
+
+```
+Render Static Site (sijama-web)  →  React build (VITE_API_URL → API Render)
+Render Web Service (sijama-api)  →  Laravel Docker
+Aiven PostgreSQL                 →  DB cloud (sudah running)
+GitLab                           →  sumber kode (+ CI test/build opsional)
+```
+
+## Prasyarat
+
+- Akun [Render](https://render.com) (login GitLab/GitHub)
+- Repo GitLab: `rogue-dev-studio/sijama`
+- Aiven service `pg-1a25e67a-sijama` sudah jalan + database `sijama` ada
+- `APP_KEY` production (generate lokal):
+
+```powershell
+cd backend
+php artisan key:generate --show
+```
+
+## Deploy via Blueprint (disarankan)
+
+1. Push commit yang berisi `render.yaml` ke GitLab `main`.
+2. Render Dashboard → **New** → **Blueprint**.
+3. Connect GitLab → pilih repo **sijama**.
+4. Render membaca `render.yaml` → buat 2 service: `sijama-api` + `sijama-web`.
+5. Saat diminta, isi **secret** env vars untuk `sijama-api`:
+   - `APP_KEY` — dari `php artisan key:generate --show`
+   - `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` — dari Aiven Console
+6. **Deploy**. Backend entrypoint menjalankan `migrate --force` otomatis.
+
+URL contoh:
+
+- API: `https://sijama-api.onrender.com`
+- Web: `https://sijama-web.onrender.com`
+
+## Deploy manual (tanpa Blueprint)
+
+### Backend — Web Service (Docker)
+
+| Setting | Nilai |
+|---------|--------|
+| Root Directory | *(kosong — repo root)* |
+| Dockerfile | `backend/Dockerfile` |
+| Docker Context | `backend` |
+| Health Check | `/up` |
+
+Env vars: lihat `.env.render.example` + `APP_URL` = URL service backend.
+
+### Frontend — Static Site
+
+| Setting | Nilai |
+|---------|--------|
+| Root Directory | `frontend` |
+| Build | `npm ci && npm run build` |
+| Publish | `dist` |
+| Rewrite | `/*` → `/index.html` (SPA) |
+
+Env build: `VITE_API_URL=https://<sijama-api>.onrender.com`
+
+Set `FRONTEND_URL` di backend = URL frontend Render.
+
+## Setelah deploy
+
+1. Cek health: `https://<sijama-api>.onrender.com/up`
+2. Seed (sekali, via Render Shell di service backend):
+
+```bash
+php artisan db:seed --force
+```
+
+Login seed: `admin@sijama.local` / `password` — **ganti password di production.**
+
+3. Buka frontend → login → tes modul utama.
+
+## GitLab CI vs Render
+
+- **GitLab CI** (`/.gitlab-ci.yml`): test + build image registry + deploy SSH VPS (opsional).
+- **Render**: pull dari GitLab, build & run otomatis per push (aktifkan Auto-Deploy di service settings).
+
+Keduanya bisa dipakai: CI untuk quality gate, Render untuk hosting tanpa VPS.
+
+## Batasan plan Free Render
+
+| Item | Catatan |
+|------|---------|
+| Cold start | Web service tidur ~15 menit idle; wake up ~30–60 detik |
+| Disk | Upload file di `storage/` hilang saat redeploy — pakai S3/R2 nanti jika perlu |
+| DB | **Jangan** pakai Render Postgres free (expired 30 hari) — tetap Aiven |
+| Scheduler | `schedule:work` tidak jalan di free web service — butuh cron job terpisah atau upgrade |
+
+## Troubleshooting
+
+| Gejala | Solusi |
+|--------|--------|
+| 502 / service tidak start | Cek log Render; pastikan `DB_*` + `APP_KEY` benar |
+| CORS error | `FRONTEND_URL` harus exact URL frontend (https, tanpa slash akhir) |
+| Frontend API gagal | Rebuild frontend setelah `VITE_API_URL` benar |
+| DB connection timeout | Aiven → allowed IP: Render egress IP atau `0.0.0.0/0` sementara untuk uji |

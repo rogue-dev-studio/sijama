@@ -12,6 +12,8 @@ GitLab (kode + CI)
     ├─ test: PHPUnit + npm build
     ├─ build: push image backend + frontend
     └─ deploy (manual): SSH → VPS docker compose up
+              atau
+         Render.com (Blueprint render.yaml) → lihat docs/render-deploy.md
                               ↓
                          Aiven PostgreSQL
 ```

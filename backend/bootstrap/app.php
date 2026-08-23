@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('events:update-statuses')->everyFiveMinutes();
     })
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'role' => EnsureRole::class,
             'permission' => EnsurePermission::class,

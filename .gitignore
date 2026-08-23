@@ -3,6 +3,7 @@
 !.env.example
 !.env.aiven.example
 !.env.production.example
+!.env.render.example
 backend/.env
 backend/.env.*
 !backend/.env.example
