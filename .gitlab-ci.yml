@@ -24,7 +24,7 @@ test:backend:
   image: php:8.2-cli
   extends: .default_rules
   variables:
-    APP_KEY: base64:Y2ktc2l0YW1hLXRlc3Qta2V5LW5vdC1wcm9kLW9rLWZvci1waXBlbGluZQ==
+    APP_KEY: base64:c2lqamFtYS1jaS10ZXN0LWtleS0zMmJ5dGVzLWxvbmchIQ==
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libpq-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev
     - docker-php-ext-configure gd --with-freetype --with-jpeg

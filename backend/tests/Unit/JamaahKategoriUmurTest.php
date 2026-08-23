@@ -20,7 +20,7 @@ class JamaahKategoriUmurTest extends TestCase
     {
         $asOf = Carbon::parse('2026-08-03');
 
-        $this->assertSame('paud', JamaahKategoriUmur::classify(Carbon::parse('2023-01-01'), JamaahStatusPernikahan::SUDAH_MENIKAH, $asOf));
+        $this->assertSame('balita', JamaahKategoriUmur::classify(Carbon::parse('2023-01-01'), JamaahStatusPernikahan::SUDAH_MENIKAH, $asOf));
         $this->assertSame('caberawit_a', JamaahKategoriUmur::classify(Carbon::parse('2019-01-01'), null, $asOf));
         $this->assertSame('remaja', JamaahKategoriUmur::classify(Carbon::parse('2007-01-01'), JamaahStatusPernikahan::BELUM_MENIKAH, $asOf));
     }
