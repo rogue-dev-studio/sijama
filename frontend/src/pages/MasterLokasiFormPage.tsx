@@ -17,7 +17,9 @@ import {
   masterLokasiService,
 } from '../api/services'
 import type { LokasiInput, LokasiJenis, WilayahSummary } from '../api/types'
-
+import { LokasiMapFields } from '../components/LokasiMapFields'
+import { SearchableSelect } from '../components/SearchableSelect'
+import { isValidCoords } from '../lib/googleMaps'
 const JENIS_OPTIONS: { value: LokasiJenis; label: string }[] = [
   { value: 'masjid', label: 'Masjid LDII' },
   { value: 'gsg', label: 'Gedung Serbaguna (GSG)' },
@@ -28,12 +30,13 @@ const JENIS_OPTIONS: { value: LokasiJenis; label: string }[] = [
 ]
 
 const emptyForm: LokasiInput = {
-  kode: '',
   nama: '',
   jenis: 'masjid',
   kota: '',
   adm_desa_kelurahan_id: null,
   alamat: '',
+  lat: null,
+  lng: null,
   is_active: true,
 }
 
@@ -69,12 +72,13 @@ export function MasterLokasiFormPage() {
           const lokasi = await masterLokasiService.get(Number(id))
           if (!active) return
           setForm({
-            kode: lokasi.kode,
             nama: lokasi.nama,
             jenis: lokasi.jenis,
             kota: lokasi.kota || '',
             adm_desa_kelurahan_id: lokasi.adm_desa_kelurahan_id || null,
             alamat: lokasi.alamat || '',
+            lat: lokasi.lat ?? null,
+            lng: lokasi.lng ?? null,
             is_active: lokasi.is_active,
           })
           if (lokasi.adm_desa_kelurahan_id) {
@@ -185,11 +189,21 @@ export function MasterLokasiFormPage() {
     setSubmitting(true)
     setError(null)
 
+    const lat = form.lat ?? null
+    const lng = form.lng ?? null
+    if ((lat != null || lng != null) && !isValidCoords(lat, lng)) {
+      setError('Koordinat tidak valid. Latitude -90…90, longitude -180…180, keduanya harus diisi.')
+      setSubmitting(false)
+      return
+    }
+
     const payload: LokasiInput = {
       ...form,
       kota: form.kota || null,
       adm_desa_kelurahan_id: form.adm_desa_kelurahan_id || null,
       alamat: form.alamat || null,
+      lat,
+      lng,
     }
 
     try {
@@ -214,23 +228,13 @@ export function MasterLokasiFormPage() {
     <>
       <header className="page-header">
         <h1>{isEdit ? 'Edit lokasi' : 'Tambah lokasi'}</h1>
-        <p>Lengkapi data lokasi kegiatan dan wilayah administrasi.</p>
+        <p>Lengkapi data lokasi, wilayah administrasi, dan titik Google Maps untuk share lokasi.</p>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}
 
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
-          <div className="field">
-            <label htmlFor="kode">Kode</label>
-            <input
-              id="kode"
-              value={form.kode}
-              onChange={(event) => setForm({ ...form, kode: event.target.value })}
-              required
-              disabled={isEdit}
-            />
-          </div>
           <div className="field">
             <label htmlFor="nama">Nama</label>
             <input
@@ -242,115 +246,99 @@ export function MasterLokasiFormPage() {
           </div>
           <div className="field">
             <label htmlFor="jenis">Jenis</label>
-            <select
+            <SearchableSelect
               id="jenis"
               value={form.jenis}
-              onChange={(event) =>
-                setForm({ ...form, jenis: event.target.value as LokasiJenis })
-              }
+              onChange={(next) => setForm({ ...form, jenis: next as LokasiJenis })}
               required
-            >
-              {JENIS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              options={[
+                ...JENIS_OPTIONS.map((option) => ({ value: String(option.value), label: option.label })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="is_active">Status</label>
-            <select
+            <SearchableSelect
               id="is_active"
               value={form.is_active ? '1' : '0'}
-              onChange={(event) => setForm({ ...form, is_active: event.target.value === '1' })}
-            >
-              <option value="1">Aktif</option>
-              <option value="0">Nonaktif</option>
-            </select>
+              onChange={(next) => setForm({ ...form, is_active: next === '1' })}
+              options={[
+                { value: "1", label: "Aktif" },
+                { value: "0", label: "Nonaktif" },
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="negara">Negara</label>
-            <select
+            <SearchableSelect
               id="negara"
-              value={selectedNegaraId}
-              onChange={(event) => void handleNegaraChange(Number(event.target.value))}
-            >
-              <option value={0}>Pilih negara</option>
-              {negaraList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
+              value={selectedNegaraId ? String(selectedNegaraId) : ''}
+              onChange={(next) => void handleNegaraChange(Number(next))}
+              placeholder="Pilih negara"
+              options={[
+                { value: '', label: 'Pilih negara' },
+                ...negaraList.map((item) => ({ value: String(item.id), label: item.nama })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="provinsi">Provinsi</label>
-            <select
+            <SearchableSelect
               id="provinsi"
-              value={selectedProvinsiId}
-              onChange={(event) => void handleProvinsiChange(Number(event.target.value))}
+              value={selectedProvinsiId ? String(selectedProvinsiId) : ''}
+              onChange={(next) => void handleProvinsiChange(Number(next))}
+              placeholder="Pilih provinsi"
               disabled={!selectedNegaraId}
-            >
-              <option value={0}>Pilih provinsi</option>
-              {provinsiList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: 'Pilih provinsi' },
+                ...provinsiList.map((item) => ({ value: String(item.id), label: item.nama })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="kabupaten_kota">Kabupaten/Kota</label>
-            <select
+            <SearchableSelect
               id="kabupaten_kota"
-              value={selectedKabupatenKotaId}
-              onChange={(event) => void handleKabupatenKotaChange(Number(event.target.value))}
+              value={selectedKabupatenKotaId ? String(selectedKabupatenKotaId) : ''}
+              onChange={(next) => void handleKabupatenKotaChange(Number(next))}
+              placeholder="Pilih kabupaten/kota"
               disabled={!selectedProvinsiId}
-            >
-              <option value={0}>Pilih kabupaten/kota</option>
-              {kabupatenKotaList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: 'Pilih kabupaten/kota' },
+                ...kabupatenKotaList.map((item) => ({ value: String(item.id), label: item.nama })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="kecamatan">Kecamatan</label>
-            <select
+            <SearchableSelect
               id="kecamatan"
-              value={selectedKecamatanId}
-              onChange={(event) => void handleKecamatanChange(Number(event.target.value))}
+              value={selectedKecamatanId ? String(selectedKecamatanId) : ''}
+              onChange={(next) => void handleKecamatanChange(Number(next))}
+              placeholder="Pilih kecamatan"
               disabled={!selectedKabupatenKotaId}
-            >
-              <option value={0}>Pilih kecamatan</option>
-              {kecamatanList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: 'Pilih kecamatan' },
+                ...kecamatanList.map((item) => ({ value: String(item.id), label: item.nama })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="desa_kelurahan">Kelurahan/Desa</label>
-            <select
+            <SearchableSelect
               id="desa_kelurahan"
-              value={form.adm_desa_kelurahan_id || 0}
-              onChange={(event) =>
-                setForm({
+              value={form.adm_desa_kelurahan_id ? String(form.adm_desa_kelurahan_id) : ''}
+              onChange={(next) => setForm({
                   ...form,
-                  adm_desa_kelurahan_id: Number(event.target.value) || null,
-                })
-              }
+                  adm_desa_kelurahan_id: Number(next) || null,
+                })}
+              placeholder="Pilih kelurahan/desa"
               disabled={!selectedKecamatanId}
-            >
-              <option value={0}>Pilih kelurahan/desa</option>
-              {desaKelurahanList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: 'Pilih kelurahan/desa' },
+                ...desaKelurahanList.map((item) => ({ value: String(item.id), label: item.nama })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="kota">Kota (otomatis)</label>
@@ -365,6 +353,13 @@ export function MasterLokasiFormPage() {
             />
           </div>
         </div>
+
+        <LokasiMapFields
+          lat={form.lat}
+          lng={form.lng}
+          onChange={({ lat, lng }) => setForm((prev) => ({ ...prev, lat, lng }))}
+        />
+
         <div className="form-actions">
           <button type="submit" className="btn btn--primary" disabled={submitting}>
             {submitting ? 'Menyimpan…' : 'Simpan'}

@@ -15,10 +15,7 @@ class UpdateLokasiRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('lokasi');
-
         return [
-            'kode' => ['sometimes', 'required', 'string', 'max:50', Rule::unique('lokasi', 'kode')->ignore($id)],
             'nama' => ['sometimes', 'required', 'string', 'max:255'],
             'jenis' => ['sometimes', 'required', 'string', Rule::in(LokasiJenis::VALUES)],
             'kota' => ['nullable', 'string', 'max:100'],

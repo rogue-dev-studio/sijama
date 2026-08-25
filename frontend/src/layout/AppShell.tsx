@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import type { MenuNode, User } from '../api/types'
+import type { MenuNode } from '../api/types'
 import { BrandMark } from '../components/BrandMark'
 import { DeveloperFooter } from '../components/DeveloperFooter'
 import { MenuIcon } from '../components/MenuIcon'
@@ -46,33 +46,46 @@ function NavBranch({
     const visibleChildren = children.filter(
       (child) => Boolean(child.path) || (child.children ?? []).length > 0,
     )
-    if (visibleChildren.length === 0) return null
 
+    if (visibleChildren.length > 0) {
+      return (
+        <div className={`nav-group nav-group--depth-${Math.min(depth, 2)}`}>
+          <button
+            type="button"
+            className="nav-group__toggle"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            <span className="nav-group__toggle-label">
+              <MenuIcon name={node.icon} size={14} className="nav-icon" />
+              <span>{node.nama}</span>
+            </span>
+            <span className="nav-group__chevron" aria-hidden>
+              {open ? '▾' : '▸'}
+            </span>
+          </button>
+          {open &&
+            visibleChildren.map((child) => (
+              <NavBranch key={child.id} node={child} depth={depth + 1} onNavigate={onNavigate} />
+            ))}
+        </div>
+      )
+    }
+  }
+
+  // Section tanpa anak (mis. Laporan, Aplikasi) tetap ditampilkan sebagai header.
+  if (!node.path) {
     return (
-      <div className={`nav-group nav-group--depth-${Math.min(depth, 2)}`}>
-        <button
-          type="button"
-          className="nav-group__toggle"
-          aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-        >
+      <div className={`nav-group nav-group--depth-${Math.min(depth, 2)} nav-group--empty`}>
+        <div className="nav-group__toggle nav-group__toggle--static" aria-disabled="true">
           <span className="nav-group__toggle-label">
             <MenuIcon name={node.icon} size={14} className="nav-icon" />
             <span>{node.nama}</span>
           </span>
-          <span className="nav-group__chevron" aria-hidden>
-            {open ? '▾' : '▸'}
-          </span>
-        </button>
-        {open &&
-          visibleChildren.map((child) => (
-            <NavBranch key={child.id} node={child} depth={depth + 1} onNavigate={onNavigate} />
-          ))}
+        </div>
       </div>
     )
   }
-
-  if (!node.path) return null
 
   return (
     <NavLink
@@ -227,16 +240,6 @@ function NavMenu({
   )
 }
 
-function formatUserScope(user: User) {
-  const parts = [
-    user.scope?.pusat?.nama,
-    user.scope?.daerah?.nama,
-    user.scope?.desa?.nama,
-    user.scope?.kelompok?.nama,
-  ].filter(Boolean)
-  return parts.length > 0 ? parts.join(' → ') : null
-}
-
 function BottomNav({ onMore }: { onMore: () => void }) {
   const { menus } = useAuth()
   const primary = flattenMenuLinks(menus).filter(
@@ -271,10 +274,8 @@ function BottomNav({ onMore }: { onMore: () => void }) {
 }
 
 export function AppShell() {
-  const { user } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
-  const scopeLabel = useMemo(() => (user ? formatUserScope(user) : null), [user])
 
   useEffect(() => {
     try {
@@ -291,7 +292,7 @@ export function AppShell() {
           <BrandMark className="app-shell__brand-mark" />
           SIJAMA
         </Link>
-        <UserMenu compact scopeLabel={scopeLabel} />
+        <UserMenu compact />
       </header>
 
       <aside
@@ -329,10 +330,7 @@ export function AppShell() {
           <NavMenu collapsed={sidebarCollapsed} />
         </nav>
         <div className="app-shell__sidebar-footer">
-          <UserMenu
-            iconOnly={sidebarCollapsed}
-            scopeLabel={sidebarCollapsed ? null : scopeLabel}
-          />
+          <UserMenu iconOnly={sidebarCollapsed} />
           {!sidebarCollapsed && (
             <DeveloperFooter compact className="developer-footer--sidebar" />
           )}
@@ -358,7 +356,7 @@ export function AppShell() {
               </button>
             </div>
             <div className="app-shell__user app-shell__user--sheet">
-              <UserMenu scopeLabel={scopeLabel} onNavigate={() => setMoreOpen(false)} />
+              <UserMenu onNavigate={() => setMoreOpen(false)} />
             </div>
             <NavMenu onNavigate={() => setMoreOpen(false)} />
           </div>

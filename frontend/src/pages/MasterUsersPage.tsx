@@ -7,6 +7,7 @@ import { Pagination, rowNumber } from '../components/Pagination'
 import type { Dapukan, MasterUser, PaginationMeta } from '../api/types'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 export function MasterUsersPage() {
   const { can } = useAuth()
   const [items, setItems] = useState<MasterUser[]>([])
@@ -125,36 +126,36 @@ export function MasterUsersPage() {
         <div className="filter-bar__fields">
           <div className="field">
             <label htmlFor="filter_status">Status</label>
-            <select
+            <SearchableSelect
               id="filter_status"
               value={isActiveFilter}
-              onChange={(event) => {
-                setIsActiveFilter(event.target.value as '' | '1' | '0')
+              onChange={(next) => {
+                setIsActiveFilter(next as '' | '1' | '0')
                 setPage(1)
               }}
-            >
-              <option value="">Semua</option>
-              <option value="1">Aktif</option>
-              <option value="0">Nonaktif</option>
-            </select>
+              placeholder="Semua"
+              options={[
+                { value: "", label: "Semua" },
+                { value: "1", label: "Aktif" },
+                { value: "0", label: "Nonaktif" },
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="filter_dapukan">Dapukan</label>
-            <select
+            <SearchableSelect
               id="filter_dapukan"
-              value={dapukanFilter}
-              onChange={(event) => {
-                setDapukanFilter(Number(event.target.value))
+              value={dapukanFilter ? String(dapukanFilter) : ''}
+              onChange={(next) => {
+                setDapukanFilter(Number(next))
                 setPage(1)
               }}
-            >
-              <option value={0}>Semua</option>
-              {dapukanList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
+              placeholder="Semua"
+              options={[
+                { value: '', label: 'Semua' },
+                ...dapukanList.map((item) => ({ value: String(item.id), label: item.nama })),
+              ]}
+            />
           </div>
         </div>
         {hasActiveFilters && (

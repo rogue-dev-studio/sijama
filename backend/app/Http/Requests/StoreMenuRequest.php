@@ -15,7 +15,7 @@ class StoreMenuRequest extends FormRequest
     {
         return [
             'parent_id' => ['nullable', 'integer', 'exists:menus,id'],
-            'kode' => ['required', 'string', 'max:50', 'unique:menus,kode'],
+            'slug' => ['required', 'string', 'max:50', 'unique:menus,slug'],
             'nama' => ['required', 'string', 'max:255'],
             'path' => ['nullable', 'string', 'max:255'],
             'icon' => ['nullable', 'string', 'max:100'],

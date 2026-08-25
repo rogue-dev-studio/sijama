@@ -10,7 +10,7 @@ class Fitur extends Model
 {
     protected $fillable = [
         'menu_id',
-        'kode',
+        'slug',
         'nama',
         'deskripsi',
         'is_active',

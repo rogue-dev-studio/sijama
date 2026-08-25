@@ -11,8 +11,8 @@ import { ApiError } from '../api/client'
 import { jamaahService, masterPemateriService } from '../api/services'
 import type { Jamaah, PemateriInput } from '../api/types'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 const emptyForm: PemateriInput = {
-  kode: '',
   jamaah_id: 0,
   is_active: true,
 }
@@ -44,7 +44,6 @@ export function MasterPemateriFormPage() {
           const pemateri = await masterPemateriService.get(Number(id))
           if (!active) return
           setForm({
-            kode: pemateri.kode,
             jamaah_id: pemateri.jamaah_id || 0,
             is_active: pemateri.is_active,
           })
@@ -81,7 +80,6 @@ export function MasterPemateriFormPage() {
     setError(null)
 
     const payload: PemateriInput = {
-      kode: form.kode,
       jamaah_id: form.jamaah_id,
       is_active: form.is_active,
     }
@@ -122,34 +120,22 @@ export function MasterPemateriFormPage() {
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
           <div className="field">
-            <label htmlFor="kode">Kode</label>
-            <input
-              id="kode"
-              value={form.kode}
-              onChange={(event) => setForm({ ...form, kode: event.target.value })}
-              required
-              disabled={isEdit}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="jamaah_id">Jamaah *</label>
-            <select
+            <label htmlFor="jamaah_id">Jamaah</label>
+            <SearchableSelect
               id="jamaah_id"
-              value={form.jamaah_id || 0}
-              onChange={(event) =>
-                setForm({ ...form, jamaah_id: Number(event.target.value) || 0 })
-              }
-              required
+              value={form.jamaah_id ? String(form.jamaah_id) : ''}
+              onChange={(next) => setForm({ ...form, jamaah_id: Number(next) || 0 })}
+              placeholder="Pilih jamaah"
               disabled={jamaahOptions.length === 0}
-            >
-              <option value={0}>Pilih jamaah</option>
-              {jamaahOptions.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                  {item.no_hp ? ` · ${item.no_hp}` : ''}
-                </option>
-              ))}
-            </select>
+              required
+              options={[
+                { value: '', label: 'Pilih jamaah' },
+                ...jamaahOptions.map((item) => ({
+                  value: String(item.id),
+                  label: item.nama + (item.no_hp ? ` · ${item.no_hp}` : ''),
+                })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="nama_preview">Nama (dari jamaah)</label>
@@ -161,14 +147,15 @@ export function MasterPemateriFormPage() {
           </div>
           <div className="field">
             <label htmlFor="is_active">Status</label>
-            <select
+            <SearchableSelect
               id="is_active"
               value={form.is_active ? '1' : '0'}
-              onChange={(event) => setForm({ ...form, is_active: event.target.value === '1' })}
-            >
-              <option value="1">Aktif</option>
-              <option value="0">Nonaktif</option>
-            </select>
+              onChange={(next) => setForm({ ...form, is_active: next === '1' })}
+              options={[
+                { value: "1", label: "Aktif" },
+                { value: "0", label: "Nonaktif" },
+              ]}
+            />
           </div>
         </div>
         <div className="form-actions">

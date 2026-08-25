@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const can = useCallback(
     (permission: string) => {
-      if (user?.dapukan?.kode === 'superadmin') return true
+      if (user?.dapukan?.slug === 'superadmin') return true
       return permissions.includes(permission)
     },
     [permissions, user],

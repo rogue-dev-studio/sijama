@@ -17,7 +17,6 @@ class KategoriKegiatan extends Model
     protected $table = 'kategori_kegiatan';
 
     protected $fillable = [
-        'kode',
         'nama',
         'deskripsi',
         'calendar_color',

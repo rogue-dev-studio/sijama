@@ -27,7 +27,7 @@ class LokasiService extends SimpleMasterService
 
     protected function searchable(): array
     {
-        return ['nama', 'kode', 'kota', 'alamat'];
+        return ['nama', 'kota', 'alamat'];
     }
 
     protected function withRelations(): array

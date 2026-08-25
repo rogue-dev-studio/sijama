@@ -4,6 +4,7 @@ import { masterMatriksService } from '../api/services'
 import { useAuth } from '../auth/AuthContext'
 import type { Dapukan, HakAkses } from '../api/types'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 export function MasterMatriksPage() {
   const { can } = useAuth()
   const [dapukanList, setDapukanList] = useState<Dapukan[]>([])
@@ -100,17 +101,14 @@ export function MasterMatriksPage() {
           <div className="form-panel inline-form">
             <div className="field" style={{ maxWidth: '320px' }}>
               <label htmlFor="dapukan_id">Dapukan</label>
-              <select
+              <SearchableSelect
                 id="dapukan_id"
-                value={selectedDapukanId}
-                onChange={(event) => handleDapukanChange(Number(event.target.value))}
-              >
-                {dapukanList.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.nama} ({item.kode})
-                  </option>
-                ))}
-              </select>
+                value={selectedDapukanId ? String(selectedDapukanId) : ''}
+                onChange={(next) => handleDapukanChange(Number(next))}
+                options={[
+                  ...dapukanList.map((item) => ({ value: String(item.id), label: `${item.nama} (${item.slug})` })),
+                ]}
+              />
             </div>
 
             {selectedDapukan && (
@@ -134,7 +132,7 @@ export function MasterMatriksPage() {
                   />
                   <span>
                     {item.nama}
-                    <span className="checkbox-item__code">{item.kode}</span>
+                    <span className="checkbox-item__code">{item.slug}</span>
                   </span>
                 </label>
               ))}

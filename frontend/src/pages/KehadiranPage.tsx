@@ -9,6 +9,7 @@ import { ApiError } from '../api/client'
 import { attendanceService } from '../api/services'
 import type { Attendance, AttendanceSession } from '../api/types'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 const REFRESH_MS = 5000
 
 function formatDateTime(value?: string | null) {
@@ -144,44 +145,44 @@ export function KehadiranPage() {
       <div className="form-panel absensi-controls">
         <div className="field">
           <label htmlFor="kehadiran-session-status">Status sesi</label>
-          <select
+          <SearchableSelect
             id="kehadiran-session-status"
             value={sessionStatusFilter}
-            onChange={(event) =>
-              setSessionStatusFilter(event.target.value as '' | 'open' | 'closed')
-            }
-          >
-            <option value="">Semua</option>
-            <option value="open">Open</option>
-            <option value="closed">Closed</option>
-          </select>
+            onChange={(next) => setSessionStatusFilter(next as '' | 'open' | 'closed')}
+            placeholder="Semua"
+            options={[
+              { value: "", label: "Semua" },
+              { value: "open", label: "Open" },
+              { value: "closed", label: "Closed" },
+            ]}
+          />
         </div>
         <div className="field">
           <label htmlFor="kehadiran-session">Sesi absensi</label>
-          <select
+          <SearchableSelect
             id="kehadiran-session"
-            value={sessionId}
-            onChange={(event) => void handleSelectSession(event.target.value)}
-          >
-            <option value="">— Pilih sesi —</option>
-            {sessions.map((session) => (
-              <option key={session.id} value={session.id}>
-                {session.title} · {session.status} · {session.attendance_count ?? 0} hadir
-              </option>
-            ))}
-          </select>
+            value={sessionId ? String(sessionId) : ''}
+            onChange={(next) => void handleSelectSession(next)}
+            placeholder="— Pilih sesi —"
+            options={[
+              { value: "", label: "— Pilih sesi —" },
+              ...sessions.map((session) => ({ value: String(session.id), label: (session.title) + " · " + (session.status) + " · " + (session.attendance_count ?? 0) + " hadir" })),
+            ]}
+          />
         </div>
         <div className="field">
           <label htmlFor="kehadiran-method">Metode</label>
-          <select
+          <SearchableSelect
             id="kehadiran-method"
             value={methodFilter}
-            onChange={(event) => setMethodFilter(event.target.value as '' | 'face' | 'manual')}
-          >
-            <option value="">Semua</option>
-            <option value="face">Wajah</option>
-            <option value="manual">Manual</option>
-          </select>
+            onChange={(next) => setMethodFilter(next as '' | 'face' | 'manual')}
+            placeholder="Semua"
+            options={[
+              { value: "", label: "Semua" },
+              { value: "face", label: "Wajah" },
+              { value: "manual", label: "Manual" },
+            ]}
+          />
         </div>
         <div className="field">
           <label htmlFor="kehadiran-nama">Cari nama</label>

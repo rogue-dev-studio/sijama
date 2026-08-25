@@ -47,6 +47,48 @@ class KelompokService
         return PaginationHelper::paginate($builder, $perPage, $page);
     }
 
+    /**
+     * @return list<array{
+     *   id: int,
+     *   desa_id: int,
+     *   kode: string|null,
+     *   nama: string,
+     *   desa: array{id: int, kode: string, nama: string, daerah_id: int}|null
+     * }>
+     */
+    public function listForJamaahForm(User $user): array
+    {
+        $builder = Kelompok::query()
+            ->with(['desa:id,kode,nama,daerah_id'])
+            ->where('is_active', true)
+            ->orderBy(
+                Desa::query()
+                    ->select('kode')
+                    ->whereColumn('desa.id', 'kelompok.desa_id')
+                    ->limit(1)
+            )
+            ->orderBy('nama');
+
+        $this->scopeService->applyKelompokScope($builder, $user);
+
+        return $builder
+            ->get(['id', 'desa_id', 'kode', 'nama'])
+            ->map(fn (Kelompok $item) => [
+                'id' => $item->id,
+                'desa_id' => $item->desa_id,
+                'kode' => $item->kode,
+                'nama' => $item->nama,
+                'desa' => $item->desa ? [
+                    'id' => $item->desa->id,
+                    'kode' => $item->desa->kode,
+                    'nama' => $item->desa->nama,
+                    'daerah_id' => $item->desa->daerah_id,
+                ] : null,
+            ])
+            ->values()
+            ->all();
+    }
+
     public function create(array $data, User $user): KelompokResource
     {
         $desa = Desa::findOrFail($data['desa_id']);

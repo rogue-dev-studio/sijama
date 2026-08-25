@@ -11,6 +11,17 @@ if (!root) {
   throw new Error('Root element #root not found')
 }
 
+document.addEventListener(
+  'invalid',
+  (event) => {
+    const target = event.target
+    if (!(target instanceof HTMLElement)) return
+    const form = target.closest('form')
+    form?.classList.add('form--attempted')
+  },
+  true,
+)
+
 createRoot(root).render(
   <StrictMode>
     <BrowserRouter>

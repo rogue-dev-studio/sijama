@@ -28,7 +28,7 @@ class UserResource extends JsonResource
                 'dapukan' => $jamaahDapukan
                     ? $jamaahDapukan->map(fn ($item) => [
                         'id' => $item->id,
-                        'kode' => $item->kode,
+                        'slug' => $item->slug,
                         'nama' => $item->nama,
                         'tingkat' => $item->tingkat,
                     ])->values()->all()
@@ -36,20 +36,20 @@ class UserResource extends JsonResource
             ] : null),
             'dapukan' => $this->whenLoaded('dapukan', fn () => $this->dapukan ? [
                 'id' => $this->dapukan->id,
-                'kode' => $this->dapukan->kode,
+                'slug' => $this->dapukan->slug,
                 'nama' => $this->dapukan->nama,
                 'tingkat' => $this->dapukan->tingkat,
             ] : null),
             'dapukan_list' => $jamaahDapukan
                 ? $jamaahDapukan->map(fn ($item) => [
                     'id' => $item->id,
-                    'kode' => $item->kode,
+                    'slug' => $item->slug,
                     'nama' => $item->nama,
                     'tingkat' => $item->tingkat,
                 ])->values()->all()
                 : ($this->relationLoaded('dapukan') && $this->dapukan ? [[
                     'id' => $this->dapukan->id,
-                    'kode' => $this->dapukan->kode,
+                    'slug' => $this->dapukan->slug,
                     'nama' => $this->dapukan->nama,
                     'tingkat' => $this->dapukan->tingkat,
                 ]] : []),

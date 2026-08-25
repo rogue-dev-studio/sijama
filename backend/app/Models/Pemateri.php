@@ -18,7 +18,6 @@ class Pemateri extends Model
     protected $table = 'pemateri';
 
     protected $fillable = [
-        'kode',
         'jamaah_id',
         'nama',
         'kontak',

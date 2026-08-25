@@ -23,7 +23,6 @@ class LokasiResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'kode' => $this->kode,
             'nama' => $this->nama,
             'jenis' => $this->jenis,
             'kota' => $this->kota,

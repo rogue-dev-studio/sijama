@@ -15,7 +15,7 @@ class StoreKelompokRequest extends FormRequest
     {
         return [
             'desa_id' => ['required', 'integer', 'exists:desa,id'],
-            'kode' => ['required', 'string', 'max:50', 'unique:kelompok,kode'],
+            'kode' => ['nullable', 'string', 'max:50', 'unique:kelompok,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

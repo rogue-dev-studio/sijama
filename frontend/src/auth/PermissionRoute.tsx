@@ -1,5 +1,6 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { Navigate } from 'react-router-dom'
+import type { MenuNode } from '../api/types'
 import { useAuth } from './AuthContext'
 
 interface PermissionRouteProps {
@@ -7,15 +8,29 @@ interface PermissionRouteProps {
   children: ReactNode
 }
 
+function firstAccessiblePath(nodes: MenuNode[]): string | null {
+  for (const node of nodes) {
+    if (node.path) return node.path
+    const nested = firstAccessiblePath(node.children ?? [])
+    if (nested) return nested
+  }
+  return null
+}
+
 export function PermissionRoute({ permission, children }: PermissionRouteProps) {
-  const { can, loading } = useAuth()
+  const { can, loading, menus } = useAuth()
+
+  const fallbackPath = useMemo(
+    () => firstAccessiblePath(menus) ?? '/profil',
+    [menus],
+  )
 
   if (loading) {
     return <div className="loading-state">Memuat sesi…</div>
   }
 
   if (!can(permission)) {
-    return <Navigate to="/" replace />
+    return <Navigate to={fallbackPath} replace />
   }
 
   return <>{children}</>

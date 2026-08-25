@@ -5,7 +5,7 @@
  * @Last Modified time: 2026-08-03 13:30:00
  */
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import {
@@ -15,6 +15,7 @@ import {
 } from '../api/services'
 import type { KategoriKegiatan, Kegiatan, KegiatanInput, Lokasi } from '../api/types'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 const emptyForm: KegiatanInput = {
   judul: '',
   jenis: '',
@@ -24,15 +25,6 @@ const emptyForm: KegiatanInput = {
   lokasi_id: null,
   deskripsi: '',
   status: 'planned',
-}
-
-function filterByQuery<T extends { kode: string; nama: string }>(items: T[], query: string): T[] {
-  const needle = query.trim().toLowerCase()
-  if (!needle) return items
-  return items.filter(
-    (item) =>
-      item.nama.toLowerCase().includes(needle) || item.kode.toLowerCase().includes(needle),
-  )
 }
 
 export function KegiatanFormPage() {
@@ -45,17 +37,6 @@ export function KegiatanFormPage() {
   const [error, setError] = useState<string | null>(null)
   const [lokasiOptions, setLokasiOptions] = useState<Lokasi[]>([])
   const [kategoriOptions, setKategoriOptions] = useState<KategoriKegiatan[]>([])
-  const [lokasiFilter, setLokasiFilter] = useState('')
-  const [kategoriFilter, setKategoriFilter] = useState('')
-
-  const filteredLokasi = useMemo(
-    () => filterByQuery(lokasiOptions, lokasiFilter),
-    [lokasiOptions, lokasiFilter],
-  )
-  const filteredKategori = useMemo(
-    () => filterByQuery(kategoriOptions, kategoriFilter),
-    [kategoriOptions, kategoriFilter],
-  )
 
   useEffect(() => {
     let active = true
@@ -165,7 +146,7 @@ export function KegiatanFormPage() {
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
           <div className="field">
-            <label htmlFor="judul">Judul *</label>
+            <label htmlFor="judul">Judul</label>
             <input
               id="judul"
               value={form.judul}
@@ -174,29 +155,20 @@ export function KegiatanFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="kategori_filter">Cari kategori</label>
-            <input
-              id="kategori_filter"
-              type="search"
-              placeholder="Filter daftar kategori…"
-              value={kategoriFilter}
-              onChange={(event) => setKategoriFilter(event.target.value)}
-            />
-          </div>
-          <div className="field">
             <label htmlFor="kategori_kegiatan_id">Kategori kegiatan</label>
-            <select
+            <SearchableSelect
               id="kategori_kegiatan_id"
               value={form.kategori_kegiatan_id ? String(form.kategori_kegiatan_id) : ''}
-              onChange={(event) => handleKategoriChange(event.target.value)}
-            >
-              <option value="">— Pilih atau isi jenis manual —</option>
-              {filteredKategori.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama} ({item.kode})
-                </option>
-              ))}
-            </select>
+              onChange={(next) => handleKategoriChange(next)}
+              placeholder="— Pilih atau isi jenis manual —"
+              options={[
+                { value: '', label: '— Pilih atau isi jenis manual —' },
+                ...kategoriOptions.map((item) => ({
+                  value: String(item.id),
+                  label: item.nama,
+                })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="jenis">Jenis (teks)</label>
@@ -213,7 +185,7 @@ export function KegiatanFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="tanggal">Tanggal *</label>
+            <label htmlFor="tanggal">Tanggal</label>
             <input
               id="tanggal"
               type="date"
@@ -223,29 +195,20 @@ export function KegiatanFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="lokasi_filter">Cari lokasi</label>
-            <input
-              id="lokasi_filter"
-              type="search"
-              placeholder="Filter daftar lokasi…"
-              value={lokasiFilter}
-              onChange={(event) => setLokasiFilter(event.target.value)}
-            />
-          </div>
-          <div className="field">
             <label htmlFor="lokasi_id">Lokasi (master)</label>
-            <select
+            <SearchableSelect
               id="lokasi_id"
               value={form.lokasi_id ? String(form.lokasi_id) : ''}
-              onChange={(event) => handleLokasiChange(event.target.value)}
-            >
-              <option value="">— Pilih atau isi manual —</option>
-              {filteredLokasi.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama} · {item.jenis}
-                </option>
-              ))}
-            </select>
+              onChange={(next) => handleLokasiChange(next)}
+              placeholder="— Pilih atau isi manual —"
+              options={[
+                { value: '', label: '— Pilih atau isi manual —' },
+                ...lokasiOptions.map((item) => ({
+                  value: String(item.id),
+                  label: `${item.nama} · ${item.jenis}`,
+                })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="lokasi">Lokasi (teks)</label>
@@ -263,21 +226,22 @@ export function KegiatanFormPage() {
           </div>
           <div className="field">
             <label htmlFor="status">Status</label>
-            <select
+            <SearchableSelect
               id="status"
-              value={form.status}
-              onChange={(event) =>
+              value={form.status ?? ''}
+              onChange={(next) =>
                 setForm((prev) => ({
                   ...prev,
-                  status: event.target.value as Kegiatan['status'],
+                  status: next as Kegiatan['status'],
                 }))
               }
-            >
-              <option value="planned">Direncanakan</option>
-              <option value="ongoing">Berlangsung</option>
-              <option value="completed">Selesai</option>
-              <option value="cancelled">Dibatalkan</option>
-            </select>
+              options={[
+                { value: 'planned', label: 'Direncanakan' },
+                { value: 'ongoing', label: 'Berlangsung' },
+                { value: 'completed', label: 'Selesai' },
+                { value: 'cancelled', label: 'Dibatalkan' },
+              ]}
+            />
           </div>
           <div className="field" style={{ gridColumn: '1 / -1' }}>
             <label htmlFor="deskripsi">Deskripsi</label>

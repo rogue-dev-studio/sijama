@@ -16,7 +16,7 @@ class UpdateMenuRequest extends FormRequest
     {
         return [
             'parent_id' => ['nullable', 'integer', 'exists:menus,id'],
-            'kode' => ['sometimes', 'string', 'max:50', Rule::unique('menus', 'kode')->ignore($this->route('menu'))],
+            'slug' => ['sometimes', 'string', 'max:50', Rule::unique('menus', 'slug')->ignore($this->route('menu'))],
             'nama' => ['sometimes', 'string', 'max:255'],
             'path' => ['nullable', 'string', 'max:255'],
             'icon' => ['nullable', 'string', 'max:100'],

@@ -28,7 +28,7 @@ class PemateriService extends SimpleMasterService
 
     protected function searchable(): array
     {
-        return ['nama', 'kode', 'kontak'];
+        return ['nama', 'kontak'];
     }
 
     protected function withRelations(): array

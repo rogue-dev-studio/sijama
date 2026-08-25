@@ -28,7 +28,18 @@ nama, gender, tanggal_lahir, pekerjaan_id, pendidikan, status_pernikahan, alamat
 
 nik, kelompok_id, dapukan_ids, status
 
+Ditampilkan read-only di form edit. Dapukan Jamaah Kelompok otomatis dari kelompok (dikelola admin).
+
+## API tambahan
+
+| Method | Path | Auth | Keterangan |
+|--------|------|------|------------|
+| GET | `/api/profile/wilayah-options?level=&parent_id=` | sanctum | Cascade wilayah adm untuk form profil (tanpa permission master) |
+
+Level: `negara` \| `provinsi` \| `kabupaten_kota` \| `kecamatan` \| `desa_kelurahan`
+
 ## UI
 
 - Route FE: `/profil` dan `/profil?edit=1`
-- Komponen: `UserMenu` di AppShell
+- Komponen: `UserMenu` di AppShell — item ubah profil hanya jika akun tertaut jamaah
+- Tampilan akun: dapukan efektif + cakupan wilayah

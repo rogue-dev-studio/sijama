@@ -22,7 +22,7 @@ class KegiatanService
         ?int $page = null,
     ): LengthAwarePaginator {
         $builder = Kegiatan::query()
-            ->with(['lokasiRef:id,kode,nama,jenis', 'kategoriKegiatan:id,kode,nama'])
+            ->with(['lokasiRef:id,nama,jenis', 'kategoriKegiatan:id,nama'])
             ->orderByDesc('tanggal');
 
         if ($query) {

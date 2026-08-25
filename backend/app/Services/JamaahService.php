@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\DTOs\JamaahData;
 use App\Http\Resources\JamaahResource;
+use App\Models\Dapukan;
 use App\Models\Jamaah;
 use App\Models\User;
 use App\Support\PaginationHelper;
@@ -16,7 +17,10 @@ class JamaahService
 {
     private const FACE_MATCH_THRESHOLD = 0.42;
 
-    public function __construct(private readonly ScopeService $scopeService) {}
+    public function __construct(
+        private readonly ScopeService $scopeService,
+        private readonly DapukanService $dapukanService,
+    ) {}
 
     public function list(
         User $user,
@@ -64,7 +68,7 @@ class JamaahService
 
         $builder = Jamaah::query()
             ->select($columns)
-            ->with(['kelompok:id,kode,nama', 'pekerjaanRef:id,kode,nama', 'dapukan:id,kode,nama,tingkat'])
+            ->with(['kelompok:id,kode,nama', 'pekerjaanRef:id,nama', 'dapukan:id,slug,nama,tingkat'])
             ->orderBy('nama');
         $this->scopeService->applyJamaahScope($builder, $user);
 
@@ -104,13 +108,13 @@ class JamaahService
         );
 
         $jamaah = Jamaah::create($attributes);
-        $this->syncDapukan($jamaah, $data);
+        $this->syncDapukan($jamaah, $data, $user);
 
         return new JamaahResource($jamaah->load([
             'kelompok.desa.daerah',
             'admDesaKelurahan',
             'pekerjaanRef',
-            'dapukan:id,kode,nama,tingkat',
+            'dapukan:id,slug,nama,tingkat',
         ]));
     }
 
@@ -120,7 +124,7 @@ class JamaahService
             'kelompok.desa.daerah',
             'admDesaKelurahan',
             'pekerjaanRef',
-            'dapukan:id,kode,nama,tingkat',
+            'dapukan:id,slug,nama,tingkat',
         ]));
     }
 
@@ -137,14 +141,14 @@ class JamaahService
         }
 
         $jamaah->update($attributes);
-        $this->syncDapukan($jamaah, $data);
+        $this->syncDapukan($jamaah, $data, $user);
         app(MasterUserService::class)->syncFromJamaahModel($jamaah->fresh());
 
         return new JamaahResource($jamaah->fresh()->load([
             'kelompok.desa.daerah',
             'admDesaKelurahan',
             'pekerjaanRef',
-            'dapukan:id,kode,nama,tingkat',
+            'dapukan:id,slug,nama,tingkat',
         ]));
     }
 
@@ -173,15 +177,17 @@ class JamaahService
         $jamaah->update($attributes);
 
         if ($hasDapukanIds) {
-            $jamaah->dapukan()->sync($dapukanIds ?? []);
+            $this->applyDapukanSync($jamaah, $dapukanIds ?? [], $user);
             app(MasterUserService::class)->syncFromJamaahModel($jamaah->fresh());
+        } else {
+            $this->ensureJamaahKelompokDapukan($jamaah->fresh());
         }
 
         return new JamaahResource($jamaah->fresh()->load([
             'kelompok.desa.daerah',
             'admDesaKelurahan',
             'pekerjaanRef',
-            'dapukan:id,kode,nama,tingkat',
+            'dapukan:id,slug,nama,tingkat',
         ]));
     }
 
@@ -219,13 +225,104 @@ class JamaahService
         return new JamaahResource($jamaah->fresh()->load('kelompok.desa.daerah'));
     }
 
-    private function syncDapukan(Jamaah $jamaah, JamaahData $data): void
+    private function syncDapukan(Jamaah $jamaah, JamaahData $data, User $user): void
     {
-        if (! $data->hasDapukanIds) {
+        if ($data->hasDapukanIds) {
+            $this->applyDapukanSync($jamaah, $data->dapukanIds ?? [], $user);
+
             return;
         }
 
-        $jamaah->dapukan()->sync($data->dapukanIds ?? []);
+        $this->ensureJamaahKelompokDapukan($jamaah);
+    }
+
+    /**
+     * @param  list<int>  $requestedIds
+     */
+    private function applyDapukanSync(Jamaah $jamaah, array $requestedIds, User $user): void
+    {
+        $requestedIds = collect($requestedIds)
+            ->map(fn ($item) => (int) $item)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $jamaahKelompokId = $this->resolveJamaahKelompokDapukanId();
+
+        if (! $this->dapukanService->canAssignJamaahDapukan($user)) {
+            if ($requestedIds->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'dapukan_ids' => ['Hanya admin (sesuai tingkatan) yang dapat menetapkan dapukan jamaah.'],
+                ]);
+            }
+
+            $this->ensureJamaahKelompokDapukan($jamaah);
+
+            return;
+        }
+
+        $requestedForValidation = $requestedIds
+            ->reject(fn (int $id) => $jamaahKelompokId !== null && $id === $jamaahKelompokId)
+            ->values();
+
+        if ($requestedForValidation->isNotEmpty()) {
+            $requested = Dapukan::query()
+                ->whereIn('id', $requestedForValidation->all())
+                ->get(['id', 'slug', 'nama', 'tingkat']);
+
+            if ($requested->count() !== $requestedForValidation->count()) {
+                throw ValidationException::withMessages([
+                    'dapukan_ids' => ['Satu atau lebih dapukan tidak valid.'],
+                ]);
+            }
+
+            $illegal = $requested
+                ->filter(fn (Dapukan $item) => ! $this->dapukanService->isAssignableByUser($user, $item))
+                ->pluck('nama')
+                ->values();
+
+            if ($illegal->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'dapukan_ids' => [
+                        'Anda hanya dapat menetapkan dapukan setingkat atau di bawah Anda: '.$illegal->implode(', ').'.',
+                    ],
+                ]);
+            }
+        }
+
+        $jamaah->loadMissing('dapukan:id,slug,nama,tingkat');
+
+        $protectedIds = $jamaah->dapukan
+            ->filter(fn (Dapukan $item) => ! $this->dapukanService->isAssignableByUser($user, $item))
+            ->pluck('id');
+
+        $finalIds = $protectedIds->merge($requestedIds)->unique()->values();
+
+        if ($jamaahKelompokId && $jamaah->kelompok_id) {
+            $finalIds = $finalIds->push($jamaahKelompokId)->unique()->values();
+        }
+
+        $jamaah->dapukan()->sync($finalIds->all());
+    }
+
+    private function ensureJamaahKelompokDapukan(Jamaah $jamaah): void
+    {
+        $jamaahKelompokId = $this->resolveJamaahKelompokDapukanId();
+        if (! $jamaahKelompokId || ! $jamaah->kelompok_id) {
+            return;
+        }
+
+        $jamaah->dapukan()->syncWithoutDetaching([$jamaahKelompokId]);
+    }
+
+    private function resolveJamaahKelompokDapukanId(): ?int
+    {
+        $id = Dapukan::query()
+            ->where('slug', 'jamaah_kelompok')
+            ->where('is_active', true)
+            ->value('id');
+
+        return $id ? (int) $id : null;
     }
 
     private function assertFaceDescriptorUnique(int $jamaahId, array $probe): void

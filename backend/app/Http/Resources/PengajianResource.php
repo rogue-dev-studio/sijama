@@ -16,27 +16,23 @@ class PengajianResource extends JsonResource
             'pemateri_id' => $this->pemateri_id,
             'pemateri_ref' => $this->whenLoaded('pemateriRef', fn () => $this->pemateriRef ? [
                 'id' => $this->pemateriRef->id,
-                'kode' => $this->pemateriRef->kode,
                 'nama' => $this->pemateriRef->nama,
             ] : null),
             'lokasi' => $this->lokasi,
             'lokasi_id' => $this->lokasi_id,
             'lokasi_ref' => $this->whenLoaded('lokasiRef', fn () => $this->lokasiRef ? [
                 'id' => $this->lokasiRef->id,
-                'kode' => $this->lokasiRef->kode,
                 'nama' => $this->lokasiRef->nama,
                 'jenis' => $this->lokasiRef->jenis,
             ] : null),
             'materi_id' => $this->materi_id,
             'materi' => $this->whenLoaded('materi', fn () => $this->materi ? [
                 'id' => $this->materi->id,
-                'kode' => $this->materi->kode,
                 'nama' => $this->materi->nama,
             ] : null),
             'kategori_kegiatan_id' => $this->kategori_kegiatan_id,
             'kategori_kegiatan' => $this->whenLoaded('kategoriKegiatan', fn () => $this->kategoriKegiatan ? [
                 'id' => $this->kategoriKegiatan->id,
-                'kode' => $this->kategoriKegiatan->kode,
                 'nama' => $this->kategoriKegiatan->nama,
                 'calendar_color' => $this->kategoriKegiatan->calendar_color,
             ] : null),

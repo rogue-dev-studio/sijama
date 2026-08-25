@@ -16,7 +16,7 @@ class HakAksesService
         ?int $perPage = null,
         ?int $page = null,
     ): LengthAwarePaginator {
-        $builder = HakAkses::query()->with('fitur')->orderBy('kode')->orderBy('nama');
+        $builder = HakAkses::query()->with('fitur')->orderBy('slug')->orderBy('nama');
 
         if ($fiturId !== null) {
             $builder->where('fitur_id', $fiturId);
@@ -24,7 +24,7 @@ class HakAksesService
 
         if ($q) {
             $builder->where(function ($query) use ($q) {
-                $query->where('kode', 'ilike', "%{$q}%")
+                $query->where('slug', 'ilike', "%{$q}%")
                     ->orWhere('nama', 'ilike', "%{$q}%");
             });
         }

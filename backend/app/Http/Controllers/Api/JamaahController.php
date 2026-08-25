@@ -9,13 +9,19 @@ use App\Http\Requests\StoreJamaahRequest;
 use App\Http\Requests\UpdateJamaahRequest;
 use App\Http\Resources\JamaahResource;
 use App\Http\Responses\ApiResponse;
+use App\Services\DapukanService;
 use App\Services\JamaahService;
+use App\Services\KelompokService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class JamaahController extends Controller
 {
-    public function __construct(private readonly JamaahService $jamaahService) {}
+    public function __construct(
+        private readonly JamaahService $jamaahService,
+        private readonly DapukanService $dapukanService,
+        private readonly KelompokService $kelompokService,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -40,6 +46,20 @@ class JamaahController extends Controller
                 'total' => $paginator->total(),
             ],
         ]);
+    }
+
+    public function dapukanOptions(Request $request): JsonResponse
+    {
+        return ApiResponse::success(
+            $this->dapukanService->listForJamaahForm($request->user())
+        );
+    }
+
+    public function kelompokOptions(Request $request): JsonResponse
+    {
+        return ApiResponse::success(
+            $this->kelompokService->listForJamaahForm($request->user())
+        );
     }
 
     public function store(StoreJamaahRequest $request): JsonResponse

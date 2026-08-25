@@ -17,7 +17,6 @@ class Pekerjaan extends Model
     protected $table = 'pekerjaan';
 
     protected $fillable = [
-        'kode',
         'nama',
         'deskripsi',
         'is_active',

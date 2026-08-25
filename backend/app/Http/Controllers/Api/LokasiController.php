@@ -10,17 +10,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ResolveMapsLocationRequest;
+use App\Http\Requests\SearchMapsPlacesRequest;
 use App\Http\Requests\StoreLokasiRequest;
 use App\Http\Requests\UpdateLokasiRequest;
 use App\Http\Responses\ApiResponse;
 use App\Http\Resources\LokasiResource;
 use App\Services\LokasiService;
+use App\Services\MapsLocationResolverService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 class LokasiController extends Controller
 {
-    public function __construct(private readonly LokasiService $lokasiService) {}
+    public function __construct(
+        private readonly LokasiService $lokasiService,
+        private readonly MapsLocationResolverService $mapsLocationResolver,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -67,5 +74,33 @@ class LokasiController extends Controller
         $this->lokasiService->delete($lokasi);
 
         return ApiResponse::success(null, 'Lokasi berhasil dihapus');
+    }
+
+    public function resolveLocation(ResolveMapsLocationRequest $request): JsonResponse
+    {
+        try {
+            return ApiResponse::success(
+                $this->mapsLocationResolver->resolve($request->validated('input')),
+                'Koordinat berhasil ditemukan',
+            );
+        } catch (RuntimeException $exception) {
+            return ApiResponse::error($exception->getMessage(), null, 422);
+        }
+    }
+
+    public function searchPlaces(SearchMapsPlacesRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        try {
+            return ApiResponse::success([
+                'items' => $this->mapsLocationResolver->searchPlaces(
+                    $validated['q'],
+                    isset($validated['limit']) ? (int) $validated['limit'] : 6,
+                ),
+            ]);
+        } catch (RuntimeException $exception) {
+            return ApiResponse::error($exception->getMessage(), null, 502);
+        }
     }
 }

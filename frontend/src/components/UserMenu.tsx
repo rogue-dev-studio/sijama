@@ -13,14 +13,12 @@ import { MenuIcon } from './MenuIcon'
 type UserMenuProps = {
   compact?: boolean
   iconOnly?: boolean
-  scopeLabel?: string | null
   onNavigate?: () => void
 }
 
 export function UserMenu({
   compact = false,
   iconOnly = false,
-  scopeLabel = null,
   onNavigate,
 }: UserMenuProps) {
   const { user, logout } = useAuth()
@@ -28,7 +26,6 @@ export function UserMenu({
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const menuId = useId()
-  const roleLabel = user?.dapukan?.nama ?? ''
 
   useEffect(() => {
     if (!open) return
@@ -72,7 +69,7 @@ export function UserMenu({
         aria-haspopup="menu"
         aria-controls={menuId}
         aria-label={iconOnly ? `Menu akun ${user.name}` : undefined}
-        title={iconOnly ? user.name : undefined}
+        title={iconOnly ? `${user.name} (@${user.username})` : undefined}
         onClick={() => setOpen((value) => !value)}
       >
         <span className="user-menu__avatar" aria-hidden>
@@ -82,8 +79,7 @@ export function UserMenu({
           <>
             <span className="user-menu__meta">
               <strong>{user.name}</strong>
-              {!compact && <span className="muted">{roleLabel}</span>}
-              {!compact && scopeLabel && <span className="muted">{scopeLabel}</span>}
+              <span className="muted">{user.username}</span>
             </span>
             <span className="user-menu__chevron" aria-hidden>
               {open ? '▴' : '▾'}
@@ -104,19 +100,7 @@ export function UserMenu({
             }}
           >
             <MenuIcon name="user" size={14} />
-            Lihat profil
-          </Link>
-          <Link
-            to="/profil?edit=1"
-            role="menuitem"
-            className="user-menu__item"
-            onClick={() => {
-              setOpen(false)
-              onNavigate?.()
-            }}
-          >
-            <MenuIcon name="settings" size={14} />
-            Ubah profil jamaah
+            Profil
           </Link>
           <button
             type="button"

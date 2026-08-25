@@ -17,7 +17,6 @@ class Materi extends Model
     protected $table = 'materi';
 
     protected $fillable = [
-        'kode',
         'nama',
         'deskripsi',
         'is_active',

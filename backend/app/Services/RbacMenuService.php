@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Menu;
 use App\Models\User;
-use Illuminate\Support\Collection;
 
 class RbacMenuService
 {
@@ -23,48 +22,76 @@ class RbacMenuService
             ->get();
 
         $permissionCodes = $user->permissionCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         return $menus
-            ->map(fn (Menu $menu) => $this->buildMenuNode($menu, $permissionCodes, $user))
+            ->map(fn (Menu $menu) => $this->buildMenuNode($menu, $permissionCodes, $isSuperAdmin))
             ->filter()
             ->values()
             ->all();
     }
 
-    private function buildMenuNode(Menu $menu, array $permissionCodes, User $user): ?array
+    private function buildMenuNode(Menu $menu, array $permissionCodes, bool $isSuperAdmin): ?array
     {
         $children = $menu->children
-            ->map(fn (Menu $child) => $this->buildMenuNode($child, $permissionCodes, $user))
+            ->map(fn (Menu $child) => $this->buildMenuNode($child, $permissionCodes, $isSuperAdmin))
             ->filter()
             ->values()
             ->all();
 
-        $hasDirectPermission = $this->menuHasPermission($menu, $permissionCodes, $user);
         $hasChildAccess = count($children) > 0;
 
-        if (! $hasDirectPermission && ! $hasChildAccess) {
-            return null;
+        // Folder / section
+        if ($menu->path === null) {
+            // Super Admin: tampilkan semua section (termasuk kosong seperti Laporan/Aplikasi).
+            if ($isSuperAdmin) {
+                return [
+                    'id' => $menu->id,
+                    'slug' => $menu->slug,
+                    'nama' => $menu->nama,
+                    'path' => $menu->path,
+                    'icon' => $menu->icon,
+                    'children' => $children,
+                ];
+            }
+
+            if (! $hasChildAccess) {
+                return null;
+            }
+
+            return [
+                'id' => $menu->id,
+                'slug' => $menu->slug,
+                'nama' => $menu->nama,
+                'path' => $menu->path,
+                'icon' => $menu->icon,
+                'children' => $children,
+            ];
         }
 
-        return [
-            'id' => $menu->id,
-            'kode' => $menu->kode,
-            'nama' => $menu->nama,
-            'path' => $menu->path,
-            'icon' => $menu->icon,
-            'children' => $children,
-        ];
+        if ($isSuperAdmin || $this->menuHasViewPermission($menu, $permissionCodes)) {
+            return [
+                'id' => $menu->id,
+                'slug' => $menu->slug,
+                'nama' => $menu->nama,
+                'path' => $menu->path,
+                'icon' => $menu->icon,
+                'children' => $children,
+            ];
+        }
+
+        return null;
     }
 
-    private function menuHasPermission(Menu $menu, array $permissionCodes, User $user): bool
+    private function menuHasViewPermission(Menu $menu, array $permissionCodes): bool
     {
-        if ($user->isSuperAdmin()) {
-            return $menu->fiturs->isNotEmpty() || $menu->path === null;
-        }
-
         foreach ($menu->fiturs as $fitur) {
             foreach ($fitur->hakAkses as $hakAkses) {
-                if (in_array($hakAkses->kode, $permissionCodes, true)) {
+                if ($hakAkses->aksi !== 'view') {
+                    continue;
+                }
+
+                if (in_array($hakAkses->slug, $permissionCodes, true)) {
                     return true;
                 }
             }

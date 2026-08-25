@@ -18,7 +18,6 @@ class PekerjaanResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'kode' => $this->kode,
             'nama' => $this->nama,
             'deskripsi' => $this->deskripsi,
             'is_active' => $this->is_active,

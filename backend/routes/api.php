@@ -40,13 +40,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/profile', [ProfileController::class, 'show']);
+    Route::get('/profile/wilayah-options', [ProfileController::class, 'wilayahOptions']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::patch('/profile', [ProfileController::class, 'update']);
 
-    Route::post('debug/face-enroll', [DebugFaceEnrollController::class, 'store']);
-    Route::get('debug/face-enroll', [DebugFaceEnrollController::class, 'index']);
+    if (config('app.debug')) {
+        Route::post('debug/face-enroll', [DebugFaceEnrollController::class, 'store']);
+        Route::get('debug/face-enroll', [DebugFaceEnrollController::class, 'index']);
+    }
 
     Route::get('jamaah', [JamaahController::class, 'index'])->middleware('permission:jamaah.view');
+    Route::get('jamaah/dapukan-options', [JamaahController::class, 'dapukanOptions'])->middleware('permission:jamaah.view');
+    Route::get('jamaah/kelompok-options', [JamaahController::class, 'kelompokOptions'])->middleware('permission:jamaah.view');
     Route::post('jamaah', [JamaahController::class, 'store'])->middleware('permission:jamaah.create');
     Route::get('jamaah/{jamaah}', [JamaahController::class, 'show'])->middleware('permission:jamaah.view');
     Route::put('jamaah/{jamaah}', [JamaahController::class, 'update'])->middleware('permission:jamaah.update');
@@ -157,6 +162,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('sub-kelompok/{sub_kelompok}', [SubKelompokController::class, 'destroy'])->middleware('permission:sub_kelompok.delete');
 
         Route::get('lokasi', [LokasiController::class, 'index'])->middleware('permission:lokasi.view');
+        Route::post('lokasi/resolve-location', [LokasiController::class, 'resolveLocation'])
+            ->middleware('permission:lokasi.view');
+        Route::get('lokasi/search-places', [LokasiController::class, 'searchPlaces'])
+            ->middleware('permission:lokasi.view');
         Route::post('lokasi', [LokasiController::class, 'store'])->middleware('permission:lokasi.create');
         Route::get('lokasi/{lokasi}', [LokasiController::class, 'show'])->middleware('permission:lokasi.view');
         Route::put('lokasi/{lokasi}', [LokasiController::class, 'update'])->middleware('permission:lokasi.update');

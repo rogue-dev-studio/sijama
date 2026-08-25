@@ -12,7 +12,7 @@ class HakAksesResource extends JsonResource
         return [
             'id' => $this->id,
             'fitur_id' => $this->fitur_id,
-            'kode' => $this->kode,
+            'slug' => $this->slug,
             'nama' => $this->nama,
             'aksi' => $this->aksi,
             'fitur' => new FiturResource($this->whenLoaded('fitur')),

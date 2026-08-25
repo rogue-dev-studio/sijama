@@ -16,7 +16,6 @@ class KegiatanResource extends JsonResource
             'kategori_kegiatan_id' => $this->kategori_kegiatan_id,
             'kategori_kegiatan' => $this->whenLoaded('kategoriKegiatan', fn () => $this->kategoriKegiatan ? [
                 'id' => $this->kategoriKegiatan->id,
-                'kode' => $this->kategoriKegiatan->kode,
                 'nama' => $this->kategoriKegiatan->nama,
             ] : null),
             'tanggal' => $this->tanggal?->format('Y-m-d'),
@@ -24,7 +23,6 @@ class KegiatanResource extends JsonResource
             'lokasi_id' => $this->lokasi_id,
             'lokasi_ref' => $this->whenLoaded('lokasiRef', fn () => $this->lokasiRef ? [
                 'id' => $this->lokasiRef->id,
-                'kode' => $this->lokasiRef->kode,
                 'nama' => $this->lokasiRef->nama,
                 'jenis' => $this->lokasiRef->jenis,
             ] : null),

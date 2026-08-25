@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { calendarService } from '../api/services'
 import type { CalendarDay, CalendarEvent, CalendarMonth } from '../api/types'
+import { SearchableSelect } from '../components/SearchableSelect'
 
 const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as const
 const MONTHS = [
@@ -150,17 +151,16 @@ export function KalenderPage() {
           <div className="calendar-toolbar__filters">
             <div className="field">
               <label htmlFor="calendar-month">Bulan</label>
-              <select
+              <SearchableSelect
                 id="calendar-month"
-                value={month}
-                onChange={(event) => setMonth(Number(event.target.value))}
-              >
-                {MONTHS.map((label, index) => (
-                  <option key={label} value={index + 1}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                value={String(month)}
+                onChange={(next) => setMonth(Number(next))}
+                placeholder="Pilih bulan"
+                options={MONTHS.map((label, index) => ({
+                  value: String(index + 1),
+                  label,
+                }))}
+              />
             </div>
             <div className="field">
               <label htmlFor="calendar-year">Tahun</label>
@@ -267,7 +267,7 @@ export function KalenderPage() {
                 <p className="muted">Belum ada kategori kegiatan aktif.</p>
               ) : (
                 data.legend.map((item) => (
-                  <div key={item.kode} className="calendar-legend__item">
+                  <div key={item.id} className="calendar-legend__item">
                     <span className="calendar-legend__swatch" style={{ backgroundColor: item.color }} />
                     <span>{item.nama}</span>
                   </div>

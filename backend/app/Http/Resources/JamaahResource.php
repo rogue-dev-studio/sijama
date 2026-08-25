@@ -31,13 +31,12 @@ class JamaahResource extends JsonResource
             'pekerjaan_id' => $this->pekerjaan_id,
             'pekerjaan_ref' => $this->whenLoaded('pekerjaanRef', fn () => $this->pekerjaanRef ? [
                 'id' => $this->pekerjaanRef->id,
-                'kode' => $this->pekerjaanRef->kode,
                 'nama' => $this->pekerjaanRef->nama,
             ] : null),
             'dapukan_ids' => $this->whenLoaded('dapukan', fn () => $this->dapukan->pluck('id')->values()->all()),
             'dapukan' => $this->whenLoaded('dapukan', fn () => $this->dapukan->map(fn ($item) => [
                 'id' => $item->id,
-                'kode' => $item->kode,
+                'slug' => $item->slug,
                 'nama' => $item->nama,
                 'tingkat' => $item->tingkat,
             ])->values()->all()),

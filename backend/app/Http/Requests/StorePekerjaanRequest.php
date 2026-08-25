@@ -21,7 +21,6 @@ class StorePekerjaanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kode' => ['required', 'string', 'max:50', 'unique:pekerjaan,kode'],
             'nama' => ['required', 'string', 'max:100'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

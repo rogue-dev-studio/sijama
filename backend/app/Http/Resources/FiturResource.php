@@ -12,7 +12,7 @@ class FiturResource extends JsonResource
         return [
             'id' => $this->id,
             'menu_id' => $this->menu_id,
-            'kode' => $this->kode,
+            'slug' => $this->slug,
             'nama' => $this->nama,
             'deskripsi' => $this->deskripsi,
             'is_active' => $this->is_active,

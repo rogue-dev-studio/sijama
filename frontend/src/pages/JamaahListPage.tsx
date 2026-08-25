@@ -8,6 +8,7 @@ import type { Jamaah, Kelompok, PaginationMeta } from '../api/types'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
 import { KATEGORI_UMUR_OPTIONS, kategoriUmurLabel } from '../lib/jamaahOptions'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 export function JamaahListPage() {
   const { can } = useAuth()
   const [items, setItems] = useState<Jamaah[]>([])
@@ -137,57 +138,57 @@ export function JamaahListPage() {
         <div className="filter-bar__fields">
           <div className="field">
             <label htmlFor="filter_status">Status</label>
-            <select
+            <SearchableSelect
               id="filter_status"
               value={statusFilter}
-              onChange={(event) => handleFilterChange('status', event.target.value)}
-            >
-              <option value="">Semua</option>
-              <option value="aktif">Aktif</option>
-              <option value="nonaktif">Nonaktif</option>
-            </select>
+              onChange={(next) => handleFilterChange('status', next)}
+              placeholder="Semua"
+              options={[
+                { value: "", label: "Semua" },
+                { value: "aktif", label: "Aktif" },
+                { value: "nonaktif", label: "Nonaktif" },
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="filter_face">Wajah</label>
-            <select
+            <SearchableSelect
               id="filter_face"
               value={faceFilter}
-              onChange={(event) => handleFilterChange('face', event.target.value)}
-            >
-              <option value="">Semua</option>
-              <option value="enrolled">Terdaftar</option>
-              <option value="pending">Belum</option>
-            </select>
+              onChange={(next) => handleFilterChange('face', next)}
+              placeholder="Semua"
+              options={[
+                { value: "", label: "Semua" },
+                { value: "enrolled", label: "Terdaftar" },
+                { value: "pending", label: "Belum" },
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="filter_kelompok">Kelompok</label>
-            <select
+            <SearchableSelect
               id="filter_kelompok"
-              value={kelompokFilter}
-              onChange={(event) => handleFilterChange('kelompok', event.target.value)}
-            >
-              <option value={0}>Semua</option>
-              {kelompokList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
+              value={kelompokFilter ? String(kelompokFilter) : ''}
+              onChange={(next) => handleFilterChange('kelompok', next)}
+              placeholder="Semua"
+              options={[
+                { value: '', label: 'Semua' },
+                ...kelompokList.map((item) => ({ value: String(item.id), label: item.nama })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="filter_kategori_umur">Kategori umur</label>
-            <select
+            <SearchableSelect
               id="filter_kategori_umur"
               value={kategoriUmurFilter}
-              onChange={(event) => handleFilterChange('kategori_umur', event.target.value)}
-            >
-              <option value="">Semua</option>
-              {KATEGORI_UMUR_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(next) => handleFilterChange('kategori_umur', next)}
+              placeholder="Semua"
+              options={[
+                { value: "", label: "Semua" },
+                ...KATEGORI_UMUR_OPTIONS.map((option) => ({ value: String(option.value), label: option.label })),
+              ]}
+            />
           </div>
         </div>
         {hasActiveFilters && (

@@ -4,11 +4,9 @@ import { ApiError } from '../api/client'
 import { attendanceService, jamaahService, kegiatanService, pengajianService } from '../api/services'
 import type { AttendanceSession, Jamaah, Kegiatan, Pengajian } from '../api/types'
 import {
-  CameraPermissionPanel,
   needsCameraPermissionUi,
   toCameraPermissionPanelState,
 } from '../components/CameraPermissionPanel'
-import { FaceScanStage } from '../components/FaceScanStage'
 import {
   type CameraAccessState,
   DEFAULT_CAMERA_CONSTRAINTS,
@@ -20,24 +18,20 @@ import {
 import { faceapi, loadFaceModels } from '../face/loadModels'
 import { findBestMatch, toFaceProfiles, type FaceProfile } from '../face/match'
 import { useFaceScanOverlay, type FaceScanState } from '../face/useFaceScanOverlay'
+import { useAuth } from '../auth/AuthContext'
+import { AbsensiControls } from './absensi/AbsensiControls'
+import { AbsensiLiveBar } from './absensi/AbsensiLiveBar'
+import { AbsensiLiveStage } from './absensi/AbsensiLiveStage'
+import { AbsensiNotify } from './absensi/AbsensiNotify'
+import type { NotifyState, RefOption } from './absensi/types'
 
 const CHECK_IN_DEBOUNCE_MS = 4000
 const NOTIFY_CLEAR_MS = 4500
 
-type RefOption = {
-  id: number
-  label: string
-}
-
-type NotifyKind = 'success' | 'already' | 'unknown' | 'idle' | 'error'
-
-type NotifyState = {
-  kind: NotifyKind
-  title: string
-  detail: string
-}
-
 export function AbsensiPage() {
+  const { can } = useAuth()
+  const canManageSession = can('absensi.create')
+  const canCheckIn = can('absensi.execute')
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const displayRef = useRef<HTMLDivElement>(null)
@@ -333,7 +327,10 @@ export function AbsensiPage() {
       if (successNames.length > 0) {
         pushNotify({
           kind: 'success',
-          title: successNames.length === 1 ? 'Berhasil absen' : `${successNames.length} wajah berhasil absen`,
+          title:
+            successNames.length === 1
+              ? 'Berhasil absen'
+              : `${successNames.length} wajah berhasil absen`,
           detail: successNames.join(', '),
         })
       } else if (alreadyNames.length > 0 && unknownCount === 0) {
@@ -656,195 +653,68 @@ export function AbsensiPage() {
         </header>
       )}
 
-      {isDisplayMode && (
-        <div className="absensi-screen__bar">
-          <div>
-            <strong>{activeSession?.title}</strong>
-            <span className="absensi-screen__meta">
-              {cameraActive ? 'Kamera aktif' : 'Kamera nonaktif'} · {attendedCount} hadir
-            </span>
-          </div>
-          <div className="btn-group">
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setShowSetup((value) => !value)}
-            >
-              {showSetup ? 'Sembunyikan pengaturan' : 'Pengaturan'}
-            </button>
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={() => void toggleFullscreen()}
-            >
-              {isFullscreen ? 'Keluar fullscreen' : 'Fullscreen'}
-            </button>
-            <button
-              type="button"
-              className="btn btn--danger"
-              disabled={busy}
-              onClick={() => void handleCloseSession()}
-            >
-              Tutup sesi
-            </button>
-          </div>
-        </div>
+      {isDisplayMode && activeSession && (
+        <AbsensiLiveBar
+          session={activeSession}
+          cameraActive={cameraActive}
+          attendedCount={attendedCount}
+          showSetup={showSetup}
+          busy={busy}
+          canManageSession={canManageSession}
+          isFullscreen={isFullscreen}
+          onToggleSetup={() => setShowSetup((value) => !value)}
+          onToggleFullscreen={() => void toggleFullscreen()}
+          onCloseSession={() => void handleCloseSession()}
+        />
       )}
 
       {(showSetup || !isDisplayMode) && (
-        <div className="form-panel absensi-controls">
-          <div className="field">
-            <label htmlFor="session-select">Sesi aktif</label>
-            <select
-              id="session-select"
-              value={activeSession?.id ? String(activeSession.id) : ''}
-              onChange={(event) => void handleSelectSession(event.target.value)}
-            >
-              <option value="">— Pilih sesi —</option>
-              {sessions.map((session) => (
-                <option key={session.id} value={session.id}>
-                  {session.title} ({session.status})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="manual-jamaah">Absensi manual</label>
-            <select
-              id="manual-jamaah"
-              value={manualJamaahId}
-              onChange={(event) => setManualJamaahId(event.target.value)}
-            >
-              <option value="">— Pilih jamaah —</option>
-              {jamaahOptions.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="btn-group">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              disabled={busy || !manualJamaahId || !activeSession}
-              onClick={() => void handleManualCheckIn()}
-            >
-              Catat manual
-            </button>
-          </div>
-        </div>
+        <AbsensiControls
+          sessions={sessions}
+          activeSession={activeSession}
+          jamaahOptions={jamaahOptions}
+          refOptions={refOptions}
+          sessionType={sessionType}
+          refId={refId}
+          manualJamaahId={manualJamaahId}
+          busy={busy}
+          canCheckIn={canCheckIn}
+          canManageSession={canManageSession}
+          onSelectSession={(next) => void handleSelectSession(next)}
+          onManualJamaahChange={setManualJamaahId}
+          onManualCheckIn={() => void handleManualCheckIn()}
+          onSessionTypeChange={(next) => {
+            setSessionType(next)
+            setRefId('')
+          }}
+          onRefIdChange={setRefId}
+          onOpenSession={() => void handleOpenSession()}
+        />
       )}
 
-      {(showSetup || !isDisplayMode) && (
-        <div className="form-panel inline-form">
-          <h2>Buka sesi baru</h2>
-          <div className="form-grid form-grid--2">
-            <div className="field">
-              <label htmlFor="session-type">Tipe</label>
-              <select
-                id="session-type"
-                value={sessionType}
-                onChange={(event) => {
-                  setSessionType(event.target.value as 'pengajian' | 'kegiatan')
-                  setRefId('')
-                }}
-              >
-                <option value="pengajian">Pengajian</option>
-                <option value="kegiatan">Kegiatan</option>
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="session-ref">Referensi</label>
-              <select
-                id="session-ref"
-                value={refId}
-                onChange={(event) => setRefId(event.target.value)}
-              >
-                <option value="">— Pilih —</option>
-                {refOptions.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={busy}
-              onClick={() => void handleOpenSession()}
-            >
-              Buka sesi
-            </button>
-          </div>
-        </div>
+      {isDisplayMode && canCheckIn && activeSession && (
+        <AbsensiLiveStage
+          title={activeSession.title}
+          displayRef={displayRef}
+          videoRef={videoRef}
+          canvasRef={canvasRef}
+          isFullscreen={isFullscreen}
+          showCameraPermission={showCameraPermission}
+          cameraPermissionState={toCameraPermissionPanelState(cameraAccess)}
+          cameraMessage={cameraMessage}
+          cameraBusy={cameraBusy}
+          cameraActive={cameraActive}
+          faceTracked={faceTracked}
+          faceValid={faceValid}
+          notify={notify}
+          onRequestCamera={() => {
+            void startCamera()
+          }}
+          onToggleFullscreen={() => void toggleFullscreen()}
+        />
       )}
 
-      {isDisplayMode && (
-        <div
-          ref={displayRef}
-          className={`absensi-display${isFullscreen ? ' absensi-display--fullscreen' : ''}`}
-        >
-          {isFullscreen && (
-            <div className="absensi-display__fs-bar">
-              <strong>{activeSession?.title}</strong>
-              <button
-                type="button"
-                className="btn btn--secondary"
-                onClick={() => void toggleFullscreen()}
-              >
-                Keluar fullscreen
-              </button>
-            </div>
-          )}
-          <div className="camera-stage-wrap">
-            {showCameraPermission && (
-              <CameraPermissionPanel
-                className="camera-permission--overlay"
-                state={toCameraPermissionPanelState(cameraAccess)}
-                message={cameraMessage}
-                busy={cameraBusy}
-                title="Kamera absensi"
-                onRequest={() => {
-                  void startCamera()
-                }}
-              />
-            )}
-            <FaceScanStage
-              videoRef={videoRef}
-              canvasRef={canvasRef}
-              className="camera-block camera-block--kiosk"
-              videoClassName="camera-video--kiosk"
-              tracking={cameraActive && faceTracked}
-              validity={
-                cameraActive && faceTracked ? (faceValid ? 'valid' : 'invalid') : 'idle'
-              }
-              ariaLabel="Kamera absensi"
-            />
-          </div>
-
-          <div
-            className={`absensi-notify absensi-notify--${notify.kind}`}
-            role="status"
-            aria-live="polite"
-          >
-            <div className="absensi-notify__title">{notify.title}</div>
-            <div className="absensi-notify__detail">{notify.detail}</div>
-          </div>
-        </div>
-      )}
-
-      {!isDisplayMode && (
-        <div className={`absensi-notify absensi-notify--${notify.kind}`} role="status">
-          <div className="absensi-notify__title">{notify.title}</div>
-          <div className="absensi-notify__detail">{notify.detail}</div>
-        </div>
-      )}
+      {!isDisplayMode && <AbsensiNotify notify={notify} />}
     </div>
   )
 }

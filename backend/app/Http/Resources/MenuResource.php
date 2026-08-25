@@ -12,7 +12,7 @@ class MenuResource extends JsonResource
         return [
             'id' => $this->id,
             'parent_id' => $this->parent_id,
-            'kode' => $this->kode,
+            'slug' => $this->slug,
             'nama' => $this->nama,
             'path' => $this->path,
             'icon' => $this->icon,

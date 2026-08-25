@@ -4,9 +4,12 @@ import { ApiError } from '../api/client'
 import { kegiatanService } from '../api/services'
 import { Pagination, rowNumber } from '../components/Pagination'
 import type { Kegiatan, PaginationMeta } from '../api/types'
+import { useAuth } from '../auth/AuthContext'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 export function KegiatanPage() {
+  const { can } = useAuth()
   const [items, setItems] = useState<Kegiatan[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [query, setQuery] = useState('')
@@ -85,9 +88,11 @@ export function KegiatanPage() {
             <h1>Kegiatan</h1>
             <p>Agenda kegiatan jamaah dan masjid.</p>
           </div>
-          <Link to="/kegiatan/new" className="btn btn--primary">
-            Tambah kegiatan
-          </Link>
+          {can('kegiatan.create') && (
+            <Link to="/kegiatan/new" className="btn btn--primary">
+              Tambah kegiatan
+            </Link>
+          )}
         </div>
       </header>
 
@@ -106,17 +111,19 @@ export function KegiatanPage() {
         <div className="filter-bar__fields">
           <div className="field">
             <label htmlFor="filter_status">Status</label>
-            <select
+            <SearchableSelect
               id="filter_status"
               value={statusFilter}
-              onChange={(event) => handleStatusChange(event.target.value)}
-            >
-              <option value="">Semua</option>
-              <option value="planned">Direncanakan</option>
-              <option value="ongoing">Berlangsung</option>
-              <option value="completed">Selesai</option>
-              <option value="cancelled">Dibatalkan</option>
-            </select>
+              onChange={(next) => handleStatusChange(next)}
+              placeholder="Semua"
+              options={[
+                { value: "", label: "Semua" },
+                { value: "planned", label: "Direncanakan" },
+                { value: "ongoing", label: "Berlangsung" },
+                { value: "completed", label: "Selesai" },
+                { value: "cancelled", label: "Dibatalkan" },
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="filter_date_from">Dari tanggal</label>
@@ -184,19 +191,23 @@ export function KegiatanPage() {
                     <td>{item.status}</td>
                     <td>
                       <div className="data-table__actions">
-                        <Link
-                          to={`/kegiatan/${item.id}/edit`}
-                          className="btn btn--secondary btn--small"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          type="button"
-                          className="btn btn--danger btn--small"
-                          onClick={() => void handleDelete(item.id)}
-                        >
-                          Hapus
-                        </button>
+                        {can('kegiatan.update') && (
+                          <Link
+                            to={`/kegiatan/${item.id}/edit`}
+                            className="btn btn--secondary btn--small"
+                          >
+                            Edit
+                          </Link>
+                        )}
+                        {can('kegiatan.delete') && (
+                          <button
+                            type="button"
+                            className="btn btn--danger btn--small"
+                            onClick={() => void handleDelete(item.id)}
+                          >
+                            Hapus
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

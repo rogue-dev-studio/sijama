@@ -15,7 +15,7 @@ class StoreFiturRequest extends FormRequest
     {
         return [
             'menu_id' => ['required', 'integer', 'exists:menus,id'],
-            'kode' => ['required', 'string', 'max:50', 'unique:fiturs,kode'],
+            'slug' => ['required', 'string', 'max:50', 'unique:fiturs,slug'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

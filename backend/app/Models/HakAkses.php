@@ -12,7 +12,7 @@ class HakAkses extends Model
 
     protected $fillable = [
         'fitur_id',
-        'kode',
+        'slug',
         'nama',
         'aksi',
     ];

@@ -23,10 +23,10 @@ class PengajianService
     ): LengthAwarePaginator {
         $builder = Pengajian::query()
             ->with([
-                'lokasiRef:id,kode,nama,jenis',
-                'pemateriRef:id,kode,nama',
-                'materi:id,kode,nama',
-                'kategoriKegiatan:id,kode,nama,calendar_color',
+                'lokasiRef:id,nama,jenis',
+                'pemateriRef:id,nama',
+                'materi:id,nama',
+                'kategoriKegiatan:id,nama,calendar_color',
             ])
             ->orderByDesc('starts_at');
 
@@ -58,7 +58,7 @@ class PengajianService
         $attributes = $data->toModelAttributes();
         if (empty($attributes['kategori_kegiatan_id'])) {
             $attributes['kategori_kegiatan_id'] = \App\Models\KategoriKegiatan::query()
-                ->where('kode', 'pengajian')
+                ->where('nama', 'ilike', 'Pengajian')
                 ->value('id');
         }
 

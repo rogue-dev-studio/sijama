@@ -18,7 +18,6 @@ class KategoriKegiatanResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'kode' => $this->kode,
             'nama' => $this->nama,
             'deskripsi' => $this->deskripsi,
             'calendar_color' => $this->calendar_color ?: '#2563eb',

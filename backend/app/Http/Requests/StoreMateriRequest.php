@@ -14,7 +14,6 @@ class StoreMateriRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kode' => ['required', 'string', 'max:50', 'unique:materi,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

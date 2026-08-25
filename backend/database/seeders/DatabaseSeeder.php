@@ -32,20 +32,26 @@ class DatabaseSeeder extends Seeder
         $this->call(MasterEventSeeder::class);
         $this->call(HariLiburSeeder::class);
 
-        $superadmin = Dapukan::where('kode', 'superadmin')->firstOrFail();
-        $adminPusat = Dapukan::where('kode', 'admin_pusat')->firstOrFail();
-        $adminDaerah = Dapukan::where('kode', 'admin_daerah')->firstOrFail();
-        $adminDesa = Dapukan::where('kode', 'admin_desa')->firstOrFail();
-        $adminKelompok = Dapukan::where('kode', 'admin_kelompok')->firstOrFail();
-        $fourSDaerah = Dapukan::where('kode', '4s_daerah')->firstOrFail();
-        $fourSKelompok = Dapukan::where('kode', '4s_kelompok')->firstOrFail();
-        $jamaahKelompok = Dapukan::where('kode', 'jamaah_kelompok')->firstOrFail();
-        $pnkbDaerah = Dapukan::where('kode', 'pnkb_daerah')->firstOrFail();
+        $superadmin = Dapukan::where('slug', 'superadmin')->firstOrFail();
+        $adminPusat = Dapukan::where('slug', 'admin_pusat')->firstOrFail();
+        $adminDaerah = Dapukan::where('slug', 'admin_daerah')->firstOrFail();
+        $adminDesa = Dapukan::where('slug', 'admin_desa')->firstOrFail();
+        $adminKelompok = Dapukan::where('slug', 'admin_kelompok')->firstOrFail();
+        $fourSDaerah = Dapukan::where('slug', '4s_daerah')->firstOrFail();
+        $fourSKelompok = Dapukan::where('slug', '4s_kelompok')->firstOrFail();
+        $jamaahKelompok = Dapukan::where('slug', 'jamaah_kelompok')->firstOrFail();
+        $pnkbDaerah = Dapukan::where('slug', 'pnkb_daerah')->firstOrFail();
 
         $pusatBarat = Pusat::where('kode', 'indonesia-barat')->firstOrFail();
-        $bandungUtara = Daerah::where('kode', 'bandung-utara')->firstOrFail();
-        $bojonegara = Desa::where('kode', 'bojonegara')->firstOrFail();
-        $pajajaranTimur = Kelompok::where('kode', 'pajajaran-timur')->firstOrFail();
+        $bandungUtara = Daerah::where('kode', '05')->firstOrFail();
+        $bojonegara = Desa::query()
+            ->where('daerah_id', $bandungUtara->id)
+            ->where('kode', '02')
+            ->firstOrFail();
+        $pajajaranTimur = Kelompok::query()
+            ->where('desa_id', $bojonegara->id)
+            ->where('nama', 'Pajajaran Timur')
+            ->firstOrFail();
 
         User::updateOrCreate(
             ['username' => 'admin'],

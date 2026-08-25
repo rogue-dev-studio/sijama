@@ -14,7 +14,7 @@ class MatriksService
     public function show(): array
     {
         $dapukan = Dapukan::query()->orderBy('urutan')->with('hakAkses')->get();
-        $hakAkses = HakAkses::query()->orderBy('kode')->get();
+        $hakAkses = HakAkses::query()->orderBy('slug')->get();
 
         return [
             'dapukan' => DapukanResource::collection($dapukan)->resolve(),

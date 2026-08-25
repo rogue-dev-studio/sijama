@@ -17,29 +17,28 @@ class PekerjaanSeeder extends Seeder
     public function run(): void
     {
         $items = [
-            ['kode' => 'pns', 'nama' => 'PNS / ASN'],
-            ['kode' => 'tni_polri', 'nama' => 'TNI / Polri'],
-            ['kode' => 'karyawan_swasta', 'nama' => 'Karyawan swasta'],
-            ['kode' => 'wiraswasta', 'nama' => 'Wiraswasta'],
-            ['kode' => 'petani', 'nama' => 'Petani'],
-            ['kode' => 'nelayan', 'nama' => 'Nelayan'],
-            ['kode' => 'buruh', 'nama' => 'Buruh'],
-            ['kode' => 'guru', 'nama' => 'Guru'],
-            ['kode' => 'dosen', 'nama' => 'Dosen'],
-            ['kode' => 'tenaga_kesehatan', 'nama' => 'Tenaga kesehatan'],
-            ['kode' => 'mahasiswa', 'nama' => 'Mahasiswa'],
-            ['kode' => 'pelajar', 'nama' => 'Pelajar'],
-            ['kode' => 'ibu_rumah_tangga', 'nama' => 'Ibu rumah tangga'],
-            ['kode' => 'pensiunan', 'nama' => 'Pensiunan'],
-            ['kode' => 'tidak_bekerja', 'nama' => 'Tidak bekerja'],
-            ['kode' => 'lainnya', 'nama' => 'Lainnya'],
+            ['nama' => 'PNS / ASN'],
+            ['nama' => 'TNI / Polri'],
+            ['nama' => 'Karyawan swasta'],
+            ['nama' => 'Wiraswasta'],
+            ['nama' => 'Petani'],
+            ['nama' => 'Nelayan'],
+            ['nama' => 'Buruh'],
+            ['nama' => 'Guru'],
+            ['nama' => 'Dosen'],
+            ['nama' => 'Tenaga kesehatan'],
+            ['nama' => 'Mahasiswa'],
+            ['nama' => 'Pelajar'],
+            ['nama' => 'Ibu rumah tangga'],
+            ['nama' => 'Pensiunan'],
+            ['nama' => 'Tidak bekerja'],
+            ['nama' => 'Lainnya'],
         ];
 
         foreach ($items as $item) {
             Pekerjaan::updateOrCreate(
-                ['kode' => $item['kode']],
+                ['nama' => $item['nama']],
                 [
-                    'nama' => $item['nama'],
                     'is_active' => true,
                 ]
             );

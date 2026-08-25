@@ -43,12 +43,21 @@ Jalankan stack (backend + frontend, DB di Aiven):
 docker compose -f docker-compose.yml -f docker-compose.aiven.yml --env-file .env.aiven up -d --build
 ```
 
-Migrate + seed (opsional, local):
+Migrate + seed (opsional; **wipe** data — cocok setelah squash baseline):
 
 ```powershell
-docker compose -f docker-compose.yml -f docker-compose.aiven.yml --env-file .env.aiven exec backend php artisan migrate --force
-docker compose -f docker-compose.yml -f docker-compose.aiven.yml --env-file .env.aiven exec backend php artisan db:seed
+docker compose -f docker-compose.yml -f docker-compose.aiven.yml --env-file .env.aiven exec backend php artisan migrate:fresh --seed --force
 ```
+
+Atau dari host (SSL required):
+
+```powershell
+# load .env.aiven ke environment, lalu:
+cd backend
+php artisan migrate:fresh --seed --force
+```
+
+Baseline migrations: lihat `docs/architecture/ADR-migration-squash-baseline-v1.0.0.md`.
 
 ## 5. Tanpa Docker (backend lokal)
 

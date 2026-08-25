@@ -14,7 +14,6 @@ class StorePemateriRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kode' => ['required', 'string', 'max:50', 'unique:pemateri,kode'],
             'jamaah_id' => ['required', 'integer', 'exists:jamaah,id', 'unique:pemateri,jamaah_id'],
             'nama' => ['nullable', 'string', 'max:255'],
             'kontak' => ['nullable', 'string', 'max:50'],

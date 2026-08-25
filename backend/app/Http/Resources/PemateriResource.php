@@ -18,7 +18,6 @@ class PemateriResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'kode' => $this->kode,
             'jamaah_id' => $this->jamaah_id,
             'jamaah' => $this->whenLoaded('jamaah', fn () => $this->jamaah ? [
                 'id' => $this->jamaah->id,

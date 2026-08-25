@@ -10,7 +10,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdatePekerjaanRequest extends FormRequest
 {
@@ -21,10 +20,7 @@ class UpdatePekerjaanRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('pekerjaan');
-
         return [
-            'kode' => ['sometimes', 'required', 'string', 'max:50', Rule::unique('pekerjaan', 'kode')->ignore($id)],
             'nama' => ['sometimes', 'required', 'string', 'max:100'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

@@ -5,7 +5,7 @@
  * @Last Modified time: 2026-08-03 13:30:00
  */
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import {
@@ -16,6 +16,7 @@ import {
 } from '../api/services'
 import type { Lokasi, Materi, Pemateri, Pengajian, PengajianInput } from '../api/types'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 const emptyForm: PengajianInput = {
   judul: '',
   pemateri: '',
@@ -35,15 +36,6 @@ function toLocalInput(iso: string): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-function filterByQuery<T extends { kode: string; nama: string }>(items: T[], query: string): T[] {
-  const needle = query.trim().toLowerCase()
-  if (!needle) return items
-  return items.filter(
-    (item) =>
-      item.nama.toLowerCase().includes(needle) || item.kode.toLowerCase().includes(needle),
-  )
-}
-
 export function PengajianFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
@@ -55,22 +47,6 @@ export function PengajianFormPage() {
   const [lokasiOptions, setLokasiOptions] = useState<Lokasi[]>([])
   const [pemateriOptions, setPemateriOptions] = useState<Pemateri[]>([])
   const [materiOptions, setMateriOptions] = useState<Materi[]>([])
-  const [lokasiFilter, setLokasiFilter] = useState('')
-  const [pemateriFilter, setPemateriFilter] = useState('')
-  const [materiFilter, setMateriFilter] = useState('')
-
-  const filteredLokasi = useMemo(
-    () => filterByQuery(lokasiOptions, lokasiFilter),
-    [lokasiOptions, lokasiFilter],
-  )
-  const filteredPemateri = useMemo(
-    () => filterByQuery(pemateriOptions, pemateriFilter),
-    [pemateriOptions, pemateriFilter],
-  )
-  const filteredMateri = useMemo(
-    () => filterByQuery(materiOptions, materiFilter),
-    [materiOptions, materiFilter],
-  )
 
   useEffect(() => {
     let active = true
@@ -194,7 +170,7 @@ export function PengajianFormPage() {
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
           <div className="field">
-            <label htmlFor="judul">Judul *</label>
+            <label htmlFor="judul">Judul</label>
             <input
               id="judul"
               value={form.judul}
@@ -203,29 +179,20 @@ export function PengajianFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="pemateri_filter">Cari pemateri</label>
-            <input
-              id="pemateri_filter"
-              type="search"
-              placeholder="Filter daftar pemateri…"
-              value={pemateriFilter}
-              onChange={(event) => setPemateriFilter(event.target.value)}
-            />
-          </div>
-          <div className="field">
             <label htmlFor="pemateri_id">Pemateri (master)</label>
-            <select
+            <SearchableSelect
               id="pemateri_id"
               value={form.pemateri_id ? String(form.pemateri_id) : ''}
-              onChange={(event) => handlePemateriChange(event.target.value)}
-            >
-              <option value="">— Pilih atau isi manual —</option>
-              {filteredPemateri.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama} ({item.kode})
-                </option>
-              ))}
-            </select>
+              onChange={(next) => handlePemateriChange(next)}
+              placeholder="— Pilih atau isi manual —"
+              options={[
+                { value: '', label: '— Pilih atau isi manual —' },
+                ...pemateriOptions.map((item) => ({
+                  value: String(item.id),
+                  label: item.nama,
+                })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="pemateri">Pemateri (teks)</label>
@@ -242,29 +209,20 @@ export function PengajianFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="lokasi_filter">Cari lokasi</label>
-            <input
-              id="lokasi_filter"
-              type="search"
-              placeholder="Filter daftar lokasi…"
-              value={lokasiFilter}
-              onChange={(event) => setLokasiFilter(event.target.value)}
-            />
-          </div>
-          <div className="field">
             <label htmlFor="lokasi_id">Lokasi (master)</label>
-            <select
+            <SearchableSelect
               id="lokasi_id"
               value={form.lokasi_id ? String(form.lokasi_id) : ''}
-              onChange={(event) => handleLokasiChange(event.target.value)}
-            >
-              <option value="">— Pilih atau isi manual —</option>
-              {filteredLokasi.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama} · {item.jenis}
-                </option>
-              ))}
-            </select>
+              onChange={(next) => handleLokasiChange(next)}
+              placeholder="— Pilih atau isi manual —"
+              options={[
+                { value: '', label: '— Pilih atau isi manual —' },
+                ...lokasiOptions.map((item) => ({
+                  value: String(item.id),
+                  label: `${item.nama} · ${item.jenis}`,
+                })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="lokasi">Lokasi (teks)</label>
@@ -281,32 +239,23 @@ export function PengajianFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="materi_filter">Cari materi</label>
-            <input
-              id="materi_filter"
-              type="search"
-              placeholder="Filter daftar materi…"
-              value={materiFilter}
-              onChange={(event) => setMateriFilter(event.target.value)}
+            <label htmlFor="materi_id">Materi</label>
+            <SearchableSelect
+              id="materi_id"
+              value={form.materi_id ? String(form.materi_id) : ''}
+              onChange={(next) => handleMateriChange(next)}
+              placeholder="— Opsional —"
+              options={[
+                { value: '', label: '— Opsional —' },
+                ...materiOptions.map((item) => ({
+                  value: String(item.id),
+                  label: item.nama,
+                })),
+              ]}
             />
           </div>
           <div className="field">
-            <label htmlFor="materi_id">Materi</label>
-            <select
-              id="materi_id"
-              value={form.materi_id ? String(form.materi_id) : ''}
-              onChange={(event) => handleMateriChange(event.target.value)}
-            >
-              <option value="">— Opsional —</option>
-              {filteredMateri.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama} ({item.kode})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="starts_at">Mulai *</label>
+            <label htmlFor="starts_at">Mulai</label>
             <input
               id="starts_at"
               type="datetime-local"
@@ -326,20 +275,21 @@ export function PengajianFormPage() {
           </div>
           <div className="field">
             <label htmlFor="status">Status</label>
-            <select
+            <SearchableSelect
               id="status"
-              value={form.status}
-              onChange={(event) =>
+              value={form.status ?? ''}
+              onChange={(next) =>
                 setForm((prev) => ({
                   ...prev,
-                  status: event.target.value as Pengajian['status'],
+                  status: next as Pengajian['status'],
                 }))
               }
-            >
-              <option value="scheduled">Terjadwal</option>
-              <option value="completed">Selesai</option>
-              <option value="cancelled">Dibatalkan</option>
-            </select>
+              options={[
+                { value: 'scheduled', label: 'Terjadwal' },
+                { value: 'completed', label: 'Selesai' },
+                { value: 'cancelled', label: 'Dibatalkan' },
+              ]}
+            />
           </div>
           <div className="field" style={{ gridColumn: '1 / -1' }}>
             <label htmlFor="catatan">Catatan</label>

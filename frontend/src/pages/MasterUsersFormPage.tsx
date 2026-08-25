@@ -11,6 +11,7 @@ import { ApiError } from '../api/client'
 import { jamaahService, masterUserService } from '../api/services'
 import type { Jamaah, MasterUserInput } from '../api/types'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 type UserForm = {
   username: string
   password: string
@@ -141,20 +142,20 @@ export function MasterUsersFormPage() {
         <div className="form-grid form-grid--2">
           <div className="field">
             <label htmlFor="jamaah_id">Jamaah</label>
-            <select
+            <SearchableSelect
               id="jamaah_id"
-              value={form.jamaah_id || 0}
-              onChange={(event) => handleJamaahChange(Number(event.target.value))}
+              value={form.jamaah_id ? String(form.jamaah_id) : ''}
+              onChange={(next) => handleJamaahChange(Number(next))}
+              placeholder="Pilih jamaah"
               required
-            >
-              <option value={0}>Pilih jamaah</option>
-              {jamaahList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                  {item.email ? ` · ${item.email}` : ''}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: 'Pilih jamaah' },
+                ...jamaahList.map((item) => ({
+                  value: String(item.id),
+                  label: item.nama + (item.email ? ` · ${item.email}` : ''),
+                })),
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="username">Username</label>
@@ -194,14 +195,15 @@ export function MasterUsersFormPage() {
           </div>
           <div className="field">
             <label htmlFor="is_active">Status</label>
-            <select
+            <SearchableSelect
               id="is_active"
               value={form.is_active ? '1' : '0'}
-              onChange={(event) => setForm({ ...form, is_active: event.target.value === '1' })}
-            >
-              <option value="1">Aktif</option>
-              <option value="0">Nonaktif</option>
-            </select>
+              onChange={(next) => setForm({ ...form, is_active: next === '1' })}
+              options={[
+                { value: "1", label: "Aktif" },
+                { value: "0", label: "Nonaktif" },
+              ]}
+            />
           </div>
         </div>
         <div className="form-actions">

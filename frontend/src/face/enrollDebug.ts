@@ -40,11 +40,20 @@ function saveLocal(entries: FaceEnrollDebugEntry[]) {
   }
 }
 
+function canFlushRemote(): boolean {
+  return import.meta.env.DEV === true
+}
+
 async function flushQueue() {
   if (queue.length === 0) return
   const batch = queue.splice(0, queue.length)
   const merged = [...loadLocal(), ...batch].slice(-MAX_LOCAL)
   saveLocal(merged)
+
+  if (!canFlushRemote()) {
+    flushError = null
+    return
+  }
 
   try {
     await apiRequest<{ written: number }>('/debug/face-enroll', {
@@ -106,6 +115,7 @@ export async function clearFaceEnrollDebug(jamaahId?: number) {
   saveLocal([])
   snapshot = {}
   flushError = null
+  if (!canFlushRemote()) return
   try {
     await apiRequest('/debug/face-enroll', {
       method: 'POST',

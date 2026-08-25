@@ -39,7 +39,7 @@ export interface UserScope {
 
 export interface Dapukan {
   id: number
-  kode: string
+  slug: string
   nama: string
   deskripsi: string | null
   tingkat: DapukanTingkat
@@ -50,6 +50,8 @@ export interface Dapukan {
   created_at?: string
   updated_at?: string
 }
+
+export type JamaahDapukanOption = Pick<Dapukan, 'id' | 'slug' | 'nama' | 'tingkat'>
 
 export interface Pusat {
   id: number
@@ -180,7 +182,7 @@ export interface SubKelompok {
 
 export interface MenuNode {
   id: number
-  kode: string
+  slug: string
   nama: string
   path: string | null
   icon: string | null
@@ -198,7 +200,7 @@ export interface Menu extends Omit<MenuNode, 'children'> {
 export interface Fitur {
   id: number
   menu_id: number
-  kode: string
+  slug: string
   nama: string
   deskripsi: string | null
   is_active: boolean
@@ -210,7 +212,7 @@ export interface Fitur {
 export interface HakAkses {
   id: number
   fitur_id: number
-  kode: string
+  slug: string
   nama: string
   aksi: 'view' | 'create' | 'update' | 'delete' | 'execute'
   fitur?: Fitur
@@ -230,10 +232,10 @@ export interface MasterUser {
     nama: string
     email: string | null
     no_hp?: string | null
-    dapukan?: Array<{ id: number; kode: string; nama: string; tingkat: DapukanTingkat }>
+    dapukan?: Array<{ id: number; slug: string; nama: string; tingkat: DapukanTingkat }>
   } | null
-  dapukan?: { id: number; kode: string; nama: string; tingkat: DapukanTingkat }
-  dapukan_list?: Array<{ id: number; kode: string; nama: string; tingkat: DapukanTingkat }>
+  dapukan?: { id: number; slug: string; nama: string; tingkat: DapukanTingkat }
+  dapukan_list?: Array<{ id: number; slug: string; nama: string; tingkat: DapukanTingkat }>
   scope?: UserScope
   created_at?: string
   updated_at?: string
@@ -246,7 +248,8 @@ export interface User {
   email: string | null
   is_active: boolean
   jamaah_id?: number | null
-  dapukan?: { id: number; kode: string; nama: string; tingkat: DapukanTingkat }
+  dapukan?: { id: number; slug: string; nama: string; tingkat: DapukanTingkat }
+  dapukan_list?: Array<{ id: number; slug: string; nama: string; tingkat: DapukanTingkat }>
   scope?: UserScope
   created_at?: string
   updated_at?: string
@@ -280,17 +283,40 @@ export type OwnProfileInput = {
   kode_pos?: string | null
 }
 
+export type ProfileAdmChain = {
+  negara_id: number | null
+  provinsi_id: number | null
+  kabupaten_kota_id: number | null
+  kecamatan_id: number | null
+  desa_kelurahan_id: number | null
+  labels: {
+    negara: string | null
+    provinsi: string | null
+    kabupaten_kota: string | null
+    kecamatan: string | null
+    desa_kelurahan: string | null
+  }
+}
+
+export type ProfileWilayahOption = {
+  id: number
+  kode: string
+  nama: string
+}
+
 export type ProfileResult = {
   user: User
   jamaah: Jamaah | null
   can_edit_jamaah: boolean
+  adm_chain: ProfileAdmChain | null
   lookups: {
-    pekerjaan: Array<{ id: number; kode: string; nama: string }>
+    pekerjaan: Array<{ id: number; nama: string }>
+    negara: ProfileWilayahOption[]
   }
 }
 
 export type DapukanInput = {
-  kode: string
+  slug: string
   nama: string
   deskripsi?: string | null
   urutan?: number
@@ -299,7 +325,7 @@ export type DapukanInput = {
 
 export type MenuInput = {
   parent_id?: number | null
-  kode: string
+  slug: string
   nama: string
   path?: string | null
   icon?: string | null
@@ -309,7 +335,7 @@ export type MenuInput = {
 
 export type FiturInput = {
   menu_id: number
-  kode: string
+  slug: string
   nama: string
   deskripsi?: string | null
   is_active?: boolean
@@ -317,7 +343,7 @@ export type FiturInput = {
 
 export type HakAksesInput = {
   fitur_id: number
-  kode: string
+  slug: string
   nama: string
   aksi: HakAkses['aksi']
 }
@@ -440,12 +466,12 @@ export interface Jamaah {
   pekerjaan_id?: number | null
   pekerjaan_ref?: MasterRef | null
   dapukan_ids?: number[]
-  dapukan?: Array<{ id: number; kode: string; nama: string; tingkat: DapukanTingkat }>
+  dapukan?: Array<{ id: number; slug: string; nama: string; tingkat: DapukanTingkat }>
   pendidikan: string | null
   status_pernikahan: string | null
   alamat: string | null
-  rt: string
-  rw: string
+  rt: string | null
+  rw: string | null
   no_hp: string
   email: string | null
   adm_desa_kelurahan_id: number | null
@@ -464,7 +490,6 @@ export type LokasiJenis = 'masjid' | 'gsg' | 'ppm' | 'aula' | 'kantor' | 'lainny
 
 export interface Lokasi {
   id: number
-  kode: string
   nama: string
   jenis: LokasiJenis
   kota: string | null
@@ -484,7 +509,6 @@ export interface Lokasi {
 
 export interface Pemateri {
   id: number
-  kode: string
   jamaah_id?: number | null
   jamaah?: { id: number; nama: string; no_hp: string | null; email: string | null } | null
   nama: string
@@ -497,7 +521,6 @@ export interface Pemateri {
 
 export interface Pekerjaan {
   id: number
-  kode: string
   nama: string
   deskripsi: string | null
   is_active: boolean
@@ -507,7 +530,6 @@ export interface Pekerjaan {
 
 export interface Materi {
   id: number
-  kode: string
   nama: string
   deskripsi: string | null
   is_active: boolean
@@ -517,7 +539,6 @@ export interface Materi {
 
 export interface KategoriKegiatan {
   id: number
-  kode: string
   nama: string
   deskripsi: string | null
   calendar_color?: string
@@ -528,7 +549,6 @@ export interface KategoriKegiatan {
 
 export type MasterRef = {
   id: number
-  kode: string
   nama: string
 }
 
@@ -645,8 +665,8 @@ export type JamaahInput = {
   pendidikan?: string | null
   status_pernikahan?: string | null
   alamat?: string | null
-  rt: string
-  rw: string
+  rt?: string | null
+  rw?: string | null
   no_hp: string
   email?: string | null
   adm_desa_kelurahan_id?: number | null
@@ -688,7 +708,6 @@ export type KategoriUmurSummary = {
 }
 
 export type LokasiInput = {
-  kode: string
   nama: string
   jenis: LokasiJenis
   kota?: string | null
@@ -700,8 +719,22 @@ export type LokasiInput = {
   is_active?: boolean
 }
 
+export type MapsLocationResolveResult = {
+  lat: number
+  lng: number
+  resolved_via: 'parse' | 'redirect' | 'geocode' | 'place_name'
+  source_url?: string
+  place_name?: string
+}
+
+export type MapsPlaceSearchItem = {
+  name: string
+  display_name: string
+  lat: number
+  lng: number
+}
+
 export type PemateriInput = {
-  kode: string
   jamaah_id: number
   nama?: string | null
   kontak?: string | null
@@ -710,21 +743,18 @@ export type PemateriInput = {
 }
 
 export type PekerjaanInput = {
-  kode: string
   nama: string
   deskripsi?: string | null
   is_active?: boolean
 }
 
 export type MateriInput = {
-  kode: string
   nama: string
   deskripsi?: string | null
   is_active?: boolean
 }
 
 export type KategoriKegiatanInput = {
-  kode: string
   nama: string
   deskripsi?: string | null
   calendar_color?: string
@@ -775,7 +805,7 @@ export type CalendarEvent = {
   time_label: string | null
   status: string
   color: string
-  kategori_kode: string | null
+  kategori_id: number | null
   kategori_nama: string | null
 }
 
@@ -794,7 +824,7 @@ export type CalendarDay = {
 }
 
 export type CalendarLegendItem = {
-  kode: string
+  id: number
   nama: string
   color: string
 }

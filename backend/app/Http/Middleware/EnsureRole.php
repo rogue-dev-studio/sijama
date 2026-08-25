@@ -14,7 +14,7 @@ class EnsureRole
         $user = $request->user();
         $user?->loadMissing('dapukan');
 
-        if (! $user || ! $user->dapukan || ! in_array($user->dapukan->kode, $roles, true)) {
+        if (! $user || ! $user->dapukan || ! in_array($user->dapukan->slug, $roles, true)) {
             return ApiResponse::error('Akses ditolak.', null, 403);
         }
 

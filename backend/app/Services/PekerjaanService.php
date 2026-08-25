@@ -27,7 +27,7 @@ class PekerjaanService extends SimpleMasterService
 
     protected function searchable(): array
     {
-        return ['nama', 'kode'];
+        return ['nama'];
     }
 
     protected function assertDeletable($model): void

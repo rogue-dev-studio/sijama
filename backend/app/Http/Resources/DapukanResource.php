@@ -11,7 +11,7 @@ class DapukanResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'kode' => $this->kode,
+            'slug' => $this->slug,
             'nama' => $this->nama,
             'deskripsi' => $this->deskripsi,
             'tingkat' => $this->tingkat,

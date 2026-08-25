@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Http\Resources\DapukanResource;
 use App\Models\Dapukan;
+use App\Models\User;
+use App\Support\DapukanTingkat;
 use App\Support\PaginationHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
@@ -17,12 +20,89 @@ class DapukanService
 
         if ($q) {
             $builder->where(function ($query) use ($q) {
-                $query->where('kode', 'ilike', "%{$q}%")
+                $query->where('slug', 'ilike', "%{$q}%")
                     ->orWhere('nama', 'ilike', "%{$q}%");
             });
         }
 
         return PaginationHelper::paginate($builder, $perPage, $page);
+    }
+
+    /**
+     * @return list<array{id: int, slug: string, nama: string, tingkat: string}>
+     */
+    public function listForJamaahForm(User $user): array
+    {
+        if (! $this->canAssignJamaahDapukan($user)) {
+            return [];
+        }
+
+        $builder = Dapukan::query()
+            ->where('is_active', true)
+            ->where('slug', '!=', 'superadmin')
+            ->orderBy('urutan')
+            ->orderBy('nama');
+
+        $this->applyAssignableTingkatFilter($builder, $user);
+
+        return $builder
+            ->get(['id', 'slug', 'nama', 'tingkat'])
+            ->map(fn (Dapukan $item) => [
+                'id' => $item->id,
+                'slug' => $item->slug,
+                'nama' => $item->nama,
+                'tingkat' => $item->tingkat,
+            ])
+            ->values()
+            ->all();
+    }
+
+    public function canAssignJamaahDapukan(User $user): bool
+    {
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        return $user->effectiveDapukan()->contains(
+            fn (Dapukan $item) => DapukanTingkat::isAdminSlug($item->slug)
+        );
+    }
+
+    public function isAssignableByUser(User $user, Dapukan $dapukan): bool
+    {
+        if (! $this->canAssignJamaahDapukan($user)) {
+            return false;
+        }
+
+        if ($dapukan->slug === 'superadmin') {
+            return false;
+        }
+
+        if ($user->isSuperAdmin() || $user->primaryDapukan()?->tingkat === 'global') {
+            return true;
+        }
+
+        return DapukanTingkat::isAssignableBy(
+            $dapukan->tingkat,
+            $user->primaryDapukan()?->tingkat
+        );
+    }
+
+    private function applyAssignableTingkatFilter(Builder $builder, User $user): void
+    {
+        if ($user->isSuperAdmin() || $user->primaryDapukan()?->tingkat === 'global') {
+            return;
+        }
+
+        $allowed = DapukanTingkat::tingkatAtOrBelow($user->primaryDapukan()?->tingkat);
+
+        if ($allowed === []) {
+            $builder->whereKey([]);
+
+            return;
+        }
+
+        $builder->whereIn('tingkat', $allowed);
     }
 
     public function create(array $data): DapukanResource
@@ -82,9 +162,9 @@ class DapukanService
             return;
         }
 
-        if (array_key_exists('kode', $data) && $data['kode'] !== $dapukan->kode) {
+        if (array_key_exists('slug', $data) && $data['slug'] !== $dapukan->slug) {
             throw ValidationException::withMessages([
-                'kode' => ['Kode dapukan sistem tidak dapat diubah.'],
+                'slug' => ['Slug dapukan sistem tidak dapat diubah.'],
             ]);
         }
 

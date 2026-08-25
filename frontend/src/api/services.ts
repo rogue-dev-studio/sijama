@@ -28,6 +28,7 @@ import type {
   HakAkses,
   HakAksesInput,
   Jamaah,
+  JamaahDapukanOption,
   JamaahInput,
   KategoriKegiatan,
   KategoriKegiatanInput,
@@ -39,6 +40,8 @@ import type {
   LoginResult,
   Lokasi,
   LokasiInput,
+  MapsLocationResolveResult,
+  MapsPlaceSearchItem,
   MasterUser,
   MasterUserInput,
   Materi,
@@ -57,6 +60,7 @@ import type {
   Pengajian,
   PengajianInput,
   ProfileResult,
+  ProfileWilayahOption,
   Pusat,
   PusatInput,
   SubKelompok,
@@ -103,6 +107,14 @@ export const profileService = {
   update(data: OwnProfileInput) {
     return apiRequest<ProfileResult>('/profile', { method: 'PUT', body: data })
   },
+  wilayahOptions(level: string, parentId?: number | null) {
+    return apiRequest<{ items: ProfileWilayahOption[] }>(
+      `/profile/wilayah-options${buildListQuery([
+        ['level', level],
+        ['parent_id', parentId ?? undefined],
+      ])}`,
+    )
+  },
 }
 
 export const masterPusatService = {
@@ -114,6 +126,9 @@ export const masterPusatService = {
         ['per_page', params?.per_page],
       ])}`,
     )
+  },
+  get(id: number) {
+    return apiRequest<Pusat>(`/master/pusat/${id}`)
   },
   create(data: PusatInput) {
     return apiRequest<Pusat>('/master/pusat', { method: 'POST', body: data })
@@ -157,6 +172,20 @@ export const masterLokasiService = {
   },
   remove(id: number) {
     return apiRequest<null>(`/master/lokasi/${id}`, { method: 'DELETE' })
+  },
+  resolveLocation(input: string) {
+    return apiRequest<MapsLocationResolveResult>('/master/lokasi/resolve-location', {
+      method: 'POST',
+      body: { input },
+    })
+  },
+  searchPlaces(q: string, limit = 6) {
+    return apiRequest<{ items: MapsPlaceSearchItem[] }>(
+      `/master/lokasi/search-places${buildListQuery([
+        ['q', q],
+        ['limit', limit],
+      ])}`,
+    )
   },
 }
 
@@ -278,6 +307,9 @@ export const masterDaerahService = {
       ])}`,
     )
   },
+  get(id: number) {
+    return apiRequest<Daerah>(`/master/daerah/${id}`)
+  },
   create(data: DaerahInput) {
     return apiRequest<Daerah>('/master/daerah', { method: 'POST', body: data })
   },
@@ -299,6 +331,9 @@ export const masterDesaService = {
         ['per_page', params?.per_page],
       ])}`,
     )
+  },
+  get(id: number) {
+    return apiRequest<Desa>(`/master/desa/${id}`)
   },
   create(data: DesaInput) {
     return apiRequest<Desa>('/master/desa', { method: 'POST', body: data })
@@ -331,6 +366,9 @@ export const masterKelompokService = {
       ])}`,
     )
   },
+  get(id: number) {
+    return apiRequest<Kelompok>(`/master/kelompok/${id}`)
+  },
   create(data: KelompokInput) {
     return apiRequest<Kelompok>('/master/kelompok', { method: 'POST', body: data })
   },
@@ -353,6 +391,9 @@ export const masterSubKelompokService = {
       ])}`,
     )
   },
+  get(id: number) {
+    return apiRequest<SubKelompok>(`/master/sub-kelompok/${id}`)
+  },
   create(data: SubKelompokInput) {
     return apiRequest<SubKelompok>('/master/sub-kelompok', { method: 'POST', body: data })
   },
@@ -373,6 +414,9 @@ export const admNegaraService = {
         ['per_page', params?.per_page],
       ])}`,
     )
+  },
+  get(id: number) {
+    return apiRequest<AdmNegara>(`/master/adm/negara/${id}`)
   },
   create(data: AdmNegaraInput) {
     return apiRequest<AdmNegara>('/master/adm/negara', { method: 'POST', body: data })
@@ -523,6 +567,9 @@ export const admKodePosService = {
       ])}`,
     )
   },
+  get(id: number) {
+    return apiRequest<AdmKodePos>(`/master/adm/kode-pos/${id}`)
+  },
   create(data: AdmKodePosInput) {
     return apiRequest<AdmKodePos>('/master/adm/kode-pos', { method: 'POST', body: data })
   },
@@ -544,6 +591,9 @@ export const masterDapukanService = {
       ])}`,
     )
   },
+  get(id: number) {
+    return apiRequest<Dapukan>(`/master/dapukan/${id}`)
+  },
   create(data: DapukanInput) {
     return apiRequest<Dapukan>('/master/dapukan', { method: 'POST', body: data })
   },
@@ -564,6 +614,9 @@ export const masterMenuService = {
         ['per_page', params?.per_page],
       ])}`,
     )
+  },
+  get(id: number) {
+    return apiRequest<Menu>(`/master/menus/${id}`)
   },
   create(data: MenuInput) {
     return apiRequest<Menu>('/master/menus', { method: 'POST', body: data })
@@ -587,6 +640,9 @@ export const masterFiturService = {
       ])}`,
     )
   },
+  get(id: number) {
+    return apiRequest<Fitur>(`/master/fiturs/${id}`)
+  },
   create(data: FiturInput) {
     return apiRequest<Fitur>('/master/fiturs', { method: 'POST', body: data })
   },
@@ -608,6 +664,9 @@ export const masterHakAksesService = {
         ['per_page', params?.per_page],
       ])}`,
     )
+  },
+  get(id: number) {
+    return apiRequest<HakAkses>(`/master/hak-akses/${id}`)
   },
   create(data: HakAksesInput) {
     return apiRequest<HakAkses>('/master/hak-akses', { method: 'POST', body: data })
@@ -712,6 +771,12 @@ export const jamaahService = {
   },
   get(id: number) {
     return apiRequest<Jamaah>(`/jamaah/${id}`)
+  },
+  dapukanOptions() {
+    return apiRequest<JamaahDapukanOption[]>('/jamaah/dapukan-options')
+  },
+  kelompokOptions() {
+    return apiRequest<Kelompok[]>('/jamaah/kelompok-options')
   },
   create(data: JamaahInput) {
     return apiRequest<Jamaah>('/jamaah', { method: 'POST', body: data })

@@ -4,9 +4,12 @@ import { ApiError } from '../api/client'
 import { pengajianService } from '../api/services'
 import { Pagination, rowNumber } from '../components/Pagination'
 import type { PaginationMeta, Pengajian } from '../api/types'
+import { useAuth } from '../auth/AuthContext'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
 
+import { SearchableSelect } from '../components/SearchableSelect'
 export function PengajianPage() {
+  const { can } = useAuth()
   const [items, setItems] = useState<Pengajian[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [query, setQuery] = useState('')
@@ -85,9 +88,11 @@ export function PengajianPage() {
             <h1>Pengajian</h1>
             <p>Jadwal kajian dan pemateri.</p>
           </div>
-          <Link to="/pengajian/new" className="btn btn--primary">
-            Tambah pengajian
-          </Link>
+          {can('pengajian.create') && (
+            <Link to="/pengajian/new" className="btn btn--primary">
+              Tambah pengajian
+            </Link>
+          )}
         </div>
       </header>
 
@@ -106,16 +111,18 @@ export function PengajianPage() {
         <div className="filter-bar__fields">
           <div className="field">
             <label htmlFor="filter_status">Status</label>
-            <select
+            <SearchableSelect
               id="filter_status"
               value={statusFilter}
-              onChange={(event) => handleStatusChange(event.target.value)}
-            >
-              <option value="">Semua</option>
-              <option value="scheduled">Terjadwal</option>
-              <option value="completed">Selesai</option>
-              <option value="cancelled">Dibatalkan</option>
-            </select>
+              onChange={(next) => handleStatusChange(next)}
+              placeholder="Semua"
+              options={[
+                { value: "", label: "Semua" },
+                { value: "scheduled", label: "Terjadwal" },
+                { value: "completed", label: "Selesai" },
+                { value: "cancelled", label: "Dibatalkan" },
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="filter_date_from">Dari tanggal</label>
@@ -183,19 +190,23 @@ export function PengajianPage() {
                     <td>{item.status}</td>
                     <td>
                       <div className="data-table__actions">
-                        <Link
-                          to={`/pengajian/${item.id}/edit`}
-                          className="btn btn--secondary btn--small"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          type="button"
-                          className="btn btn--danger btn--small"
-                          onClick={() => void handleDelete(item.id)}
-                        >
-                          Hapus
-                        </button>
+                        {can('pengajian.update') && (
+                          <Link
+                            to={`/pengajian/${item.id}/edit`}
+                            className="btn btn--secondary btn--small"
+                          >
+                            Edit
+                          </Link>
+                        )}
+                        {can('pengajian.delete') && (
+                          <button
+                            type="button"
+                            className="btn btn--danger btn--small"
+                            onClick={() => void handleDelete(item.id)}
+                          >
+                            Hapus
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -1,3 +1,10 @@
+/**
+ * @Author: rogue-dev-studio
+ * @Date: 2026-08-25 17:29:10
+ * @Last Modified by: rogue-dev-studio
+ * @Last Modified time: 2026-08-25 17:29:10
+ */
+
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { ApiError } from '../api/client'
@@ -6,11 +13,13 @@ import { BrandMark } from '../components/BrandMark'
 import { DeveloperFooter } from '../components/DeveloperFooter'
 import { MenuIcon } from '../components/MenuIcon'
 
+const showDemoHint = import.meta.env.DEV === true
+
 export function LoginPage() {
   const { user, login } = useAuth()
   const location = useLocation()
-  const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState('password')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -88,10 +97,12 @@ export function LoginPage() {
           </div>
         </form>
 
-        <p className="login-hint">
-          Demo (password: password): admin, admin.pusat, admin.daerah, admin.desa, operator,
-          4s.daerah, petugas, jamaah, pnkb.daerah
-        </p>
+        {showDemoHint && (
+          <p className="login-hint">
+            Dev only — seed lokal (password: password): admin, admin.pusat, admin.daerah,
+            admin.desa, operator, 4s.daerah, petugas, jamaah, pnkb.daerah
+          </p>
+        )}
         <DeveloperFooter />
       </div>
     </div>

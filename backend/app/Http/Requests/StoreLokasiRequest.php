@@ -16,7 +16,6 @@ class StoreLokasiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kode' => ['required', 'string', 'max:50', 'unique:lokasi,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'jenis' => ['required', 'string', Rule::in(LokasiJenis::VALUES)],
             'kota' => ['nullable', 'string', 'max:100'],

@@ -15,7 +15,7 @@ class StoreSubKelompokRequest extends FormRequest
     {
         return [
             'kelompok_id' => ['required', 'integer', 'exists:kelompok,id'],
-            'kode' => ['required', 'string', 'max:50', 'unique:sub_kelompok,kode'],
+            'kode' => ['nullable', 'string', 'max:50', 'unique:sub_kelompok,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

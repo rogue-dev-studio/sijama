@@ -77,11 +77,21 @@ class User extends Authenticatable
     {
         $this->loadMissing(['jamaah.dapukan', 'dapukan']);
 
-        if ($this->jamaah && $this->jamaah->relationLoaded('dapukan') && $this->jamaah->dapukan->isNotEmpty()) {
-            return $this->jamaah->dapukan;
+        $items = collect();
+
+        // Dapukan akun (users.dapukan_id) tetap dihitung — jangan diganti penuh oleh dapukan jamaah.
+        if ($this->dapukan) {
+            $items->push($this->dapukan);
         }
 
-        return Collection::make($this->dapukan ? [$this->dapukan] : []);
+        if ($this->jamaah) {
+            $this->jamaah->loadMissing('dapukan');
+            if ($this->jamaah->dapukan->isNotEmpty()) {
+                $items = $items->merge($this->jamaah->dapukan);
+            }
+        }
+
+        return $items->unique('id')->values();
     }
 
     public function primaryDapukan(): ?Dapukan
@@ -91,29 +101,37 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return $this->effectiveDapukan()->contains(fn (Dapukan $dapukan) => $dapukan->kode === 'superadmin');
+        if ($this->dapukan?->slug === 'superadmin') {
+            return true;
+        }
+
+        return $this->effectiveDapukan()->contains(fn (Dapukan $dapukan) => $dapukan->slug === 'superadmin');
     }
 
-    public function hasPermission(string $kode): bool
+    public function hasPermission(string $slug): bool
     {
         if ($this->isSuperAdmin()) {
             return true;
         }
 
-        return in_array($kode, $this->permissionCodes(), true);
+        return in_array($slug, $this->permissionCodes(), true);
     }
 
     public function permissionCodes(): array
     {
         if ($this->isSuperAdmin()) {
-            return HakAkses::query()->orderBy('kode')->pluck('kode')->all();
+            return HakAkses::query()->orderBy('slug')->pluck('slug')->all();
         }
 
-        $dapukan = $this->effectiveDapukan();
+        $dapukan = new \Illuminate\Database\Eloquent\Collection($this->effectiveDapukan()->all());
+        if ($dapukan->isEmpty()) {
+            return [];
+        }
+
         $dapukan->loadMissing('hakAkses');
 
         return $dapukan
-            ->flatMap(fn (Dapukan $item) => $item->hakAkses->pluck('kode'))
+            ->flatMap(fn (Dapukan $item) => $item->hakAkses->pluck('slug'))
             ->unique()
             ->sort()
             ->values()

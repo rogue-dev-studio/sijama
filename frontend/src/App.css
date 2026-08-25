@@ -355,6 +355,12 @@
   cursor: pointer;
 }
 
+.nav-group__toggle:disabled,
+.nav-group__toggle--static {
+  cursor: default;
+  opacity: 1;
+}
+
 .nav-group__toggle-label {
   display: inline-flex;
   align-items: center;
@@ -792,10 +798,29 @@
 
 .checkbox-item input {
   margin-top: 0.15rem;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
+}
+
+.checkbox-item:has(input:checked) {
+  border-color: var(--color-accent);
+  background: rgba(15, 107, 76, 0.06);
+}
+
+.checkbox-item:has(input:disabled) {
+  opacity: 0.9;
+  cursor: default;
 }
 
 .checkbox-item__code {
   display: none;
+}
+
+.checkbox-item__meta {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
 }
 
 .page-header {
@@ -910,6 +935,19 @@
   margin-bottom: 0.25rem;
 }
 
+.field:has(:is(input, select, textarea)[required]) > label::after,
+.field:has(.field-control :is(input, select, textarea)[required]) > label::after,
+.field:has(.search-select[data-required='true']) > label::after {
+  content: ' *';
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.field__required {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
 .field-control {
   position: relative;
   display: flex;
@@ -939,7 +977,7 @@
   color: var(--color-muted);
 }
 
-.field input,
+.field input:not([type='checkbox']):not([type='radio']),
 .field select,
 .field textarea {
   width: 100%;
@@ -950,12 +988,23 @@
   color: var(--color-ink);
 }
 
+.field input:not([type='checkbox']):not([type='radio']):disabled,
+.field select:disabled,
+.field textarea:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+  border-color: #ced4da;
+  cursor: not-allowed;
+  opacity: 1;
+  box-shadow: none;
+}
+
 .field textarea {
   min-height: 80px;
   resize: vertical;
 }
 
-.field input:focus,
+.field input:not([type='checkbox']):not([type='radio']):focus,
 .field select:focus,
 .field textarea:focus {
   border-color: var(--color-accent);
@@ -963,12 +1012,35 @@
   box-shadow: 0 0 0 2px rgba(15, 107, 76, 0.15);
 }
 
-.field .field-control input,
-.field .field-control select {
-  padding: 0.55rem 0.65rem 0.55rem 2.35rem;
+.field :is(input, select, textarea):user-invalid,
+.form--attempted .field :is(input, select, textarea):required:invalid,
+.field :is(input, select, textarea)[aria-invalid='true'] {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.15);
 }
 
-.field .field-control input:focus,
+.field:has(:is(input, select, textarea):user-invalid) > label,
+.form--attempted .field:has(:is(input, select, textarea):required:invalid) > label,
+.field:has(:is(input, select, textarea)[aria-invalid='true']) > label,
+.field:has(.search-select__native:user-invalid) > label,
+.form--attempted .field:has(.search-select__native:required:invalid) > label,
+.field:has(.search-select__trigger[aria-invalid='true']) > label {
+  color: var(--color-danger);
+}
+
+.field :is(input, select, textarea):user-invalid:focus,
+.form--attempted .field :is(input, select, textarea):required:invalid:focus,
+.field :is(input, select, textarea)[aria-invalid='true']:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.2);
+}
+
+.field .field-control input:not([type='checkbox']):not([type='radio']),
+.field .field-control select {
+  padding: 0.55rem 0.65rem 0.55rem 2.5rem;
+}
+
+.field .field-control input:not([type='checkbox']):not([type='radio']):focus,
 .field .field-control select:focus {
   border-color: var(--color-accent);
   outline: none;
@@ -979,6 +1051,10 @@
   font-size: 0.8125rem;
   color: var(--color-muted);
   margin-top: 0.2rem;
+}
+
+.field-hint--error {
+  color: var(--color-danger, #b42318);
 }
 
 .form-actions {
@@ -2549,5 +2625,306 @@
   .calendar-cell__hijri {
     display: none;
   }
+}
+
+.search-select {
+  position: relative;
+  width: 100%;
+}
+
+.search-select__native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.search-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.search-select__trigger:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+  border-color: #ced4da;
+  opacity: 1;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.search-select__trigger:disabled .search-select__placeholder,
+.search-select__trigger:disabled .search-select__value {
+  color: #6c757d;
+}
+
+.search-select__trigger:focus,
+.search-select--open .search-select__trigger {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(15, 107, 76, 0.15);
+}
+
+.search-select__trigger[aria-invalid='true'],
+.field:has(.search-select__native:user-invalid) .search-select__trigger,
+.form--attempted .field:has(.search-select__native:required:invalid) .search-select__trigger {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.15);
+}
+
+.search-select__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-select__placeholder {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-select__chevron {
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--color-muted);
+  border-bottom: 2px solid var(--color-muted);
+  transform: rotate(45deg);
+  margin-top: -0.2rem;
+}
+
+.search-select--open .search-select__chevron {
+  transform: rotate(-135deg);
+  margin-top: 0.15rem;
+}
+
+.search-select__panel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.search-select__search {
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.search-select__search:focus {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(15, 107, 76, 0.15);
+}
+
+.search-select__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow: auto;
+}
+
+.search-select__option {
+  padding: 0.45rem 0.55rem;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  color: var(--color-ink);
+}
+
+.search-select__option--active,
+.search-select__option:hover {
+  background: var(--color-accent-soft);
+}
+
+.search-select__option--selected {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.search-select__option--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-select__empty {
+  padding: 0.55rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.filter-bar__fields .search-select,
+.pagination__per-page .search-select {
+  min-width: 0;
+}
+
+.lokasi-map {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.lokasi-map__intro h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.lokasi-map__intro p {
+  margin: 0 0 0.85rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.lokasi-map__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.lokasi-map__picker-wrap {
+  margin: 0 0 1rem;
+}
+
+.lokasi-map__search {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+}
+
+.lokasi-map__search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.lokasi-map__search input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.lokasi-map__search-results {
+  list-style: none;
+  margin: 0 0 0.55rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.lokasi-map__search-results li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.lokasi-map__search-results button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.lokasi-map__search-results button:hover,
+.lokasi-map__search-results button:focus-visible {
+  background: var(--color-accent-soft);
+  outline: none;
+}
+
+.lokasi-map__search-results strong {
+  font-size: 0.9rem;
+}
+
+.lokasi-map__search-results span {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.lokasi-map__picker {
+  width: 100%;
+  height: min(360px, 55vh);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-surface);
+  z-index: 0;
+}
+
+.lokasi-map__picker .leaflet-container {
+  width: 100%;
+  height: 100%;
+  font: inherit;
+}
+
+.lokasi-map__share-url {
+  margin: 0.65rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  word-break: break-all;
+}
+
+.lokasi-map__share-url a {
+  color: var(--color-accent);
 }
 

@@ -14,7 +14,6 @@ class StoreKategoriKegiatanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kode' => ['required', 'string', 'max:50', 'unique:kategori_kegiatan,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'calendar_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],

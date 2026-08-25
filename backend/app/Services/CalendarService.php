@@ -32,14 +32,14 @@ class CalendarService
             ->keyBy(fn (HariLibur $item) => $item->tanggal->toDateString());
 
         $kegiatan = Kegiatan::query()
-            ->with('kategoriKegiatan:id,kode,nama,calendar_color')
+            ->with('kategoriKegiatan:id,nama,calendar_color')
             ->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()])
             ->where('status', '!=', 'cancelled')
             ->orderBy('tanggal')
             ->get();
 
         $pengajian = Pengajian::query()
-            ->with('kategoriKegiatan:id,kode,nama,calendar_color')
+            ->with('kategoriKegiatan:id,nama,calendar_color')
             ->whereDate('starts_at', '>=', $start->toDateString())
             ->whereDate('starts_at', '<=', $end->toDateString())
             ->where('status', '!=', 'cancelled')
@@ -91,16 +91,16 @@ class CalendarService
     }
 
     /**
-     * @return list<array{kode: string, nama: string, color: string}>
+     * @return list<array{id: int, nama: string, color: string}>
      */
     private function buildLegend(): array
     {
         return KategoriKegiatan::query()
             ->where('is_active', true)
             ->orderBy('nama')
-            ->get(['kode', 'nama', 'calendar_color'])
+            ->get(['id', 'nama', 'calendar_color'])
             ->map(fn (KategoriKegiatan $item) => [
-                'kode' => $item->kode,
+                'id' => $item->id,
                 'nama' => $item->nama,
                 'color' => $item->calendar_color ?: self::DEFAULT_COLOR,
             ])
@@ -119,7 +119,7 @@ class CalendarService
             'time_label' => null,
             'status' => $item->status,
             'color' => $kategori?->calendar_color ?: self::DEFAULT_COLOR,
-            'kategori_kode' => $kategori?->kode,
+            'kategori_id' => $kategori?->id,
             'kategori_nama' => $kategori?->nama,
         ];
     }
@@ -139,7 +139,7 @@ class CalendarService
             'time_label' => $time,
             'status' => $item->status,
             'color' => $kategori?->calendar_color ?: '#0f766e',
-            'kategori_kode' => $kategori?->kode ?: 'pengajian',
+            'kategori_id' => $kategori?->id,
             'kategori_nama' => $kategori?->nama ?: 'Pengajian',
         ];
     }

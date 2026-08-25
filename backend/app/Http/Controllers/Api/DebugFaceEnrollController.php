@@ -1,19 +1,30 @@
+<?php
+
 /**
  * @Author: rogue-dev-studio
  * @Date: 2026-08-04 18:50:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-04 19:00:00
+ * @Last Modified time: 2026-08-25 16:57:14
  */
 
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class DebugFaceEnrollController extends Controller
 {
+    private function assertDebugEnabled(): void
+    {
+        if (! config('app.debug')) {
+            throw new NotFoundHttpException;
+        }
+    }
+
     private function logPath(): string
     {
         $dir = storage_path('logs');
@@ -26,6 +37,8 @@ class DebugFaceEnrollController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $this->assertDebugEnabled();
+
         $entries = $request->input('entries');
         if (! is_array($entries)) {
             $entries = [[
@@ -55,27 +68,21 @@ class DebugFaceEnrollController extends Controller
             File::append($path, implode(PHP_EOL, $lines).PHP_EOL);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Debug tercatat',
-            'data' => [
-                'written' => count($lines),
-                'path' => 'storage/logs/face-enroll-debug.jsonl',
-                'exists' => File::exists($path),
-                'bytes' => File::exists($path) ? File::size($path) : 0,
-            ],
-        ]);
+        return ApiResponse::success([
+            'written' => count($lines),
+            'path' => 'storage/logs/face-enroll-debug.jsonl',
+            'exists' => File::exists($path),
+            'bytes' => File::exists($path) ? File::size($path) : 0,
+        ], 'Debug tercatat');
     }
 
     public function index(Request $request): JsonResponse
     {
+        $this->assertDebugEnabled();
+
         $path = $this->logPath();
         if (! File::exists($path)) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Belum ada log',
-                'data' => ['lines' => [], 'exists' => false],
-            ]);
+            return ApiResponse::success(['lines' => [], 'exists' => false], 'Belum ada log');
         }
 
         $limit = max(1, min(500, (int) $request->query('limit', 200)));
@@ -88,16 +95,12 @@ class DebugFaceEnrollController extends Controller
             $lines[] = is_array($decoded) ? $decoded : ['raw' => $line];
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'OK',
-            'data' => [
-                'count' => count($lines),
-                'path' => 'storage/logs/face-enroll-debug.jsonl',
-                'exists' => true,
-                'bytes' => File::size($path),
-                'lines' => $lines,
-            ],
+        return ApiResponse::success([
+            'count' => count($lines),
+            'path' => 'storage/logs/face-enroll-debug.jsonl',
+            'exists' => true,
+            'bytes' => File::size($path),
+            'lines' => $lines,
         ]);
     }
 }

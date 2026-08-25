@@ -18,7 +18,7 @@ class UpdateSubKelompokRequest extends FormRequest
 
         return [
             'kelompok_id' => ['sometimes', 'required', 'integer', 'exists:kelompok,id'],
-            'kode' => ['sometimes', 'required', 'string', 'max:50', Rule::unique('sub_kelompok', 'kode')->ignore($id)],
+            'kode' => ['sometimes', 'nullable', 'string', 'max:50', Rule::unique('sub_kelompok', 'kode')->ignore($id)],
             'nama' => ['sometimes', 'required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

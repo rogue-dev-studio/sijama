@@ -11,7 +11,7 @@ class Dapukan extends Model
     protected $table = 'dapukan';
 
     protected $fillable = [
-        'kode',
+        'slug',
         'nama',
         'deskripsi',
         'tingkat',

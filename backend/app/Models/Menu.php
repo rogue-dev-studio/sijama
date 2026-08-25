@@ -10,7 +10,7 @@ class Menu extends Model
 {
     protected $fillable = [
         'parent_id',
-        'kode',
+        'slug',
         'nama',
         'path',
         'icon',
