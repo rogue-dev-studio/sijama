@@ -1,3 +1,10 @@
+/**
+ * @Author: rogue-dev-studio
+ * @Date: 2026-08-03 12:00:00
+ * @Last Modified by: rogue-dev-studio
+ * @Last Modified time: 2026-08-27 10:56:22
+ */
+
 import {
   createContext,
   useCallback,
@@ -10,6 +17,7 @@ import {
 import { ApiError, clearToken, getToken, setToken } from '../api/client'
 import { authService } from '../api/services'
 import type { AuthPayload, MenuNode, User } from '../api/types'
+import { useAppSettings } from './AppSettingsContext'
 
 interface AuthContextValue {
   user: User | null
@@ -29,10 +37,14 @@ function applyAuthPayload(
   setUser: (user: User | null) => void,
   setPermissions: (permissions: string[]) => void,
   setMenus: (menus: MenuNode[]) => void,
+  applySettings?: (settings: NonNullable<AuthPayload['app_settings']>) => void,
 ) {
   setUser(payload.user)
   setPermissions(payload.permissions)
   setMenus(payload.menus)
+  if (payload.app_settings && applySettings) {
+    applySettings(payload.app_settings)
+  }
 }
 
 function clearAuth(
@@ -46,6 +58,7 @@ function clearAuth(
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { applySettings } = useAppSettings()
   const [user, setUser] = useState<User | null>(null)
   const [permissions, setPermissions] = useState<string[]>([])
   const [menus, setMenus] = useState<MenuNode[]>([])
@@ -62,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const me = await authService.me()
-        if (active) applyAuthPayload(me, setUser, setPermissions, setMenus)
+        if (active) applyAuthPayload(me, setUser, setPermissions, setMenus, applySettings)
       } catch {
         clearToken()
         if (active) clearAuth(setUser, setPermissions, setMenus)
@@ -75,13 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false
     }
-  }, [])
+  }, [applySettings])
 
-  const login = useCallback(async (username: string, password: string) => {
-    const result = await authService.login(username, password)
-    setToken(result.token)
-    applyAuthPayload(result, setUser, setPermissions, setMenus)
-  }, [])
+  const login = useCallback(
+    async (username: string, password: string) => {
+      const result = await authService.login(username, password)
+      setToken(result.token)
+      applyAuthPayload(result, setUser, setPermissions, setMenus, applySettings)
+    },
+    [applySettings],
+  )
 
   const logout = useCallback(async () => {
     try {
@@ -99,8 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     if (!getToken()) return
     const me = await authService.me()
-    applyAuthPayload(me, setUser, setPermissions, setMenus)
-  }, [])
+    applyAuthPayload(me, setUser, setPermissions, setMenus, applySettings)
+  }, [applySettings])
 
   const can = useCallback(
     (permission: string) => {

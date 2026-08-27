@@ -47,6 +47,7 @@ if [ "$ROLE" = "scheduler" ]; then
 fi
 
 php artisan migrate --force
+php artisan storage:link --force || true
 
 LISTEN_PORT="${PORT:-80}"
 if [ "${LISTEN_PORT}" != "80" ]; then

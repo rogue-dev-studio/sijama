@@ -20,6 +20,7 @@ class RbacSeeder extends Seeder
         $menus = $this->seedMenus();
         $fiturs = $this->seedFiturs($menus);
         $permissions = $this->seedHakAkses($fiturs);
+        HakAkses::whereIn('slug', ['konfig.create', 'konfig.delete'])->delete();
         $this->assignPermissions($dapukan, $permissions);
     }
 
@@ -181,26 +182,28 @@ class RbacSeeder extends Seeder
             ['slug' => 'master-pemateri', 'nama' => 'Pemateri', 'path' => '/master/pemateri', 'icon' => 'users', 'urutan' => 3, 'parent' => 'master'],
             ['slug' => 'master-materi', 'nama' => 'Materi', 'path' => '/master/materi', 'icon' => 'book-open', 'urutan' => 4, 'parent' => 'master'],
             ['slug' => 'master-kategori-kegiatan', 'nama' => 'Kategori Kegiatan', 'path' => '/master/kategori-kegiatan', 'icon' => 'calendar', 'urutan' => 5, 'parent' => 'master'],
-            ['slug' => 'master-pekerjaan', 'nama' => 'Pekerjaan', 'path' => '/master/pekerjaan', 'icon' => 'briefcase', 'urutan' => 6, 'parent' => 'master'],
+            ['slug' => 'master-lookup', 'nama' => 'Lookup', 'path' => '/master/lookup', 'icon' => 'list', 'urutan' => 6, 'parent' => 'master'],
             ['slug' => 'wilayah', 'nama' => 'Wilayah Fungsional', 'path' => null, 'icon' => 'map', 'urutan' => 7, 'parent' => 'master'],
             ['slug' => 'master-pusat', 'nama' => 'Pusat', 'path' => '/master/pusat', 'icon' => 'building-2', 'urutan' => 1, 'parent' => 'wilayah'],
             ['slug' => 'master-daerah', 'nama' => 'Daerah', 'path' => '/master/daerah', 'icon' => 'map', 'urutan' => 2, 'parent' => 'wilayah'],
             ['slug' => 'master-desa', 'nama' => 'Desa', 'path' => '/master/desa', 'icon' => 'map-pin', 'urutan' => 3, 'parent' => 'wilayah'],
             ['slug' => 'master-kelompok', 'nama' => 'Kelompok', 'path' => '/master/kelompok', 'icon' => 'users-round', 'urutan' => 4, 'parent' => 'wilayah'],
             ['slug' => 'master-sub-kelompok', 'nama' => 'Sub Kelompok', 'path' => '/master/sub-kelompok', 'icon' => 'users', 'urutan' => 5, 'parent' => 'wilayah'],
-            ['slug' => 'wilayah-admin', 'nama' => 'Wilayah Administrasi', 'path' => null, 'icon' => 'globe', 'urutan' => 8, 'parent' => 'master'],
+            ['slug' => 'wilayah-admin', 'nama' => 'Wilayah Administrasi', 'path' => null, 'icon' => 'globe', 'urutan' => 9, 'parent' => 'master'],
             ['slug' => 'master-adm-negara', 'nama' => 'Negara', 'path' => '/master/adm/negara', 'icon' => 'flag', 'urutan' => 1, 'parent' => 'wilayah-admin'],
             ['slug' => 'master-adm-provinsi', 'nama' => 'Provinsi', 'path' => '/master/adm/provinsi', 'icon' => 'map', 'urutan' => 2, 'parent' => 'wilayah-admin'],
             ['slug' => 'master-adm-kabupaten-kota', 'nama' => 'Kabupaten/Kota', 'path' => '/master/adm/kabupaten-kota', 'icon' => 'building', 'urutan' => 3, 'parent' => 'wilayah-admin'],
             ['slug' => 'master-adm-kecamatan', 'nama' => 'Kecamatan', 'path' => '/master/adm/kecamatan', 'icon' => 'map-pin', 'urutan' => 4, 'parent' => 'wilayah-admin'],
             ['slug' => 'master-adm-desa-kelurahan', 'nama' => 'Desa/Kelurahan', 'path' => '/master/adm/desa-kelurahan', 'icon' => 'home', 'urutan' => 5, 'parent' => 'wilayah-admin'],
             ['slug' => 'master-adm-kode-pos', 'nama' => 'Kode Pos', 'path' => '/master/adm/kode-pos', 'icon' => 'mail', 'urutan' => 6, 'parent' => 'wilayah-admin'],
-            ['slug' => 'master-dapukan', 'nama' => 'Dapukan', 'path' => '/master/dapukan', 'icon' => 'shield', 'urutan' => 9, 'parent' => 'master'],
-            ['slug' => 'master-menu', 'nama' => 'Menu', 'path' => '/master/menu', 'icon' => 'menu', 'urutan' => 10, 'parent' => 'master'],
-            ['slug' => 'master-fitur', 'nama' => 'Fitur', 'path' => '/master/fitur', 'icon' => 'puzzle', 'urutan' => 11, 'parent' => 'master'],
-            ['slug' => 'master-hak-akses', 'nama' => 'Hak Akses', 'path' => '/master/hak-akses', 'icon' => 'key', 'urutan' => 12, 'parent' => 'master'],
-            ['slug' => 'master-matriks', 'nama' => 'Matriks Akses', 'path' => '/master/matriks', 'icon' => 'grid-3x3', 'urutan' => 13, 'parent' => 'master'],
-            ['slug' => 'master-users', 'nama' => 'Pengguna', 'path' => '/master/users', 'icon' => 'user-cog', 'urutan' => 14, 'parent' => 'master'],
+            ['slug' => 'master-dapukan', 'nama' => 'Dapukan', 'path' => '/master/dapukan', 'icon' => 'shield', 'urutan' => 10, 'parent' => 'master'],
+            ['slug' => 'master-menu', 'nama' => 'Menu', 'path' => '/master/menu', 'icon' => 'menu', 'urutan' => 11, 'parent' => 'master'],
+            ['slug' => 'master-fitur', 'nama' => 'Fitur', 'path' => '/master/fitur', 'icon' => 'puzzle', 'urutan' => 12, 'parent' => 'master'],
+            ['slug' => 'master-hak-akses', 'nama' => 'Hak Akses', 'path' => '/master/hak-akses', 'icon' => 'key', 'urutan' => 13, 'parent' => 'master'],
+            ['slug' => 'master-matriks', 'nama' => 'Matriks Akses', 'path' => '/master/matriks', 'icon' => 'grid-3x3', 'urutan' => 14, 'parent' => 'master'],
+            ['slug' => 'master-users', 'nama' => 'Pengguna', 'path' => '/master/users', 'icon' => 'user-cog', 'urutan' => 15, 'parent' => 'master'],
+
+            ['slug' => 'aplikasi-konfig', 'nama' => 'Konfigurasi Sistem', 'path' => '/aplikasi/konfig', 'icon' => 'settings', 'urutan' => 1, 'parent' => 'aplikasi'],
         ];
 
         $result = [];
@@ -225,7 +228,8 @@ class RbacSeeder extends Seeder
             );
         }
 
-        Menu::whereIn('slug', ['rbac'])->update(['is_active' => false]);
+        Menu::whereIn('slug', ['rbac', 'master-pekerjaan'])->update(['is_active' => false]);
+        Fitur::where('slug', 'master-pekerjaan')->update(['is_active' => false]);
 
         return $result;
     }
@@ -242,7 +246,7 @@ class RbacSeeder extends Seeder
             'master-pemateri',
             'master-materi',
             'master-kategori-kegiatan',
-            'master-pekerjaan',
+            'master-lookup',
             'pengajian',
             'kegiatan',
             'absensi',
@@ -263,6 +267,7 @@ class RbacSeeder extends Seeder
             'master-adm-kecamatan',
             'master-adm-desa-kelurahan',
             'master-adm-kode-pos',
+            'aplikasi-konfig',
         ];
 
         $result = [];
@@ -330,11 +335,11 @@ class RbacSeeder extends Seeder
                 ['slug' => 'kategori_kegiatan.update', 'nama' => 'Ubah Kategori Kegiatan', 'aksi' => 'update'],
                 ['slug' => 'kategori_kegiatan.delete', 'nama' => 'Hapus Kategori Kegiatan', 'aksi' => 'delete'],
             ],
-            'master-pekerjaan' => [
-                ['slug' => 'pekerjaan.view', 'nama' => 'Lihat Pekerjaan', 'aksi' => 'view'],
-                ['slug' => 'pekerjaan.create', 'nama' => 'Tambah Pekerjaan', 'aksi' => 'create'],
-                ['slug' => 'pekerjaan.update', 'nama' => 'Ubah Pekerjaan', 'aksi' => 'update'],
-                ['slug' => 'pekerjaan.delete', 'nama' => 'Hapus Pekerjaan', 'aksi' => 'delete'],
+            'master-lookup' => [
+                ['slug' => 'lookup.view', 'nama' => 'Lihat Lookup', 'aksi' => 'view'],
+                ['slug' => 'lookup.create', 'nama' => 'Tambah Lookup', 'aksi' => 'create'],
+                ['slug' => 'lookup.update', 'nama' => 'Ubah Lookup', 'aksi' => 'update'],
+                ['slug' => 'lookup.delete', 'nama' => 'Hapus Lookup', 'aksi' => 'delete'],
             ],
             'pengajian' => [
                 ['slug' => 'pengajian.view', 'nama' => 'Lihat Pengajian', 'aksi' => 'view'],
@@ -453,6 +458,10 @@ class RbacSeeder extends Seeder
                 ['slug' => 'adm_kode_pos.update', 'nama' => 'Ubah Kode Pos', 'aksi' => 'update'],
                 ['slug' => 'adm_kode_pos.delete', 'nama' => 'Hapus Kode Pos', 'aksi' => 'delete'],
             ],
+            'aplikasi-konfig' => [
+                ['slug' => 'konfig.view', 'nama' => 'Lihat Konfigurasi Sistem', 'aksi' => 'view'],
+                ['slug' => 'konfig.update', 'nama' => 'Ubah Konfigurasi Sistem', 'aksi' => 'update'],
+            ],
         ];
 
         $result = [];
@@ -477,8 +486,18 @@ class RbacSeeder extends Seeder
 
     private function assignPermissions(array $dapukan, array $permissions): void
     {
-        $allIds = collect($permissions)->pluck('id')->unique()->values()->all();
-        $dapukan['superadmin']->hakAkses()->sync($allIds);
+        $konfigSlugs = ['konfig.view', 'konfig.update'];
+        $nonKonfigPermissions = collect($permissions)
+            ->reject(fn ($permission, string $slug) => in_array($slug, $konfigSlugs, true));
+
+        $allIds = $nonKonfigPermissions->pluck('id')->unique()->values()->all();
+        $konfigIds = collect($konfigSlugs)
+            ->map(fn (string $slug) => $permissions[$slug]->id ?? null)
+            ->filter()
+            ->values()
+            ->all();
+
+        $dapukan['superadmin']->hakAkses()->sync(array_values(array_unique(array_merge($allIds, $konfigIds))));
 
         $ids = fn (array $codes) => collect($codes)
             ->map(fn (string $kode) => $permissions[$kode]->id)
@@ -496,7 +515,7 @@ class RbacSeeder extends Seeder
             'pemateri.view', 'pemateri.create', 'pemateri.update', 'pemateri.delete',
             'materi.view', 'materi.create', 'materi.update', 'materi.delete',
             'kategori_kegiatan.view', 'kategori_kegiatan.create', 'kategori_kegiatan.update', 'kategori_kegiatan.delete',
-            'pekerjaan.view', 'pekerjaan.create', 'pekerjaan.update', 'pekerjaan.delete',
+            'lookup.view', 'lookup.create', 'lookup.update', 'lookup.delete',
             'pengajian.view', 'pengajian.create', 'pengajian.update', 'pengajian.delete',
             'kegiatan.view', 'kegiatan.create', 'kegiatan.update', 'kegiatan.delete',
             'absensi.view', 'absensi.create', 'absensi.execute',
@@ -560,7 +579,7 @@ class RbacSeeder extends Seeder
             'pemateri.view',
             'materi.view',
             'kategori_kegiatan.view',
-            'pekerjaan.view',
+            'lookup.view',
             'pengajian.view',
             'kegiatan.view',
             'absensi.view',

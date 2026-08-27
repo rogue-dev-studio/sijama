@@ -8,7 +8,7 @@ import {
   admNegaraService,
   admProvinsiService,
   jamaahService,
-  masterPekerjaanService,
+  lookupOptionsService,
 } from '../api/services'
 import type {
   AdmDesaKelurahan,
@@ -19,8 +19,9 @@ import type {
   JamaahDapukanOption,
   JamaahInput,
   Kelompok,
-  Pekerjaan,
+  LookupOption,
 } from '../api/types'
+import { JAMAAH_FORM_TYPES, LOOKUP_TYPE } from '../lib/lookupTypes'
 import { parseBirthInfoFromNik } from '../lib/nik'
 import { JamaahAddressFields } from './jamaah/JamaahAddressFields'
 import { JamaahProfileFields } from './jamaah/JamaahProfileFields'
@@ -51,7 +52,11 @@ export function JamaahFormPage() {
   const [selectedProvinsiId, setSelectedProvinsiId] = useState<number>(0)
   const [selectedKabupatenKotaId, setSelectedKabupatenKotaId] = useState<number>(0)
   const [selectedKecamatanId, setSelectedKecamatanId] = useState<number>(0)
-  const [pekerjaanList, setPekerjaanList] = useState<Pekerjaan[]>([])
+  const [pekerjaanOptions, setPekerjaanOptions] = useState<LookupOption[]>([])
+  const [jenisKelaminOptions, setJenisKelaminOptions] = useState<LookupOption[]>([])
+  const [golonganDarahOptions, setGolonganDarahOptions] = useState<LookupOption[]>([])
+  const [statusPernikahanOptions, setStatusPernikahanOptions] = useState<LookupOption[]>([])
+  const [pendidikanOptions, setPendidikanOptions] = useState<LookupOption[]>([])
   const [dapukanList, setDapukanList] = useState<JamaahDapukanOption[]>([])
   const [dapukanError, setDapukanError] = useState<string | null>(null)
   const [kelompokError, setKelompokError] = useState<string | null>(null)
@@ -83,15 +88,24 @@ export function JamaahFormPage() {
       try {
         let loadedKelompok: Kelompok[] = []
 
-        const pekerjaanPromise = masterPekerjaanService
-          .list({ active_only: true, per_page: 200 })
+        const lookupsPromise = lookupOptionsService
+          .byTypes([...JAMAAH_FORM_TYPES])
           .then((result) => {
-            if (active) setPekerjaanList(result.items)
+            if (!active) return
+            setPekerjaanOptions(result[LOOKUP_TYPE.PEKERJAAN] ?? [])
+            setJenisKelaminOptions(result[LOOKUP_TYPE.JENIS_KELAMIN] ?? [])
+            setGolonganDarahOptions(result[LOOKUP_TYPE.GOLONGAN_DARAH] ?? [])
+            setStatusPernikahanOptions(result[LOOKUP_TYPE.STATUS_PERNIKAHAN] ?? [])
+            setPendidikanOptions(result[LOOKUP_TYPE.PENDIDIKAN] ?? [])
           })
           .catch((err) => {
             if (active) {
-              setPekerjaanList([])
-              setError(err instanceof ApiError ? err.message : 'Gagal memuat daftar pekerjaan')
+              setPekerjaanOptions([])
+              setJenisKelaminOptions([])
+              setGolonganDarahOptions([])
+              setStatusPernikahanOptions([])
+              setPendidikanOptions([])
+              setError(err instanceof ApiError ? err.message : 'Gagal memuat opsi lookup')
             }
           })
 
@@ -135,7 +149,7 @@ export function JamaahFormPage() {
             }
           })
 
-        await Promise.all([pekerjaanPromise, negaraPromise, kelompokPromise, dapukanPromise])
+        await Promise.all([lookupsPromise, negaraPromise, kelompokPromise, dapukanPromise])
         if (!active) return
 
         const lockedDapukanId =
@@ -159,6 +173,7 @@ export function JamaahFormPage() {
               lockedDapukanId,
             ),
             pendidikan: jamaah.pendidikan || '',
+            golongan_darah: jamaah.golongan_darah || '',
             status_pernikahan: jamaah.status_pernikahan || '',
             alamat: jamaah.alamat || '',
             rt: jamaah.rt || '',
@@ -353,6 +368,7 @@ export function JamaahFormPage() {
       dapukan_ids: dapukanIds,
       pekerjaan: form.pekerjaan || null,
       pendidikan: form.pendidikan || null,
+      golongan_darah: form.golongan_darah || null,
       status_pernikahan: form.status_pernikahan || null,
       alamat: form.alamat || null,
       rt: form.rt || null,
@@ -407,7 +423,11 @@ export function JamaahFormPage() {
         <JamaahProfileFields
           form={form}
           kelompokList={kelompokList}
-          pekerjaanList={pekerjaanList}
+          pekerjaanOptions={pekerjaanOptions}
+          jenisKelaminOptions={jenisKelaminOptions}
+          golonganDarahOptions={golonganDarahOptions}
+          statusPernikahanOptions={statusPernikahanOptions}
+          pendidikanOptions={pendidikanOptions}
           dapukanList={dapukanList}
           dapukanError={dapukanError}
           fieldMessage={fieldMessage}
@@ -433,11 +453,11 @@ export function JamaahFormPage() {
           onNikChange={handleNikChange}
           onToggleDapukan={toggleDapukan}
           onPekerjaanChange={(pekerjaanId) => {
-            const selected = pekerjaanList.find((item) => item.id === pekerjaanId)
+            const selected = pekerjaanOptions.find((item) => item.id === pekerjaanId)
             setForm((prev) => ({
               ...prev,
               pekerjaan_id: pekerjaanId,
-              pekerjaan: selected?.nama || '',
+              pekerjaan: selected?.name || '',
             }))
           }}
         />

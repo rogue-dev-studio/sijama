@@ -30,8 +30,9 @@ class JamaahResource extends JsonResource
             'pekerjaan' => $this->pekerjaan,
             'pekerjaan_id' => $this->pekerjaan_id,
             'pekerjaan_ref' => $this->whenLoaded('pekerjaanRef', fn () => $this->pekerjaanRef ? [
-                'id' => $this->pekerjaanRef->id,
-                'nama' => $this->pekerjaanRef->nama,
+                'id' => $this->pekerjaanRef->lookup_id,
+                'nama' => $this->pekerjaanRef->lookup_name,
+                'value' => $this->pekerjaanRef->lookup_value,
             ] : null),
             'dapukan_ids' => $this->whenLoaded('dapukan', fn () => $this->dapukan->pluck('id')->values()->all()),
             'dapukan' => $this->whenLoaded('dapukan', fn () => $this->dapukan->map(fn ($item) => [
@@ -41,6 +42,7 @@ class JamaahResource extends JsonResource
                 'tingkat' => $item->tingkat,
             ])->values()->all()),
             'pendidikan' => $this->pendidikan,
+            'golongan_darah' => $this->golongan_darah,
             'status_pernikahan' => $this->status_pernikahan,
             'alamat' => $this->alamat,
             'rt' => $this->rt,

@@ -19,6 +19,7 @@ export const emptyJamaahForm: JamaahInput = {
   pekerjaan_id: null,
   dapukan_ids: [],
   pendidikan: '',
+  golongan_darah: '',
   status_pernikahan: '',
   alamat: '',
   rt: '',

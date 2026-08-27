@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\SystemKonfig;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -50,6 +51,7 @@ class AuthService
             'user' => (new UserResource($user))->resolve(),
             'permissions' => $user->permissionCodes(),
             'menus' => $this->rbacMenuService->getAccessibleMenus($user),
+            'app_settings' => SystemKonfig::publicSettings(),
         ];
     }
 }

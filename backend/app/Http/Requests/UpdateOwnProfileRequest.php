@@ -4,15 +4,14 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-04 16:44:59
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-04 16:44:59
+ * @Last Modified time: 2026-08-27 12:28:00
  */
 
 namespace App\Http\Requests;
 
-use App\Support\JamaahPendidikan;
-use App\Support\JamaahStatusPernikahan;
+use App\Support\LookupRules;
+use App\Support\LookupTypes;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateOwnProfileRequest extends FormRequest
 {
@@ -25,11 +24,12 @@ class UpdateOwnProfileRequest extends FormRequest
     {
         return [
             'nama' => ['sometimes', 'required', 'string', 'max:255'],
-            'gender' => ['sometimes', 'required', Rule::in(['L', 'P'])],
+            'gender' => ['sometimes', 'required', 'string', 'max:20', LookupRules::activeValue(LookupTypes::JENIS_KELAMIN)],
             'tanggal_lahir' => ['nullable', 'date'],
-            'pekerjaan_id' => ['sometimes', 'nullable', 'integer', 'exists:pekerjaan,id'],
-            'pendidikan' => ['sometimes', 'nullable', 'string', Rule::in(JamaahPendidikan::VALUES)],
-            'status_pernikahan' => ['sometimes', 'nullable', 'string', Rule::in(JamaahStatusPernikahan::VALUES)],
+            'pekerjaan_id' => ['sometimes', 'nullable', 'integer', LookupRules::activeId(LookupTypes::PEKERJAAN)],
+            'pendidikan' => ['sometimes', 'nullable', 'string', 'max:50', LookupRules::activeValue(LookupTypes::PENDIDIKAN)],
+            'golongan_darah' => ['sometimes', 'nullable', 'string', 'max:20', LookupRules::activeValue(LookupTypes::GOLONGAN_DARAH)],
+            'status_pernikahan' => ['sometimes', 'nullable', 'string', 'max:32', LookupRules::activeValue(LookupTypes::STATUS_PERNIKAHAN)],
             'alamat' => ['nullable', 'string'],
             'rt' => ['sometimes', 'required', 'string', 'max:10'],
             'rw' => ['sometimes', 'required', 'string', 'max:10'],

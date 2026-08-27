@@ -1,5 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useAppSettings } from '../auth/AppSettingsContext'
+import { buildAppShellBrand } from '../lib/appBrand'
 import { useAuth } from '../auth/AuthContext'
 import type { MenuNode } from '../api/types'
 import { BrandMark } from '../components/BrandMark'
@@ -274,8 +276,11 @@ function BottomNav({ onMore }: { onMore: () => void }) {
 }
 
 export function AppShell() {
+  const { settings } = useAppSettings()
   const [moreOpen, setMoreOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
+  const { title: brandName, subtitle: brandTagline } = buildAppShellBrand(settings)
+  const brandLogo = settings.path_logoheader
 
   useEffect(() => {
     try {
@@ -289,8 +294,8 @@ export function AppShell() {
     <div className={`app-shell${sidebarCollapsed ? ' app-shell--sidebar-collapsed' : ''}`}>
       <header className="app-shell__mobile-header">
         <Link to="/" className="app-shell__brand">
-          <BrandMark className="app-shell__brand-mark" />
-          SIJAMA
+          <BrandMark src={brandLogo} className="app-shell__brand-mark" alt={brandName} />
+          {brandName}
         </Link>
         <UserMenu compact />
       </header>
@@ -303,11 +308,11 @@ export function AppShell() {
           <Link
             to="/"
             className="app-shell__sidebar-brand"
-            title="SIJAMA"
-            aria-label="SIJAMA"
+            title={brandName}
+            aria-label={brandName}
           >
-            <BrandMark />
-            <span className="app-shell__sidebar-brand-text">SIJAMA</span>
+            <BrandMark src={brandLogo} alt={brandName} />
+            <span className="app-shell__sidebar-brand-text">{brandName}</span>
           </Link>
           <button
             type="button"
@@ -323,8 +328,8 @@ export function AppShell() {
             />
           </button>
         </div>
-        {!sidebarCollapsed && (
-          <p className="app-shell__sidebar-tagline">Sistem Informasi Jamaah</p>
+        {!sidebarCollapsed && brandTagline && (
+          <p className="app-shell__sidebar-tagline">{brandTagline}</p>
         )}
         <nav aria-label="Menu utama">
           <NavMenu collapsed={sidebarCollapsed} />

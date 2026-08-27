@@ -13,8 +13,11 @@ class RbacMenuService
             ->where('is_active', true)
             ->with([
                 'fiturs.hakAkses',
+                'children' => fn ($query) => $query->where('is_active', true)->orderBy('urutan'),
                 'children.fiturs.hakAkses',
+                'children.children' => fn ($query) => $query->where('is_active', true)->orderBy('urutan'),
                 'children.children.fiturs.hakAkses',
+                'children.children.children' => fn ($query) => $query->where('is_active', true)->orderBy('urutan'),
                 'children.children.children.fiturs.hakAkses',
             ])
             ->whereNull('parent_id')
@@ -34,6 +37,8 @@ class RbacMenuService
     private function buildMenuNode(Menu $menu, array $permissionCodes, bool $isSuperAdmin): ?array
     {
         $children = $menu->children
+            ->filter(fn (Menu $child) => $child->is_active)
+            ->sortBy('urutan')
             ->map(fn (Menu $child) => $this->buildMenuNode($child, $permissionCodes, $isSuperAdmin))
             ->filter()
             ->values()

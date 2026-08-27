@@ -5,14 +5,8 @@
  * @Last Modified time: 2026-08-25 17:45:00
  */
 
-import type { JamaahDapukanOption, JamaahInput, Kelompok, Pekerjaan } from '../../api/types'
+import type { JamaahDapukanOption, JamaahInput, Kelompok, LookupOption } from '../../api/types'
 import { SearchableSelect } from '../../components/SearchableSelect'
-import {
-  PENDIDIKAN_OPTIONS,
-  STATUS_PERNIKAHAN_OPTIONS,
-  type Pendidikan,
-  type StatusPernikahan,
-} from '../../lib/jamaahOptions'
 import {
   JAMAHA_KELOMPOK_DAPUKAN_SLUG,
   normalizeDapukanIds,
@@ -21,7 +15,11 @@ import {
 type JamaahProfileFieldsProps = {
   form: JamaahInput
   kelompokList: Kelompok[]
-  pekerjaanList: Pekerjaan[]
+  pekerjaanOptions: LookupOption[]
+  jenisKelaminOptions: LookupOption[]
+  golonganDarahOptions: LookupOption[]
+  statusPernikahanOptions: LookupOption[]
+  pendidikanOptions: LookupOption[]
   dapukanList: JamaahDapukanOption[]
   dapukanError: string | null
   fieldMessage: (name: string) => string | null
@@ -33,10 +31,26 @@ type JamaahProfileFieldsProps = {
   onPekerjaanChange: (pekerjaanId: number | null) => void
 }
 
+function toValueOptions(items: LookupOption[], emptyLabel: string) {
+  return [
+    { value: '', label: emptyLabel },
+    ...items
+      .filter((item) => item.value)
+      .map((item) => ({
+        value: String(item.value),
+        label: item.name || String(item.value),
+      })),
+  ]
+}
+
 export function JamaahProfileFields({
   form,
   kelompokList,
-  pekerjaanList,
+  pekerjaanOptions,
+  jenisKelaminOptions,
+  golonganDarahOptions,
+  statusPernikahanOptions,
+  pendidikanOptions,
   dapukanList,
   dapukanError,
   fieldMessage,
@@ -47,6 +61,19 @@ export function JamaahProfileFields({
   onToggleDapukan,
   onPekerjaanChange,
 }: JamaahProfileFieldsProps) {
+  const genderOptions =
+    jenisKelaminOptions.length > 0
+      ? jenisKelaminOptions
+          .filter((item) => item.value)
+          .map((item) => ({
+            value: String(item.value),
+            label: item.name || String(item.value),
+          }))
+      : [
+          { value: 'L', label: 'Laki-laki' },
+          { value: 'P', label: 'Perempuan' },
+        ]
+
   return (
     <div className="form-grid form-grid--2">
       <div className="field">
@@ -113,10 +140,7 @@ export function JamaahProfileFields({
           required
           aria-invalid={isFieldInvalid('gender')}
           placeholder="Pilih jenis kelamin"
-          options={[
-            { value: 'L', label: 'Laki-laki' },
-            { value: 'P', label: 'Perempuan' },
-          ]}
+          options={genderOptions}
         />
       </div>
       <div className="field">
@@ -137,17 +161,9 @@ export function JamaahProfileFields({
         <SearchableSelect
           id="status_pernikahan"
           value={form.status_pernikahan || ''}
-          onChange={(next) =>
-            updateField('status_pernikahan', (next || null) as StatusPernikahan | null)
-          }
+          onChange={(next) => updateField('status_pernikahan', next || null)}
           placeholder="Pilih status"
-          options={[
-            { value: '', label: 'Pilih status' },
-            ...STATUS_PERNIKAHAN_OPTIONS.map((item) => ({
-              value: item.value,
-              label: item.label,
-            })),
-          ]}
+          options={toValueOptions(statusPernikahanOptions, 'Pilih status')}
         />
       </div>
       <div className="field">
@@ -159,11 +175,21 @@ export function JamaahProfileFields({
           placeholder="Pilih pekerjaan"
           options={[
             { value: '', label: 'Pilih pekerjaan' },
-            ...pekerjaanList.map((item) => ({
+            ...pekerjaanOptions.map((item) => ({
               value: String(item.id),
-              label: item.nama,
+              label: item.name,
             })),
           ]}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="golongan_darah">Golongan darah</label>
+        <SearchableSelect
+          id="golongan_darah"
+          value={form.golongan_darah || ''}
+          onChange={(next) => updateField('golongan_darah', next || null)}
+          placeholder="Pilih golongan darah"
+          options={toValueOptions(golonganDarahOptions, 'Pilih golongan darah')}
         />
       </div>
       <div className="field" style={{ gridColumn: '1 / -1' }}>
@@ -216,15 +242,9 @@ export function JamaahProfileFields({
         <SearchableSelect
           id="pendidikan"
           value={form.pendidikan || ''}
-          onChange={(next) => updateField('pendidikan', (next || null) as Pendidikan | null)}
+          onChange={(next) => updateField('pendidikan', next || null)}
           placeholder="Pilih pendidikan"
-          options={[
-            { value: '', label: 'Pilih pendidikan' },
-            ...PENDIDIKAN_OPTIONS.map((item) => ({
-              value: item.value,
-              label: item.label,
-            })),
-          ]}
+          options={toValueOptions(pendidikanOptions, 'Pilih pendidikan')}
         />
       </div>
       <div className="field">

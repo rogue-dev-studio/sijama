@@ -8,6 +8,8 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { useAppSettings } from '../auth/AppSettingsContext'
+import { buildAppShellBrand } from '../lib/appBrand'
 import { useAuth } from '../auth/AuthContext'
 import { BrandMark } from '../components/BrandMark'
 import { DeveloperFooter } from '../components/DeveloperFooter'
@@ -17,6 +19,7 @@ const showDemoHint = import.meta.env.DEV === true
 
 export function LoginPage() {
   const { user, login } = useAuth()
+  const { settings } = useAppSettings()
   const location = useLocation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -44,14 +47,23 @@ export function LoginPage() {
     }
   }
 
+  const { title: brandName, subtitle: brandSubtitle } = buildAppShellBrand(settings)
+  const subtitle = brandSubtitle || 'Masuk ke sistem informasi jamaah'
+  const logo = settings.path_logoheader
+
   return (
     <div className="login-page">
       <div className="login-panel">
         <div className="login-panel__brand">
-          <BrandMark size={56} className="login-panel__brand-mark" />
-          <h1>SIJAMA</h1>
+          <BrandMark size={56} src={logo} className="login-panel__brand-mark" alt={brandName} />
+          <h1>{brandName}</h1>
         </div>
-        <p className="login-panel__subtitle">Masuk ke sistem informasi jamaah</p>
+        <p className="login-panel__subtitle">{subtitle}</p>
+        {settings.maintenance_mode && (
+          <div className="alert alert--error" role="status">
+            Mode perawatan aktif. Hanya Super Admin yang dapat masuk.
+          </div>
+        )}
 
         {error && <div className="alert alert--error">{error}</div>}
 

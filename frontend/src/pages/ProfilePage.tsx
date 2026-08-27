@@ -17,20 +17,15 @@ import type {
 } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { SearchableSelect } from '../components/SearchableSelect'
-import {
-  PENDIDIKAN_OPTIONS,
-  STATUS_PERNIKAHAN_OPTIONS,
-  type Pendidikan,
-  type StatusPernikahan,
-} from '../lib/jamaahOptions'
 
 type ProfileForm = {
   nama: string
   gender: 'L' | 'P'
   tanggal_lahir: string
   pekerjaan_id: number | null
-  pendidikan: Pendidikan | ''
-  status_pernikahan: StatusPernikahan | ''
+  pendidikan: string
+  golongan_darah: string
+  status_pernikahan: string
   alamat: string
   rt: string
   rw: string
@@ -46,8 +41,9 @@ function toForm(jamaah: Jamaah): ProfileForm {
     gender: jamaah.gender || 'L',
     tanggal_lahir: jamaah.tanggal_lahir || '',
     pekerjaan_id: jamaah.pekerjaan_id || null,
-    pendidikan: (jamaah.pendidikan as Pendidikan | null) || '',
-    status_pernikahan: (jamaah.status_pernikahan as StatusPernikahan | null) || '',
+    pendidikan: jamaah.pendidikan || '',
+    golongan_darah: jamaah.golongan_darah || '',
+    status_pernikahan: jamaah.status_pernikahan || '',
     alamat: jamaah.alamat || '',
     rt: jamaah.rt || '',
     rw: jamaah.rw || '',
@@ -236,6 +232,7 @@ export function ProfilePage() {
       tanggal_lahir: form.tanggal_lahir || null,
       pekerjaan_id: form.pekerjaan_id,
       pendidikan: form.pendidikan || null,
+      golongan_darah: form.golongan_darah || null,
       status_pernikahan: form.status_pernikahan || null,
       alamat: form.alamat || null,
       rt: form.rt,
@@ -341,10 +338,19 @@ export function ProfilePage() {
                 value={form.gender}
                 onChange={(next) => setForm({ ...form, gender: next as 'L' | 'P' })}
                 required
-                options={[
-                  { value: 'L', label: 'Laki-laki' },
-                  { value: 'P', label: 'Perempuan' },
-                ]}
+                options={
+                  (profile.lookups.jenis_kelamin ?? []).length > 0
+                    ? (profile.lookups.jenis_kelamin ?? [])
+                        .filter((item) => item.value)
+                        .map((item) => ({
+                          value: String(item.value),
+                          label: item.name || String(item.value),
+                        }))
+                    : [
+                        { value: 'L', label: 'Laki-laki' },
+                        { value: 'P', label: 'Perempuan' },
+                      ]
+                }
               />
             </div>
             <div className="field">
@@ -369,19 +375,16 @@ export function ProfilePage() {
               <SearchableSelect
                 id="status_pernikahan"
                 value={form.status_pernikahan}
-                onChange={(next) =>
-                  setForm({
-                    ...form,
-                    status_pernikahan: (next || '') as StatusPernikahan | '',
-                  })
-                }
+                onChange={(next) => setForm({ ...form, status_pernikahan: next || '' })}
                 placeholder="Pilih status"
                 options={[
                   { value: '', label: 'Pilih status' },
-                  ...STATUS_PERNIKAHAN_OPTIONS.map((item) => ({
-                    value: String(item.value),
-                    label: item.label,
-                  })),
+                  ...(profile.lookups.status_pernikahan ?? [])
+                    .filter((item) => item.value)
+                    .map((item) => ({
+                      value: String(item.value),
+                      label: item.name || String(item.value),
+                    })),
                 ]}
               />
             </div>
@@ -394,10 +397,28 @@ export function ProfilePage() {
                 placeholder="Pilih pekerjaan"
                 options={[
                   { value: '', label: 'Pilih pekerjaan' },
-                  ...profile.lookups.pekerjaan.map((item) => ({
+                  ...(profile.lookups.pekerjaan ?? []).map((item) => ({
                     value: String(item.id),
                     label: item.nama,
                   })),
+                ]}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="golongan_darah">Golongan darah</label>
+              <SearchableSelect
+                id="golongan_darah"
+                value={form.golongan_darah}
+                onChange={(next) => setForm({ ...form, golongan_darah: next || '' })}
+                placeholder="Pilih golongan darah"
+                options={[
+                  { value: '', label: 'Pilih golongan darah' },
+                  ...(profile.lookups.golongan_darah ?? [])
+                    .filter((item) => item.value)
+                    .map((item) => ({
+                      value: String(item.value),
+                      label: item.name || String(item.value),
+                    })),
                 ]}
               />
             </div>
@@ -406,14 +427,16 @@ export function ProfilePage() {
               <SearchableSelect
                 id="pendidikan"
                 value={form.pendidikan}
-                onChange={(next) => setForm({ ...form, pendidikan: (next || '') as Pendidikan | '' })}
+                onChange={(next) => setForm({ ...form, pendidikan: next || '' })}
                 placeholder="Pilih pendidikan"
                 options={[
                   { value: '', label: 'Pilih pendidikan' },
-                  ...PENDIDIKAN_OPTIONS.map((item) => ({
-                    value: String(item.value),
-                    label: item.label,
-                  })),
+                  ...(profile.lookups.pendidikan ?? [])
+                    .filter((item) => item.value)
+                    .map((item) => ({
+                      value: String(item.value),
+                      label: item.name || String(item.value),
+                    })),
                 ]}
               />
             </div>

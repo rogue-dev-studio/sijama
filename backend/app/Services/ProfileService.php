@@ -17,12 +17,16 @@ use App\Models\AdmKecamatan;
 use App\Models\AdmNegara;
 use App\Models\AdmProvinsi;
 use App\Models\Jamaah;
-use App\Models\Pekerjaan;
+use App\Models\LookupM;
 use App\Models\User;
+use App\Services\LookupOptionsService;
+use App\Support\LookupTypes;
 use Illuminate\Validation\ValidationException;
 
 class ProfileService
 {
+    public function __construct(private readonly LookupOptionsService $lookupOptionsService) {}
+
     public function show(User $user): array
     {
         $user->loadMissing(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok']);
@@ -46,16 +50,26 @@ class ProfileService
             }
         }
 
+        $lookups = $this->lookupOptionsService->byTypes(LookupTypes::JAMAAH_FORM_TYPES);
+
         return [
             'user' => (new UserResource($user))->resolve(),
             'jamaah' => $jamaah,
             'can_edit_jamaah' => $jamaah !== null,
             'adm_chain' => $admChain,
             'lookups' => [
-                'pekerjaan' => Pekerjaan::query()
-                    ->where('is_active', true)
-                    ->orderBy('nama')
-                    ->get(['id', 'nama']),
+                'pekerjaan' => collect($lookups[LookupTypes::PEKERJAAN] ?? [])
+                    ->map(fn (array $item) => [
+                        'id' => $item['id'],
+                        'nama' => $item['name'],
+                        'value' => $item['value'],
+                    ])
+                    ->values()
+                    ->all(),
+                'jenis_kelamin' => $lookups[LookupTypes::JENIS_KELAMIN] ?? [],
+                'golongan_darah' => $lookups[LookupTypes::GOLONGAN_DARAH] ?? [],
+                'status_pernikahan' => $lookups[LookupTypes::STATUS_PERNIKAHAN] ?? [],
+                'pendidikan' => $lookups[LookupTypes::PENDIDIKAN] ?? [],
                 'negara' => AdmNegara::query()
                     ->where('is_active', true)
                     ->orderBy('nama')
@@ -158,8 +172,11 @@ class ProfileService
         if (array_key_exists('pekerjaan_id', $data)) {
             $pekerjaanId = $data['pekerjaan_id'];
             if ($pekerjaanId) {
-                $pekerjaan = Pekerjaan::query()->find($pekerjaanId);
-                $data['pekerjaan'] = $pekerjaan?->nama;
+                $pekerjaan = LookupM::query()
+                    ->notDeleted()
+                    ->byType(LookupTypes::PEKERJAAN)
+                    ->find($pekerjaanId);
+                $data['pekerjaan'] = $pekerjaan?->lookup_name;
             } else {
                 $data['pekerjaan_id'] = null;
                 $data['pekerjaan'] = null;

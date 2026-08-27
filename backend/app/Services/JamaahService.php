@@ -46,6 +46,7 @@ class JamaahService
             'pekerjaan',
             'pekerjaan_id',
             'pendidikan',
+            'golongan_darah',
             'status_pernikahan',
             'alamat',
             'rt',

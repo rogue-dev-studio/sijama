@@ -24,6 +24,7 @@ class Jamaah extends Model
         'pekerjaan',
         'pekerjaan_id',
         'pendidikan',
+        'golongan_darah',
         'status_pernikahan',
         'alamat',
         'rt',
@@ -55,7 +56,7 @@ class Jamaah extends Model
             );
 
             if ($jamaah->pekerjaan_id) {
-                $nama = Pekerjaan::query()->whereKey($jamaah->pekerjaan_id)->value('nama');
+                $nama = LookupM::query()->whereKey($jamaah->pekerjaan_id)->value('lookup_name');
                 if ($nama) {
                     $jamaah->pekerjaan = $nama;
                 }
@@ -70,7 +71,7 @@ class Jamaah extends Model
 
     public function pekerjaanRef(): BelongsTo
     {
-        return $this->belongsTo(Pekerjaan::class, 'pekerjaan_id');
+        return $this->belongsTo(LookupM::class, 'pekerjaan_id', 'lookup_id');
     }
 
     public function admDesaKelurahan(): BelongsTo

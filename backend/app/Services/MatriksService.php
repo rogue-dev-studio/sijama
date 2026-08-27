@@ -14,7 +14,10 @@ class MatriksService
     public function show(): array
     {
         $dapukan = Dapukan::query()->orderBy('urutan')->with('hakAkses')->get();
-        $hakAkses = HakAkses::query()->orderBy('slug')->get();
+        $hakAkses = HakAkses::query()
+            ->where('slug', 'not like', 'konfig.%')
+            ->orderBy('slug')
+            ->get();
 
         return [
             'dapukan' => DapukanResource::collection($dapukan)->resolve(),
@@ -36,6 +39,17 @@ class MatriksService
             throw ValidationException::withMessages([
                 'hak_akses_ids' => ['Terdapat hak akses yang tidak valid.'],
             ]);
+        }
+
+        $konfigIds = HakAkses::query()
+            ->where('slug', 'like', 'konfig.%')
+            ->pluck('id')
+            ->all();
+
+        if ($dapukan->slug === 'superadmin') {
+            $validIds = array_values(array_unique(array_merge($validIds, $konfigIds)));
+        } else {
+            $validIds = array_values(array_diff($validIds, $konfigIds));
         }
 
         $dapukan->hakAkses()->sync($validIds);

@@ -21,13 +21,15 @@ use App\Http\Controllers\Api\KategoriKegiatanController;
 use App\Http\Controllers\Api\KategoriUmurController;
 use App\Http\Controllers\Api\KelompokController;
 use App\Http\Controllers\Api\KegiatanController;
+use App\Http\Controllers\Api\KonfigSystemKController;
 use App\Http\Controllers\Api\LokasiController;
+use App\Http\Controllers\Api\LookupMController;
+use App\Http\Controllers\Api\LookupOptionsController;
 use App\Http\Controllers\Api\MasterUserController;
 use App\Http\Controllers\Api\MateriController;
 use App\Http\Controllers\Api\MatriksController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\PemateriController;
-use App\Http\Controllers\Api\PekerjaanController;
 use App\Http\Controllers\Api\PengajianController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PusatController;
@@ -35,6 +37,7 @@ use App\Http\Controllers\Api\SubKelompokController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/public/konfig', [KonfigSystemKController::class, 'publicShow']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -43,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile/wilayah-options', [ProfileController::class, 'wilayahOptions']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::get('/lookups/options', LookupOptionsController::class);
 
     if (config('app.debug')) {
         Route::post('debug/face-enroll', [DebugFaceEnrollController::class, 'store']);
@@ -179,12 +183,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('pemateri/{pemateri}', [PemateriController::class, 'update'])->middleware('permission:pemateri.update');
         Route::delete('pemateri/{pemateri}', [PemateriController::class, 'destroy'])->middleware('permission:pemateri.delete');
 
-        Route::get('pekerjaan', [PekerjaanController::class, 'index'])->middleware('permission:pekerjaan.view');
-        Route::post('pekerjaan', [PekerjaanController::class, 'store'])->middleware('permission:pekerjaan.create');
-        Route::get('pekerjaan/{pekerjaan}', [PekerjaanController::class, 'show'])->middleware('permission:pekerjaan.view');
-        Route::put('pekerjaan/{pekerjaan}', [PekerjaanController::class, 'update'])->middleware('permission:pekerjaan.update');
-        Route::patch('pekerjaan/{pekerjaan}', [PekerjaanController::class, 'update'])->middleware('permission:pekerjaan.update');
-        Route::delete('pekerjaan/{pekerjaan}', [PekerjaanController::class, 'destroy'])->middleware('permission:pekerjaan.delete');
+        Route::get('lookup', [LookupMController::class, 'index'])->middleware('permission:lookup.view');
+        Route::post('lookup', [LookupMController::class, 'store'])->middleware('permission:lookup.create');
+        Route::get('lookup/{lookup}', [LookupMController::class, 'show'])->middleware('permission:lookup.view');
+        Route::put('lookup/{lookup}', [LookupMController::class, 'update'])->middleware('permission:lookup.update');
+        Route::patch('lookup/{lookup}', [LookupMController::class, 'update'])->middleware('permission:lookup.update');
+        Route::delete('lookup/{lookup}', [LookupMController::class, 'destroy'])->middleware('permission:lookup.delete');
 
         Route::get('materi', [MateriController::class, 'index'])->middleware('permission:materi.view');
         Route::post('materi', [MateriController::class, 'store'])->middleware('permission:materi.create');
@@ -243,5 +247,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('kode-pos/{adm_kode_pos}', [AdmKodePosController::class, 'update'])->middleware('permission:adm_kode_pos.update');
             Route::delete('kode-pos/{adm_kode_pos}', [AdmKodePosController::class, 'destroy'])->middleware('permission:adm_kode_pos.delete');
         });
+    });
+
+    Route::prefix('aplikasi')->middleware('superadmin')->group(function () {
+        Route::get('konfig', [KonfigSystemKController::class, 'show'])->middleware('permission:konfig.view');
+        Route::put('konfig', [KonfigSystemKController::class, 'update'])->middleware('permission:konfig.update');
+        Route::patch('konfig', [KonfigSystemKController::class, 'update'])->middleware('permission:konfig.update');
+        Route::post('konfig/assets/{asset}', [KonfigSystemKController::class, 'uploadAsset'])->middleware('permission:konfig.update');
+        Route::delete('konfig/assets/{asset}', [KonfigSystemKController::class, 'deleteAsset'])->middleware('permission:konfig.update');
     });
 });

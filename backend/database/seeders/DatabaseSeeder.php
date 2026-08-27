@@ -26,9 +26,10 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(RbacSeeder::class);
+        $this->call(KonfigSystemSeeder::class);
         $this->call(WilayahAdministrasiSeeder::class);
         $this->call(WilayahSeeder::class);
-        $this->call(PekerjaanSeeder::class);
+        $this->call(LookupMSeeder::class);
         $this->call(MasterEventSeeder::class);
         $this->call(HariLiburSeeder::class);
 

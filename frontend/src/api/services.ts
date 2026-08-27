@@ -1,4 +1,5 @@
-import { apiRequest } from './client'
+import { apiRequest, apiUploadRequest } from './client'
+import type { KonfigAssetKind } from '../lib/konfigAsset'
 import type {
   AdmDesaKelurahan,
   AdmDesaKelurahanInput,
@@ -14,6 +15,7 @@ import type {
   AdmProvinsiInput,
   AttendanceSession,
   AbsensiOverviewPeriod,
+  AppPublicSettings,
   CalendarMonth,
   CheckInInput,
   Daerah,
@@ -37,9 +39,13 @@ import type {
   KegiatanInput,
   Kelompok,
   KelompokInput,
+  KonfigSystem,
+  KonfigSystemInput,
   LoginResult,
   Lokasi,
   LokasiInput,
+  LookupM,
+  LookupMInput,
   MapsLocationResolveResult,
   MapsPlaceSearchItem,
   MasterUser,
@@ -52,9 +58,8 @@ import type {
   MenuInput,
   OpenSessionInput,
   OwnProfileInput,
+  LookupOption,
   Paginated,
-  Pekerjaan,
-  PekerjaanInput,
   Pemateri,
   PemateriInput,
   Pengajian,
@@ -215,11 +220,27 @@ export const masterPemateriService = {
   },
 }
 
-export const masterPekerjaanService = {
-  list(params?: { q?: string; active_only?: boolean; is_active?: boolean; page?: number; per_page?: number }) {
-    return apiRequest<Paginated<Pekerjaan>>(
-      `/master/pekerjaan${buildListQuery([
+export const lookupOptionsService = {
+  byTypes(types: string[]) {
+    return apiRequest<Record<string, LookupOption[]>>(
+      `/lookups/options${buildListQuery([['types', types.join(',')]])}`,
+    )
+  },
+}
+
+export const masterLookupService = {
+  list(params?: {
+    q?: string
+    lookup_type?: string
+    active_only?: boolean
+    is_active?: boolean
+    page?: number
+    per_page?: number
+  }) {
+    return apiRequest<Paginated<LookupM>>(
+      `/master/lookup${buildListQuery([
         ['q', params?.q],
+        ['lookup_type', params?.lookup_type],
         ['active_only', params?.active_only],
         ['is_active', params?.is_active],
         ['page', params?.page],
@@ -228,16 +249,36 @@ export const masterPekerjaanService = {
     )
   },
   get(id: number) {
-    return apiRequest<Pekerjaan>(`/master/pekerjaan/${id}`)
+    return apiRequest<LookupM>(`/master/lookup/${id}`)
   },
-  create(data: PekerjaanInput) {
-    return apiRequest<Pekerjaan>('/master/pekerjaan', { method: 'POST', body: data })
+  create(data: LookupMInput) {
+    return apiRequest<LookupM>('/master/lookup', { method: 'POST', body: data })
   },
-  update(id: number, data: Partial<PekerjaanInput>) {
-    return apiRequest<Pekerjaan>(`/master/pekerjaan/${id}`, { method: 'PUT', body: data })
+  update(id: number, data: Partial<LookupMInput>) {
+    return apiRequest<LookupM>(`/master/lookup/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/pekerjaan/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/lookup/${id}`, { method: 'DELETE' })
+  },
+}
+
+export const aplikasiKonfigService = {
+  get() {
+    return apiRequest<KonfigSystem>('/aplikasi/konfig')
+  },
+  update(data: Partial<KonfigSystemInput>) {
+    return apiRequest<KonfigSystem>('/aplikasi/konfig', { method: 'PUT', body: data })
+  },
+  uploadAsset(asset: KonfigAssetKind, file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiUploadRequest<KonfigSystem>(`/aplikasi/konfig/assets/${asset}`, formData)
+  },
+  deleteAsset(asset: KonfigAssetKind) {
+    return apiRequest<KonfigSystem>(`/aplikasi/konfig/assets/${asset}`, { method: 'DELETE' })
+  },
+  publicSettings() {
+    return apiRequest<AppPublicSettings>('/public/konfig')
   },
 }
 

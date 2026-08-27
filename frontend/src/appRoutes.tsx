@@ -9,6 +9,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import { PermissionRoute } from './auth/PermissionRoute'
 import { AbsensiPage } from './pages/AbsensiPage'
+import { AplikasiKonfigPage } from './pages/AplikasiKonfigPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { KehadiranPage } from './pages/KehadiranPage'
 import { KalenderPage } from './pages/KalenderPage'
@@ -46,6 +47,8 @@ import { MasterKategoriKegiatanFormPage } from './pages/MasterKategoriKegiatanFo
 import { MasterKategoriKegiatanPage } from './pages/MasterKategoriKegiatanPage'
 import { MasterLokasiFormPage } from './pages/MasterLokasiFormPage'
 import { MasterLokasiPage } from './pages/MasterLokasiPage'
+import { MasterLookupFormPage } from './pages/MasterLookupFormPage'
+import { MasterLookupPage } from './pages/MasterLookupPage'
 import { MasterMateriFormPage } from './pages/MasterMateriFormPage'
 import { MasterMateriPage } from './pages/MasterMateriPage'
 import { MasterMatriksPage } from './pages/MasterMatriksPage'
@@ -53,8 +56,6 @@ import { MasterMenuFormPage } from './pages/MasterMenuFormPage'
 import { MasterMenuPage } from './pages/MasterMenuPage'
 import { MasterPemateriFormPage } from './pages/MasterPemateriFormPage'
 import { MasterPemateriPage } from './pages/MasterPemateriPage'
-import { MasterPekerjaanFormPage } from './pages/MasterPekerjaanFormPage'
-import { MasterPekerjaanPage } from './pages/MasterPekerjaanPage'
 import { MasterPusatFormPage } from './pages/MasterPusatFormPage'
 import { MasterPusatPage } from './pages/MasterPusatPage'
 import { MasterSubKelompokFormPage } from './pages/MasterSubKelompokFormPage'
@@ -109,7 +110,7 @@ export const APP_SHELL_ROUTES: AppRouteDef[] = [
   ...masterCrud('master/sub-kelompok', 'sub_kelompok', MasterSubKelompokPage, MasterSubKelompokFormPage),
   ...masterCrud('master/lokasi', 'lokasi', MasterLokasiPage, MasterLokasiFormPage),
   ...masterCrud('master/pemateri', 'pemateri', MasterPemateriPage, MasterPemateriFormPage),
-  ...masterCrud('master/pekerjaan', 'pekerjaan', MasterPekerjaanPage, MasterPekerjaanFormPage),
+  ...masterCrud('master/lookup', 'lookup', MasterLookupPage, MasterLookupFormPage),
   ...masterCrud('master/materi', 'materi', MasterMateriPage, MasterMateriFormPage),
   ...masterCrud(
     'master/kategori-kegiatan',
@@ -139,6 +140,7 @@ export const APP_SHELL_ROUTES: AppRouteDef[] = [
   ...masterCrud('master/hak-akses', 'hak_akses', MasterHakAksesPage, MasterHakAksesFormPage),
   { path: 'master/matriks', permission: 'matriks.view', element: <MasterMatriksPage /> },
   ...masterCrud('master/users', 'users', MasterUsersPage, MasterUsersFormPage),
+  { path: 'aplikasi/konfig', permission: 'konfig.view', element: <AplikasiKonfigPage /> },
 ]
 
 export function renderAppRoutes(defs: AppRouteDef[]): ReactElement[] {

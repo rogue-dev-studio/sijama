@@ -255,10 +255,44 @@ export interface User {
   updated_at?: string
 }
 
+export interface AppPublicSettings {
+  app_nama: string
+  nama_instansi: string | null
+  alamat: string | null
+  telepon: string | null
+  email_kontak: string | null
+  timezone: string
+  locale: string
+  header: string | null
+  footer: string | null
+  website: string | null
+  footer_link: string | null
+  footer_detail: string | null
+  footer_detail_link: string | null
+  header_detail: string | null
+  path_logoheader: string | null
+  path_favicon: string | null
+  path_logofooter: string | null
+  path_background: string | null
+  background_style: string
+  background_repeat_size: string
+  color_bg: string | null
+  color_surface: string | null
+  color_ink: string | null
+  color_accent: string | null
+  color_accent_soft: string | null
+  color_muted: string | null
+  color_border: string | null
+  theme_color: string | null
+  maintenance_mode: boolean
+  maintenance_message: string
+}
+
 export interface AuthPayload {
   user: User
   permissions: string[]
   menus: MenuNode[]
+  app_settings?: AppPublicSettings
 }
 
 export interface LoginResult extends AuthPayload {
@@ -267,12 +301,20 @@ export interface LoginResult extends AuthPayload {
 
 export type MeResult = AuthPayload
 
+export type LookupOption = {
+  id: number
+  name: string
+  value: string | null
+  kode: string | null
+}
+
 export type OwnProfileInput = {
   nama?: string
   gender?: 'L' | 'P'
   tanggal_lahir?: string | null
   pekerjaan_id?: number | null
   pendidikan?: string | null
+  golongan_darah?: string | null
   status_pernikahan?: string | null
   alamat?: string | null
   rt?: string
@@ -310,7 +352,11 @@ export type ProfileResult = {
   can_edit_jamaah: boolean
   adm_chain: ProfileAdmChain | null
   lookups: {
-    pekerjaan: Array<{ id: number; nama: string }>
+    pekerjaan: Array<{ id: number; nama: string; value?: string | null }>
+    jenis_kelamin: LookupOption[]
+    golongan_darah: LookupOption[]
+    status_pernikahan: LookupOption[]
+    pendidikan: LookupOption[]
     negara: ProfileWilayahOption[]
   }
 }
@@ -468,6 +514,7 @@ export interface Jamaah {
   dapukan_ids?: number[]
   dapukan?: Array<{ id: number; slug: string; nama: string; tingkat: DapukanTingkat }>
   pendidikan: string | null
+  golongan_darah?: string | null
   status_pernikahan: string | null
   alamat: string | null
   rt: string | null
@@ -519,13 +566,72 @@ export interface Pemateri {
   updated_at?: string
 }
 
-export interface Pekerjaan {
+export interface LookupM {
   id: number
+  lookup_id: number
+  lookup_type: string
+  lookup_name: string | null
   nama: string
-  deskripsi: string | null
+  lookup_value: string | null
+  lookup_urutan: number | null
+  lookup_kode: string | null
+  additional_data: string | null
   is_active: boolean
-  created_at?: string
-  updated_at?: string
+  is_deleted: boolean
+  created_date?: string | null
+  last_modified_date?: string | null
+}
+
+export interface KonfigSystem {
+  id: number
+  konfigsystem_id: number
+  nama: string
+  app_nama: string | null
+  nama_instansi: string | null
+  alamat: string | null
+  telepon: string | null
+  email_kontak: string | null
+  timezone: string | null
+  locale: string | null
+  mail_protocol: string | null
+  smtp_hostname: string | null
+  mail_parameter: string | null
+  smtp_username: string | null
+  smtp_password_set: boolean
+  smtp_port: number | null
+  smtp_timeout: number | null
+  smtp_encryption: string | null
+  mail_from_address: string | null
+  mail_from_name: string | null
+  mail_reply_to: string | null
+  header: string | null
+  footer: string | null
+  website: string | null
+  footer_link: string | null
+  footer_detail: string | null
+  footer_detail_link: string | null
+  header_detail: string | null
+  path_logoheader: string | null
+  path_favicon: string | null
+  path_logofooter: string | null
+  path_background: string | null
+  background_style: string
+  background_repeat_size: string
+  color_bg: string | null
+  color_surface: string | null
+  color_ink: string | null
+  color_accent: string | null
+  color_accent_soft: string | null
+  color_muted: string | null
+  color_border: string | null
+  theme_color: string | null
+  maintenance_mode: boolean
+  maintenance_message: string | null
+  additional_data: string | null
+  is_active: boolean
+  is_deleted: boolean
+  created_date?: string | null
+  last_modified_date?: string | null
 }
 
 export interface Materi {
@@ -663,6 +769,7 @@ export type JamaahInput = {
   pekerjaan_id?: number | null
   dapukan_ids?: number[]
   pendidikan?: string | null
+  golongan_darah?: string | null
   status_pernikahan?: string | null
   alamat?: string | null
   rt?: string | null
@@ -742,9 +849,59 @@ export type PemateriInput = {
   is_active?: boolean
 }
 
-export type PekerjaanInput = {
-  nama: string
-  deskripsi?: string | null
+export type LookupMInput = {
+  lookup_type: string
+  lookup_name?: string | null
+  lookup_value?: string | null
+  lookup_urutan?: number | null
+  lookup_kode?: string | null
+  additional_data?: string | null
+  is_active?: boolean
+}
+
+export type KonfigSystemInput = {
+  app_nama?: string | null
+  nama_instansi?: string | null
+  alamat?: string | null
+  telepon?: string | null
+  email_kontak?: string | null
+  timezone?: string | null
+  locale?: string | null
+  mail_protocol?: string | null
+  smtp_hostname?: string | null
+  mail_parameter?: string | null
+  smtp_username?: string | null
+  smtp_password?: string | null
+  smtp_port?: number | null
+  smtp_timeout?: number | null
+  smtp_encryption?: string | null
+  mail_from_address?: string | null
+  mail_from_name?: string | null
+  mail_reply_to?: string | null
+  header?: string | null
+  footer?: string | null
+  website?: string | null
+  footer_link?: string | null
+  footer_detail?: string | null
+  footer_detail_link?: string | null
+  header_detail?: string | null
+  path_logoheader?: string | null
+  path_favicon?: string | null
+  path_logofooter?: string | null
+  path_background?: string | null
+  background_style?: string
+  background_repeat_size?: string
+  color_bg?: string | null
+  color_surface?: string | null
+  color_ink?: string | null
+  color_accent?: string | null
+  color_accent_soft?: string | null
+  color_muted?: string | null
+  color_border?: string | null
+  theme_color?: string | null
+  maintenance_mode?: boolean
+  maintenance_message?: string | null
+  additional_data?: string | null
   is_active?: boolean
 }
 

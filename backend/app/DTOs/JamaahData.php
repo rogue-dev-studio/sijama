@@ -18,6 +18,7 @@ readonly class JamaahData
         public ?string $pekerjaan,
         public ?int $pekerjaanId,
         public ?string $pendidikan,
+        public ?string $golonganDarah,
         public ?string $statusPernikahan,
         public ?string $alamat,
         public ?string $rt,
@@ -56,6 +57,7 @@ readonly class JamaahData
                 ? (int) $data['pekerjaan_id']
                 : null,
             pendidikan: $data['pendidikan'] ?? null,
+            golonganDarah: $data['golongan_darah'] ?? null,
             statusPernikahan: $data['status_pernikahan'] ?? null,
             alamat: $data['alamat'] ?? null,
             rt: isset($data['rt']) && $data['rt'] !== '' ? (string) $data['rt'] : null,
@@ -86,6 +88,7 @@ readonly class JamaahData
             'kategori_umur' => JamaahKategoriUmur::classify($tanggalLahir, $this->statusPernikahan),
             'pekerjaan' => $this->pekerjaan,
             'pendidikan' => $this->pendidikan,
+            'golongan_darah' => $this->golonganDarah,
             'alamat' => $this->alamat,
             'rt' => $this->rt,
             'rw' => $this->rw,

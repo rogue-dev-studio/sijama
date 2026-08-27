@@ -55,6 +55,36 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   return payload.data
 }
 
+export async function apiUploadRequest<T>(path: string, formData: FormData): Promise<T> {
+  const headers = new Headers()
+  headers.set('Accept', 'application/json')
+
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+
+  const response = await fetch(`${API_BASE}/api${path}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  })
+
+  let payload: ApiEnvelope<T>
+
+  try {
+    payload = (await response.json()) as ApiEnvelope<T>
+  } catch {
+    throw new ApiError(response.status, 'Respons server tidak valid')
+  }
+
+  if (!payload.success) {
+    throw new ApiError(response.status, payload.message || 'Permintaan gagal', payload.errors)
+  }
+
+  return payload.data
+}
+
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
 }
