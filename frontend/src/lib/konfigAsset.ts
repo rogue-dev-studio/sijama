@@ -65,10 +65,14 @@ export type KonfigAssetKind = 'logo-header' | 'favicon' | 'logo-footer' | 'backg
 export type KonfigDokumenAssetKind = 'logo-kiri' | 'logo-kanan'
 export type ImageUploadAssetKind = KonfigAssetKind | KonfigDokumenAssetKind
 
-export const KONFIG_ASSET_FIELD: Record<
-  KonfigAssetKind,
-  'path_logoheader' | 'path_favicon' | 'path_logofooter' | 'path_background'
-> = {
+export type KonfigAssetField =
+  | 'path_logoheader'
+  | 'path_favicon'
+  | 'path_logofooter'
+  | 'path_background'
+  | 'path_maintenance_background'
+
+export const KONFIG_ASSET_FIELD: Record<KonfigAssetKind, KonfigAssetField> = {
   'logo-header': 'path_logoheader',
   favicon: 'path_favicon',
   'logo-footer': 'path_logofooter',
