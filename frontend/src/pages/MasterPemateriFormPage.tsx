@@ -12,6 +12,8 @@ import { jamaahService, masterPemateriService } from '../api/services'
 import type { Jamaah, PemateriInput } from '../api/types'
 
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
+
 const emptyForm: PemateriInput = {
   jamaah_id: 0,
   is_active: true,
@@ -21,6 +23,7 @@ export function MasterPemateriFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [jamaahOptions, setJamaahOptions] = useState<Jamaah[]>([])
   const [form, setForm] = useState<PemateriInput>(emptyForm)
   const [loading, setLoading] = useState(true)
@@ -90,6 +93,7 @@ export function MasterPemateriFormPage() {
       } else {
         await masterPemateriService.create(payload)
       }
+      notifySaved('pemateri', isEdit ? 'update' : 'create')
       navigate('/master/pemateri')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan pemateri')

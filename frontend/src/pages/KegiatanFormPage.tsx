@@ -16,6 +16,8 @@ import {
 import type { KategoriKegiatan, Kegiatan, KegiatanInput, Lokasi } from '../api/types'
 
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
+
 const emptyForm: KegiatanInput = {
   judul: '',
   jenis: '',
@@ -31,6 +33,7 @@ export function KegiatanFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<KegiatanInput>(emptyForm)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -122,6 +125,7 @@ export function KegiatanFormPage() {
       } else {
         await kegiatanService.create(payload)
       }
+      notifySaved('kegiatan', isEdit ? 'update' : 'create')
       navigate('/kegiatan')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan kegiatan')

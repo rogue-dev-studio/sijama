@@ -2,12 +2,46 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-03 12:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 16:57:14
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { masterKategoriKegiatanService } from '../api/services'
 import type { KategoriKegiatan } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
+
+const columns: GatedColumn<KategoriKegiatan>[] = [
+  {
+    key: 'nama',
+    label: 'Nama',
+    cell: (item) => item.nama,
+    exportValue: (item) => item.nama,
+  },
+  {
+    key: 'calendar_color',
+    label: 'Warna',
+    sortable: false,
+    cell: (item) => (
+      <span className="calendar-legend__item">
+        <span
+          className="calendar-legend__swatch"
+          style={{ backgroundColor: item.calendar_color || '#2563eb' }}
+        />
+        {item.calendar_color || '#2563eb'}
+      </span>
+    ),
+    exportValue: (item) => item.calendar_color || '#2563eb',
+  },
+  {
+    key: 'is_active',
+    label: 'Status',
+    cell: (item) => (
+      <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+        {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+      </span>
+    ),
+    exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+  },
+]
 
 export function MasterKategoriKegiatanPage() {
   return (
@@ -20,18 +54,7 @@ export function MasterKategoriKegiatanPage() {
       createLabel="Tambah kategori"
       list={masterKategoriKegiatanService.list}
       remove={masterKategoriKegiatanService.remove}
-      renderExtraHeaders={() => <th>Warna</th>}
-      renderExtraCells={(item) => (
-        <td>
-          <span className="calendar-legend__item">
-            <span
-              className="calendar-legend__swatch"
-              style={{ backgroundColor: item.calendar_color || '#2563eb' }}
-            />
-            {item.calendar_color || '#2563eb'}
-          </span>
-        </td>
-      )}
+      columns={columns}
     />
   )
 }

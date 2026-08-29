@@ -1,4 +1,12 @@
+/**
+ * @Author: rogue-dev-studio
+ * @Date: 2026-08-29 17:05:00
+ * @Last Modified by: rogue-dev-studio
+ * @Last Modified time: 2026-08-29 17:05:00
+ */
+
 import { API_BASE, TOKEN_KEY, type ApiEnvelope } from './types'
+import { getOrCreateDeviceId } from '../lib/trustedAdminDevice'
 
 export class ApiError extends Error {
   status: number
@@ -17,18 +25,70 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   auth?: boolean
 }
 
+function readFromStorage(storage: Storage): string | null {
+  try {
+    return storage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeToStorage(storage: Storage, token: string): void {
+  try {
+    storage.setItem(TOKEN_KEY, token)
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function removeFromStorage(storage: Storage): void {
+  try {
+    storage.removeItem(TOKEN_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getToken(): string | null {
+  return readFromStorage(sessionStorage) ?? readFromStorage(localStorage)
+}
+
+export function setToken(token: string, persistent = true): void {
+  if (persistent) {
+    writeToStorage(localStorage, token)
+    removeFromStorage(sessionStorage)
+    return
+  }
+
+  writeToStorage(sessionStorage, token)
+  removeFromStorage(localStorage)
+}
+
+export function clearToken(): void {
+  removeFromStorage(sessionStorage)
+  removeFromStorage(localStorage)
+}
+
+function applyDeviceHeaders(headers: Headers): void {
+  const deviceId = getOrCreateDeviceId()
+  if (deviceId && deviceId !== 'anonymous') {
+    headers.set('X-Device-Key', deviceId)
+  }
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { body, auth = true, headers: customHeaders, ...rest } = options
 
   const headers = new Headers(customHeaders)
   headers.set('Accept', 'application/json')
+  applyDeviceHeaders(headers)
 
   if (body !== undefined) {
     headers.set('Content-Type', 'application/json')
   }
 
   if (auth) {
-    const token = localStorage.getItem(TOKEN_KEY)
+    const token = getToken()
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
@@ -58,8 +118,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 export async function apiUploadRequest<T>(path: string, formData: FormData): Promise<T> {
   const headers = new Headers()
   headers.set('Accept', 'application/json')
+  applyDeviceHeaders(headers)
 
-  const token = localStorage.getItem(TOKEN_KEY)
+  const token = getToken()
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
   }
@@ -83,16 +144,4 @@ export async function apiUploadRequest<T>(path: string, formData: FormData): Pro
   }
 
   return payload.data
-}
-
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
-}
-
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token)
-}
-
-export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY)
 }

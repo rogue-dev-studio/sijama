@@ -6,6 +6,8 @@ interface PaginationProps {
   onPageChange: (page: number) => void
   onPerPageChange?: (perPage: number) => void
   perPageOptions?: number[]
+  /** Tampilkan bar pagination meskipun total = 0 (default: sembunyikan). */
+  showWhenEmpty?: boolean
 }
 
 function buildPageItems(current: number, last: number): Array<number | 'ellipsis'> {
@@ -36,19 +38,22 @@ export function Pagination({
   onPageChange,
   onPerPageChange,
   perPageOptions = [...PER_PAGE_OPTIONS],
+  showWhenEmpty = false,
 }: PaginationProps) {
-  if (meta.total === 0) {
+  if (meta.total === 0 && !showWhenEmpty) {
     return null
   }
 
-  const from = (meta.current_page - 1) * meta.per_page + 1
+  const from = meta.total === 0 ? 0 : (meta.current_page - 1) * meta.per_page + 1
   const to = Math.min(meta.current_page * meta.per_page, meta.total)
-  const pageItems = buildPageItems(meta.current_page, meta.last_page)
+  const pageItems = buildPageItems(meta.current_page, Math.max(1, meta.last_page))
 
   return (
     <div className="pagination">
       <p className="pagination__info">
-        Menampilkan {from}–{to} dari {meta.total}
+        {meta.total === 0
+          ? 'Menampilkan 0 dari 0'
+          : `Menampilkan ${from}–${to} dari ${meta.total}`}
       </p>
       <div className="pagination__controls">
         {onPerPageChange && (

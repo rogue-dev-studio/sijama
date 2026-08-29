@@ -21,7 +21,7 @@ class ResolveMapsLocationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'input' => ['required', 'string', 'max:8000'],
+            'input' => ['required', 'string', 'max:20000'],
         ];
     }
 }

@@ -10,6 +10,7 @@
 namespace App\Support;
 
 use App\Models\KonfigSystemK;
+use App\Support\DocumentKonfig;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
@@ -89,6 +90,29 @@ class SystemKonfig
             'maintenance_mode' => (bool) $konfig->maintenance_mode,
             'maintenance_message' => $konfig->maintenance_message
                 ?: 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
+            'maintenance_login_allowed' => false,
+            'path_maintenance_background' => Schema::hasColumn('konfigsystem_k', 'path_maintenance_background')
+                ? $konfig->path_maintenance_background
+                : null,
+            'maintenance_background_style' => Schema::hasColumn('konfigsystem_k', 'maintenance_background_style')
+                ? self::normalizeBackgroundStyle($konfig->maintenance_background_style)
+                : 'cover',
+            'maintenance_background_repeat_size' => Schema::hasColumn('konfigsystem_k', 'maintenance_background_repeat_size')
+                ? self::normalizeBackgroundRepeatSize($konfig->maintenance_background_repeat_size)
+                : '28px',
+            'password_reset_phone_enabled' => Schema::hasColumn('konfigsystem_k', 'password_reset_phone_enabled')
+                ? (bool) $konfig->password_reset_phone_enabled
+                : (bool) config('sms.password_reset_enabled', false),
+            'password_reset_email_enabled' => Schema::hasColumn('konfigsystem_k', 'password_reset_email_enabled')
+                ? (bool) $konfig->password_reset_email_enabled
+                : (bool) config('mail.password_reset_enabled', true),
+            'telegram_enabled' => Schema::hasColumn('konfigsystem_k', 'telegram_enabled')
+                ? (bool) $konfig->telegram_enabled
+                : (bool) config('integrations.telegram.enabled', false),
+            'n8n_enabled' => Schema::hasColumn('konfigsystem_k', 'n8n_enabled')
+                ? (bool) $konfig->n8n_enabled
+                : (bool) config('integrations.n8n.enabled', false),
+            'dokumen' => DocumentKonfig::publicPayload(),
         ];
     }
 
@@ -139,6 +163,69 @@ class SystemKonfig
         if (filled($konfig->mail_from_name)) {
             config(['mail.from.name' => $konfig->mail_from_name]);
         }
+
+        if (! Schema::hasColumn('konfigsystem_k', 'password_reset_phone_enabled')) {
+            return;
+        }
+
+        config([
+            'sms.password_reset_enabled' => (bool) $konfig->password_reset_phone_enabled,
+        ]);
+
+        if (Schema::hasColumn('konfigsystem_k', 'password_reset_email_enabled')) {
+            config([
+                'mail.password_reset_enabled' => (bool) $konfig->password_reset_email_enabled,
+            ]);
+        }
+
+        if (filled($konfig->sms_driver) && in_array($konfig->sms_driver, ['log', 'fonnte'], true)) {
+            config(['sms.default' => $konfig->sms_driver]);
+        }
+
+        if (filled($konfig->sms_country_code)) {
+            config(['sms.drivers.fonnte.country_code' => $konfig->sms_country_code]);
+        }
+
+        if (filled($konfig->fonnte_endpoint)) {
+            config(['sms.drivers.fonnte.endpoint' => $konfig->fonnte_endpoint]);
+        }
+
+        if (filled($konfig->fonnte_token)) {
+            config(['sms.drivers.fonnte.token' => $konfig->fonnte_token]);
+        }
+
+        if (! Schema::hasColumn('konfigsystem_k', 'telegram_enabled')) {
+            return;
+        }
+
+        config([
+            'integrations.telegram.enabled' => (bool) $konfig->telegram_enabled,
+            'integrations.n8n.enabled' => (bool) $konfig->n8n_enabled,
+        ]);
+
+        if (filled($konfig->telegram_bot_token)) {
+            config(['integrations.telegram.bot_token' => $konfig->telegram_bot_token]);
+        }
+
+        if (filled($konfig->telegram_bot_username)) {
+            config(['integrations.telegram.bot_username' => $konfig->telegram_bot_username]);
+        }
+
+        if (filled($konfig->telegram_default_chat_id)) {
+            config(['integrations.telegram.default_chat_id' => $konfig->telegram_default_chat_id]);
+        }
+
+        if (filled($konfig->n8n_base_url)) {
+            config(['integrations.n8n.base_url' => $konfig->n8n_base_url]);
+        }
+
+        if (filled($konfig->n8n_webhook_url)) {
+            config(['integrations.n8n.webhook_url' => $konfig->n8n_webhook_url]);
+        }
+
+        if (filled($konfig->n8n_api_key)) {
+            config(['integrations.n8n.api_key' => $konfig->n8n_api_key]);
+        }
     }
 
     /** @return array<string, mixed> */
@@ -175,6 +262,15 @@ class SystemKonfig
             'theme_color' => null,
             'maintenance_mode' => false,
             'maintenance_message' => 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
+            'maintenance_login_allowed' => false,
+            'path_maintenance_background' => null,
+            'maintenance_background_style' => 'cover',
+            'maintenance_background_repeat_size' => '28px',
+            'password_reset_phone_enabled' => (bool) config('sms.password_reset_enabled', false),
+            'password_reset_email_enabled' => (bool) config('mail.password_reset_enabled', true),
+            'telegram_enabled' => (bool) config('integrations.telegram.enabled', false),
+            'n8n_enabled' => (bool) config('integrations.n8n.enabled', false),
+            'dokumen' => DocumentKonfig::publicPayload(),
         ];
     }
 

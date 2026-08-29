@@ -2,16 +2,16 @@
 
 /**
  * @Author: rogue-dev-studio
- * @Date: 2026-08-03 13:06:41
+ * @Date: 2026-08-29 16:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-03 13:06:41
+ * @Last Modified time: 2026-08-29 16:45:00
  */
 
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdatePekerjaanRequest extends FormRequest
+class UploadProfilePhotoRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -21,9 +21,7 @@ class UpdatePekerjaanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nama' => ['sometimes', 'required', 'string', 'max:100'],
-            'deskripsi' => ['nullable', 'string'],
-            'is_active' => ['nullable', 'boolean'],
+            'file' => ['required', 'file', 'max:2048', 'mimes:jpeg,jpg,png,gif,webp'],
         ];
     }
 }

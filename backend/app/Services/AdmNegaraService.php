@@ -13,15 +13,28 @@ use App\Http\Resources\AdmNegaraResource;
 use App\Models\AdmNegara;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class AdmNegaraService
 {
-    public function list(?string $query = null, ?int $perPage = null, ?int $page = null): LengthAwarePaginator
-    {
-        $builder = AdmNegara::query()->orderBy('nama');
+    public function list(
+        ?string $query = null,
+        ?int $perPage = null,
+        ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
+    ): LengthAwarePaginator {
+        $builder = AdmNegara::query();
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['nama', 'kode', 'iso3', 'is_active'],
+            'nama',
+        );
 
         if ($query) {
             SearchHelper::likeGroup($builder, ['nama', 'kode'], $query);

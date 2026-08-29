@@ -20,7 +20,6 @@ class AdmKodePos extends Model
         'kode',
         'desa_kelurahan_id',
         'kecamatan_id',
-        'nama_wilayah',
         'is_active',
     ];
 

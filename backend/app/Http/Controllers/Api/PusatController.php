@@ -15,6 +15,7 @@ use App\Http\Requests\UpdatePusatRequest;
 use App\Http\Resources\PusatResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\PusatService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,11 +25,15 @@ class PusatController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->pusatService->list(
             $request->user(),
             $request->query('q'),
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

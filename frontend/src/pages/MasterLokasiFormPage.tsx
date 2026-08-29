@@ -17,8 +17,9 @@ import {
   masterLokasiService,
 } from '../api/services'
 import type { LokasiInput, LokasiJenis, WilayahSummary } from '../api/types'
-import { LokasiMapFields } from '../components/LokasiMapFields'
+import { LokasiMapFields, type LokasiMapsApplyPayload } from '../components/LokasiMapFields'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
 import { isValidCoords } from '../lib/googleMaps'
 const JENIS_OPTIONS: { value: LokasiJenis; label: string }[] = [
   { value: 'masjid', label: 'Masjid LDII' },
@@ -37,6 +38,9 @@ const emptyForm: LokasiInput = {
   alamat: '',
   lat: null,
   lng: null,
+  maps_place_id: null,
+  maps_place_name: null,
+  maps_url: null,
   is_active: true,
 }
 
@@ -44,6 +48,7 @@ export function MasterLokasiFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<LokasiInput>(emptyForm)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -79,6 +84,9 @@ export function MasterLokasiFormPage() {
             alamat: lokasi.alamat || '',
             lat: lokasi.lat ?? null,
             lng: lokasi.lng ?? null,
+            maps_place_id: lokasi.maps_place_id ?? null,
+            maps_place_name: lokasi.maps_place_name ?? null,
+            maps_url: lokasi.maps_url ?? null,
             is_active: lokasi.is_active,
           })
           if (lokasi.adm_desa_kelurahan_id) {
@@ -184,6 +192,94 @@ export function MasterLokasiFormPage() {
     )
   }
 
+  async function applyFromMaps(payload: LokasiMapsApplyPayload) {
+    const adm = payload.adm
+    const nextAlamat = payload.alamat?.trim() || null
+    const nextKota = adm?.labels?.kabupaten_kota?.trim() || null
+    const mapsPlaceName = payload.place_name?.trim() || null
+    const mapsPlaceId = payload.place_id?.trim() || null
+    const mapsUrl = payload.maps_url?.trim() || null
+
+    setForm((prev) => ({
+      ...prev,
+      lat: payload.lat,
+      lng: payload.lng,
+      alamat: nextAlamat || prev.alamat,
+      kota: nextKota || prev.kota,
+      maps_place_id: mapsPlaceId || prev.maps_place_id || null,
+      maps_place_name: mapsPlaceName || prev.maps_place_name || null,
+      maps_url: mapsUrl || prev.maps_url || null,
+      nama: prev.nama.trim() ? prev.nama : mapsPlaceName || prev.nama,
+      adm_desa_kelurahan_id: adm?.desa_kelurahan_id ?? prev.adm_desa_kelurahan_id,
+    }))
+
+    if (!adm?.negara_id) {
+      return
+    }
+
+    setSelectedNegaraId(adm.negara_id)
+    setProvinsiList(
+      (await admProvinsiService.list({ negara_id: adm.negara_id, per_page: 100 })).items,
+    )
+
+    if (!adm.provinsi_id) {
+      setSelectedProvinsiId(0)
+      setSelectedKabupatenKotaId(0)
+      setSelectedKecamatanId(0)
+      setKabupatenKotaList([])
+      setKecamatanList([])
+      setDesaKelurahanList([])
+      setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null }))
+      return
+    }
+
+    setSelectedProvinsiId(adm.provinsi_id)
+    setKabupatenKotaList(
+      (await admKabupatenKotaService.list({ provinsi_id: adm.provinsi_id, per_page: 100 })).items,
+    )
+
+    if (!adm.kabupaten_kota_id) {
+      setSelectedKabupatenKotaId(0)
+      setSelectedKecamatanId(0)
+      setKecamatanList([])
+      setDesaKelurahanList([])
+      setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kota: nextKota || prev.kota }))
+      return
+    }
+
+    setSelectedKabupatenKotaId(adm.kabupaten_kota_id)
+    setKecamatanList(
+      (
+        await admKecamatanService.list({
+          kabupaten_kota_id: adm.kabupaten_kota_id,
+          per_page: 100,
+        })
+      ).items,
+    )
+
+    if (!adm.kecamatan_id) {
+      setSelectedKecamatanId(0)
+      setDesaKelurahanList([])
+      setForm((prev) => ({
+        ...prev,
+        adm_desa_kelurahan_id: null,
+        kota: nextKota || prev.kota,
+      }))
+      return
+    }
+
+    setSelectedKecamatanId(adm.kecamatan_id)
+    setDesaKelurahanList(
+      (await admDesaKelurahanService.list({ kecamatan_id: adm.kecamatan_id, per_page: 100 })).items,
+    )
+    setForm((prev) => ({
+      ...prev,
+      adm_desa_kelurahan_id: adm.desa_kelurahan_id ?? null,
+      kota: nextKota || prev.kota,
+      alamat: nextAlamat || prev.alamat,
+    }))
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setSubmitting(true)
@@ -204,6 +300,9 @@ export function MasterLokasiFormPage() {
       alamat: form.alamat || null,
       lat,
       lng,
+      maps_place_id: form.maps_place_id || null,
+      maps_place_name: form.maps_place_name || null,
+      maps_url: form.maps_url || null,
     }
 
     try {
@@ -212,6 +311,7 @@ export function MasterLokasiFormPage() {
       } else {
         await masterLokasiService.create(payload)
       }
+      notifySaved('lokasi', isEdit ? 'update' : 'create')
       navigate('/master/lokasi')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan lokasi')
@@ -357,7 +457,11 @@ export function MasterLokasiFormPage() {
         <LokasiMapFields
           lat={form.lat}
           lng={form.lng}
+          placeName={form.maps_place_name || form.nama}
+          mapsPlaceId={form.maps_place_id}
+          mapsUrl={form.maps_url}
           onChange={({ lat, lng }) => setForm((prev) => ({ ...prev, lat, lng }))}
+          onApplyFromMaps={applyFromMaps}
         />
 
         <div className="form-actions">

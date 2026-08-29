@@ -30,7 +30,7 @@ class DashboardService
         $this->scopeService->applyJamaahScope($jamaahQuery, $user);
         $jamaahAktif = (clone $jamaahQuery)->count();
 
-        return [
+        $payload = [
             'jamaah_aktif' => $jamaahAktif,
             'pengajian_minggu_ini' => Pengajian::whereBetween('starts_at', [$weekStart, $weekEnd])->count(),
             'absensi_hari_ini' => Attendance::query()
@@ -41,10 +41,24 @@ class DashboardService
                 ->count(),
             'kegiatan_bulan_ini' => Kegiatan::whereBetween('tanggal', [$monthStart->toDateString(), $monthEnd->toDateString()])->count(),
             'chart_absensi_7_hari' => $this->buildChartAbsensi7Hari($user, $now),
-            'absensi_overview' => $this->buildAbsensiOverview($user, $now, $jamaahAktif),
-            'chart_jamaah_per_kelompok' => $this->buildChartJamaahPerKelompok($user),
-            'chart_kategori_umur' => $this->buildChartKategoriUmur($user),
+            'absensi_overview' => null,
+            'chart_jamaah_per_kelompok' => null,
+            'chart_kategori_umur' => null,
         ];
+
+        if ($user->hasPermission('dashboard.absensi_overview.view')) {
+            $payload['absensi_overview'] = $this->buildAbsensiOverview($user, $now, $jamaahAktif);
+        }
+
+        if ($user->hasPermission('dashboard.jamaah_kelompok.view')) {
+            $payload['chart_jamaah_per_kelompok'] = $this->buildChartJamaahPerKelompok($user);
+        }
+
+        if ($user->hasPermission('dashboard.kategori_umur.view')) {
+            $payload['chart_kategori_umur'] = $this->buildChartKategoriUmur($user);
+        }
+
+        return $payload;
     }
 
     private function buildAbsensiOverview(User $user, Carbon $now, int $jamaahAktif): array

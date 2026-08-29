@@ -50,6 +50,13 @@ class Jamaah extends Model
     protected static function booted(): void
     {
         static::saving(function (Jamaah $jamaah) {
+            if ($jamaah->no_hp === '') {
+                $jamaah->no_hp = null;
+            }
+            if ($jamaah->email === '') {
+                $jamaah->email = null;
+            }
+
             $jamaah->kategori_umur = JamaahKategoriUmur::classify(
                 $jamaah->tanggal_lahir,
                 $jamaah->status_pernikahan
@@ -97,5 +104,17 @@ class Jamaah extends Model
     public function user(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(User::class);
+    }
+
+    public function keluargaPivot(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(JamaahKeluarga::class);
+    }
+
+    public function keluarga(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Keluarga::class, 'jamaah_keluarga')
+            ->withPivot(['hubungan_keluarga', 'is_kepala_keluarga', 'catatan'])
+            ->withTimestamps();
     }
 }

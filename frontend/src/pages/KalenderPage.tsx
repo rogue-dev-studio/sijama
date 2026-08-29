@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { calendarService } from '../api/services'
 import type { CalendarDay, CalendarEvent, CalendarMonth } from '../api/types'
+import { useAuth } from '../auth/AuthContext'
 import { SearchableSelect } from '../components/SearchableSelect'
 
 const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as const
@@ -76,6 +77,10 @@ function buildGrid(days: CalendarDay[]): Array<CalendarDay | null> {
 }
 
 export function KalenderPage() {
+  const { can } = useAuth()
+  const canGrid = can('kalender.grid.view')
+  const canHariLibur = can('kalender.hari_libur.view')
+  const canDetailHari = can('kalender.detail_hari.view')
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
@@ -195,6 +200,7 @@ export function KalenderPage() {
 
         {!loading && data && (
           <>
+            {canGrid && (
             <div className="calendar-grid" role="grid" aria-label={`Kalender ${formatMonthTitle(year, month)}`}>
               {WEEKDAYS.map((label) => (
                 <div
@@ -233,7 +239,7 @@ export function KalenderPage() {
                     ]
                       .filter(Boolean)
                       .join(' ')}
-                    onClick={() => setSelectedDate(day.date)}
+                    onClick={() => canDetailHari && setSelectedDate(day.date)}
                     aria-current={isToday ? 'date' : undefined}
                   >
                     <div className="calendar-cell__dates">
@@ -261,7 +267,9 @@ export function KalenderPage() {
                 )
               })}
             </div>
+            )}
 
+            {canGrid && (
             <div className="calendar-legend">
               {data.legend.length === 0 ? (
                 <p className="muted">Belum ada kategori kegiatan aktif.</p>
@@ -274,7 +282,9 @@ export function KalenderPage() {
                 ))
               )}
             </div>
+            )}
 
+            {canHariLibur && (
             <section className="calendar-holidays">
               <h3>Hari libur bulan ini</h3>
               {data.holidays.length === 0 ? (
@@ -294,11 +304,12 @@ export function KalenderPage() {
                 </ul>
               )}
             </section>
+            )}
           </>
         )}
       </div>
 
-      {!loading && data && (
+      {!loading && data && canDetailHari && (
         <section className="calendar-day-detail form-panel">
           <h3>
             {selectedDay

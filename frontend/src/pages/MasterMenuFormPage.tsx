@@ -11,6 +11,7 @@ import { ApiError } from '../api/client'
 import { masterMenuService } from '../api/services'
 import { MENU_ICON_NAMES, MenuIcon } from '../components/MenuIcon'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
 import type { Menu, MenuInput } from '../api/types'
 
 const emptyForm: MenuInput = {
@@ -27,6 +28,7 @@ export function MasterMenuFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<MenuInput>(emptyForm)
   const [allMenus, setAllMenus] = useState<Menu[]>([])
   const [loading, setLoading] = useState(true)
@@ -88,6 +90,7 @@ export function MasterMenuFormPage() {
       } else {
         await masterMenuService.create(payload)
       }
+      notifySaved('menu', isEdit ? 'update' : 'create')
       navigate('/master/menu')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan menu')

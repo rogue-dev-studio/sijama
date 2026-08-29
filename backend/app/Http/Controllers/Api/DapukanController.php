@@ -9,6 +9,7 @@ use App\Http\Resources\DapukanResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\DapukanService;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,10 +19,14 @@ class DapukanController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->dapukanService->list(
             $request->query('q'),
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success(

@@ -2,7 +2,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:45:00
+ * @Last Modified time: 2026-08-29 15:10:00
  */
 
 import type {
@@ -14,6 +14,7 @@ import type {
   JamaahInput,
 } from '../../api/types'
 import { SearchableSelect } from '../../components/SearchableSelect'
+import { kodePosFromDesa } from '../../lib/kodePosFromDesa'
 
 type JamaahAddressFieldsProps = {
   form: JamaahInput
@@ -50,6 +51,12 @@ export function JamaahAddressFields({
   onKabupatenKotaChange,
   onKecamatanChange,
 }: JamaahAddressFieldsProps) {
+  function handleDesaKelurahanChange(next: string) {
+    const desaId = next ? Number(next) : null
+    updateField('adm_desa_kelurahan_id', desaId)
+    updateField('kode_pos', kodePosFromDesa(desaKelurahanList, desaId))
+  }
+
   return (
     <>
       <h2 className="form-section-title">Alamat administratif (opsional)</h2>
@@ -153,7 +160,7 @@ export function JamaahAddressFields({
           <SearchableSelect
             id="adm_desa_kelurahan_id"
             value={form.adm_desa_kelurahan_id ? String(form.adm_desa_kelurahan_id) : ''}
-            onChange={(next) => updateField('adm_desa_kelurahan_id', next ? Number(next) : null)}
+            onChange={handleDesaKelurahanChange}
             disabled={desaKelurahanList.length === 0}
             placeholder="Pilih desa/kelurahan"
             options={[
@@ -176,6 +183,9 @@ export function JamaahAddressFields({
             title="5 digit angka"
             placeholder="mis. 12345"
           />
+          <p className="field-hint">
+            Terisi otomatis dari master kode pos desa/kelurahan bila tersedia; bisa diubah manual.
+          </p>
         </div>
       </div>
     </>

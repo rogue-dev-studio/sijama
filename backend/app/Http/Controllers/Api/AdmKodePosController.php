@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateAdmKodePosRequest;
 use App\Http\Resources\AdmKodePosResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\AdmKodePosService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,12 +25,19 @@ class AdmKodePosController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->admKodePosService->list(
             $request->query('q'),
             $request->filled('desa_kelurahan_id') ? $request->integer('desa_kelurahan_id') : null,
             $request->filled('kecamatan_id') ? $request->integer('kecamatan_id') : null,
+            $request->filled('kabupaten_kota_id') ? $request->integer('kabupaten_kota_id') : null,
+            $request->filled('provinsi_id') ? $request->integer('provinsi_id') : null,
+            $request->filled('negara_id') ? $request->integer('negara_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

@@ -12,6 +12,9 @@ import { jamaahService, masterUserService } from '../api/services'
 import type { Jamaah, MasterUserInput } from '../api/types'
 
 import { SearchableSelect } from '../components/SearchableSelect'
+import { PasswordInput } from '../components/PasswordInput'
+import { useToast } from '../components/ToastProvider'
+
 type UserForm = {
   username: string
   password: string
@@ -30,6 +33,7 @@ export function MasterUsersFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [jamaahList, setJamaahList] = useState<Jamaah[]>([])
   const [form, setForm] = useState<UserForm>(emptyForm)
   const [previewName, setPreviewName] = useState('')
@@ -117,6 +121,7 @@ export function MasterUsersFormPage() {
           is_active: form.is_active,
         })
       }
+      notifySaved('pengguna', isEdit ? 'update' : 'create')
       navigate('/master/users')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan pengguna')
@@ -184,9 +189,8 @@ export function MasterUsersFormPage() {
             <label htmlFor="password">
               Password{isEdit ? ' (kosongkan jika tidak diubah)' : ''}
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={form.password}
               onChange={(event) => setForm({ ...form, password: event.target.value })}
               required={!isEdit}

@@ -38,6 +38,20 @@ class KonfigSystemKResource extends JsonResource
             'mail_from_address' => $this->mail_from_address,
             'mail_from_name' => $this->mail_from_name,
             'mail_reply_to' => $this->mail_reply_to,
+            'password_reset_email_enabled' => (bool) ($this->password_reset_email_enabled ?? true),
+            'password_reset_phone_enabled' => (bool) $this->password_reset_phone_enabled,
+            'sms_driver' => $this->sms_driver,
+            'sms_country_code' => $this->sms_country_code,
+            'fonnte_token_set' => filled($this->fonnte_token),
+            'fonnte_endpoint' => $this->fonnte_endpoint,
+            'telegram_enabled' => (bool) $this->telegram_enabled,
+            'telegram_bot_token_set' => filled($this->telegram_bot_token),
+            'telegram_bot_username' => $this->telegram_bot_username,
+            'telegram_default_chat_id' => $this->telegram_default_chat_id,
+            'n8n_enabled' => (bool) $this->n8n_enabled,
+            'n8n_base_url' => $this->n8n_base_url,
+            'n8n_webhook_url' => $this->n8n_webhook_url,
+            'n8n_api_key_set' => filled($this->n8n_api_key),
             'header' => $this->header,
             'footer' => $this->footer,
             'website' => $this->website,
@@ -69,6 +83,17 @@ class KonfigSystemKResource extends JsonResource
             'theme_color' => $this->theme_color,
             'maintenance_mode' => $this->maintenance_mode,
             'maintenance_message' => $this->maintenance_message,
+            'path_maintenance_background' => $this->path_maintenance_background,
+            'maintenance_background_style' => in_array($this->maintenance_background_style, ['repeat', 'cover', 'contain', 'stretch'], true)
+                ? $this->maintenance_background_style
+                : 'cover',
+            'maintenance_background_repeat_size' => in_array(
+                $this->maintenance_background_repeat_size,
+                ['auto', '16px', '24px', '28px', '32px', '40px', '48px', '64px', '80px', '96px', '128px', '160px', '200px', '256px'],
+                true
+            )
+                ? $this->maintenance_background_repeat_size
+                : '28px',
             'additional_data' => $this->additional_data,
             'is_active' => $this->is_active,
             'is_deleted' => $this->is_deleted,

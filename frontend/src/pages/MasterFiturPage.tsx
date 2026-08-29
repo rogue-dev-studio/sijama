@@ -2,13 +2,45 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:45:00
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { useCallback } from 'react'
 import { masterFiturService, masterMenuService } from '../api/services'
 import type { Fitur } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
+
+const columns: GatedColumn<Fitur>[] = [
+  {
+    key: 'slug',
+    label: 'Slug',
+    cell: (item) => item.slug,
+    exportValue: (item) => item.slug,
+  },
+  {
+    key: 'nama',
+    label: 'Nama',
+    cell: (item) => item.nama,
+    exportValue: (item) => item.nama,
+  },
+  {
+    key: 'menu',
+    label: 'Menu',
+    sortable: false,
+    cell: (item) => item.menu?.nama || item.menu_id,
+    exportValue: (item) => item.menu?.nama || String(item.menu_id),
+  },
+  {
+    key: 'is_active',
+    label: 'Status',
+    cell: (item) => (
+      <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+        {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+      </span>
+    ),
+    exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+  },
+]
 
 export function MasterFiturPage() {
   const loadMenus = useCallback(async () => {
@@ -33,10 +65,7 @@ export function MasterFiturPage() {
         paramKey: 'menu_id',
         loadOptions: loadMenus,
       }}
-      renderLeadingHeaders={() => <th>Slug</th>}
-      renderLeadingCells={(item) => <td>{item.slug}</td>}
-      renderExtraHeaders={() => <th>Menu</th>}
-      renderExtraCells={(item) => <td>{item.menu?.nama || item.menu_id}</td>}
+      columns={columns}
     />
   )
 }

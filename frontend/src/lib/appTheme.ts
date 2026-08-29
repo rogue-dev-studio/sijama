@@ -7,6 +7,7 @@
 
 import type { AppPublicSettings } from '../api/types'
 import { normalizeBackgroundStyle, resolveBackgroundRepeatSizeCss, type BackgroundStyle } from './backgroundStyle'
+import type { EffectiveColorScheme } from './colorScheme'
 import { resolveKonfigAssetUrl } from './konfigAsset'
 
 const BG_PATTERN_URL = '/bg-pattern.svg'
@@ -21,6 +22,15 @@ const THEME_CSS_VARS: Record<string, string> = {
   color_muted: '--color-muted',
   color_border: '--color-border',
 }
+
+const STRUCTURAL_THEME_FIELDS = new Set([
+  'color_bg',
+  'color_surface',
+  'color_ink',
+  'color_muted',
+  'color_border',
+  'color_accent_soft',
+])
 
 function mixHex(hex: string, withBlackRatio: number): string | null {
   const normalized = hex.trim().replace(/^#/, '')
@@ -80,10 +90,23 @@ function applyUploadedBackground(
   }
 }
 
-export function applyAppTheme(settings: AppPublicSettings): void {
+function deriveDarkAccentSoft(accent: string): string | null {
+  return mixHex(accent, 0.82)
+}
+
+export function applyAppTheme(
+  settings: AppPublicSettings,
+  effectiveScheme: EffectiveColorScheme = 'light',
+): void {
   const root = document.documentElement
+  const isDark = effectiveScheme === 'dark'
 
   for (const [field, cssVar] of Object.entries(THEME_CSS_VARS)) {
+    if (isDark && STRUCTURAL_THEME_FIELDS.has(field)) {
+      root.style.removeProperty(cssVar)
+      continue
+    }
+
     const value = settings[field as keyof AppPublicSettings]
     if (typeof value === 'string' && value.trim()) {
       root.style.setProperty(cssVar, value.trim())
@@ -94,11 +117,19 @@ export function applyAppTheme(settings: AppPublicSettings): void {
 
   const accent = typeof settings.color_accent === 'string' ? settings.color_accent.trim() : ''
   if (accent) {
-    const hover = mixHex(accent, 0.22)
+    const hoverRatio = isDark ? 0.12 : 0.22
+    const hover = mixHex(accent, hoverRatio)
     if (hover) {
       root.style.setProperty('--color-accent-hover', hover)
     } else {
       root.style.removeProperty('--color-accent-hover')
+    }
+
+    if (isDark) {
+      const darkSoft = deriveDarkAccentSoft(accent)
+      if (darkSoft) {
+        root.style.setProperty('--color-accent-soft', darkSoft)
+      }
     }
   } else {
     root.style.removeProperty('--color-accent-hover')
@@ -109,13 +140,21 @@ export function applyAppTheme(settings: AppPublicSettings): void {
 
   if (backgroundUrl) {
     applyUploadedBackground(backgroundUrl, backgroundStyle, settings.background_repeat_size)
+  } else if (isDark) {
+    document.body.style.backgroundImage = 'none'
+    document.body.style.removeProperty('background-repeat')
+    document.body.style.removeProperty('background-size')
+    document.body.style.removeProperty('background-position')
+    document.body.style.removeProperty('background-attachment')
   } else {
     applyDefaultPatternBackground()
   }
 
   const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
   if (themeMeta) {
-    if (settings.theme_color?.trim()) {
+    if (isDark) {
+      themeMeta.content = '#0f1412'
+    } else if (settings.theme_color?.trim()) {
       themeMeta.content = settings.theme_color.trim()
     } else if (settings.color_accent?.trim()) {
       themeMeta.content = settings.color_accent.trim()

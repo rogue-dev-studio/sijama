@@ -7,6 +7,7 @@ use App\Models\Kelompok;
 use App\Models\SubKelompok;
 use App\Models\User;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -20,8 +21,17 @@ class SubKelompokService
         ?int $kelompokId = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = SubKelompok::query()->with('kelompok')->orderBy('nama');
+        $builder = SubKelompok::query()->with('kelompok');
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['nama', 'kode', 'is_active'],
+            'nama',
+        );
 
         $builder->whereHas('kelompok', function ($q) use ($user) {
             $this->scopeService->applyKelompokScope($q, $user);

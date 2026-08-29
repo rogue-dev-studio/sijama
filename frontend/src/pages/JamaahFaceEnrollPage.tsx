@@ -10,6 +10,7 @@ import {
   toCameraPermissionPanelState,
 } from '../components/CameraPermissionPanel'
 import { FaceScanStage } from '../components/FaceScanStage'
+import { useToast } from '../components/ToastProvider'
 import {
   type CameraAccessState,
   DEFAULT_CAMERA_CONSTRAINTS,
@@ -61,6 +62,7 @@ function resolveErrorMessage(err: unknown): string {
 export function JamaahFaceEnrollPage() {
   const { id } = useParams()
   const jamaahId = Number(id)
+  const { notifySuccess } = useToast()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const progressRef = useRef(0)
@@ -178,6 +180,7 @@ export function JamaahFaceEnrollPage() {
 
         if (alreadyEnrolled) {
           setSuccess('Wajah sudah terdaftar.')
+          notifySuccess('Wajah sudah terdaftar.')
           setStatus('Wajah sudah terdaftar untuk jamaah ini.')
           setProgress(0)
           progressRef.current = 0
@@ -394,6 +397,7 @@ export function JamaahFaceEnrollPage() {
           return next
         })
         setSuccess('Wajah berhasil didaftarkan.')
+        notifySuccess('Wajah berhasil didaftarkan.')
         setStatus('Pendaftaran wajah selesai.')
         lockedRef.current = true
         setProgress(1)

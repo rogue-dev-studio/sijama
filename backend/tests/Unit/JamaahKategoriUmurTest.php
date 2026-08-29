@@ -63,4 +63,13 @@ class JamaahKategoriUmurTest extends TestCase
             JamaahKategoriUmur::classify($birth, JamaahStatusPernikahan::BELUM_MENIKAH, $asOf)
         );
     }
+
+    public function test_age_range_labels(): void
+    {
+        $this->assertSame('0–1 tahun', JamaahKategoriUmur::ageRangeLabel('bayi'));
+        $this->assertSame('2–4 tahun', JamaahKategoriUmur::ageRangeLabel('balita'));
+        $this->assertSame('5 tahun', JamaahKategoriUmur::ageRangeLabel('paud'));
+        $this->assertSame('21–59 tahun · sudah menikah / cerai', JamaahKategoriUmur::ageRangeLabel('dewasa'));
+        $this->assertSame('60+ tahun', JamaahKategoriUmur::ageRangeLabel('lansia'));
+    }
 }

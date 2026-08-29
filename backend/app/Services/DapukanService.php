@@ -7,6 +7,7 @@ use App\Models\Dapukan;
 use App\Models\User;
 use App\Support\DapukanTingkat;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -14,9 +15,21 @@ use Illuminate\Validation\ValidationException;
 
 class DapukanService
 {
-    public function list(?string $q = null, ?int $perPage = null, ?int $page = null): LengthAwarePaginator
-    {
-        $builder = Dapukan::query()->orderBy('urutan')->orderBy('nama');
+    public function list(
+        ?string $q = null,
+        ?int $perPage = null,
+        ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
+    ): LengthAwarePaginator {
+        $builder = Dapukan::query();
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['urutan', 'nama', 'slug', 'is_active'],
+            'urutan',
+        );
 
         if ($q) {
             $builder->where(function ($query) use ($q) {

@@ -8,7 +8,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { isStoredKonfigAsset, resolveKonfigAssetUrl } from '../lib/konfigAsset'
 import { MenuIcon } from './MenuIcon'
+import { ThemeToggle } from './ThemeToggle'
 
 type UserMenuProps = {
   compact?: boolean
@@ -57,6 +59,11 @@ export function UserMenu({
 
   if (!user) return null
 
+  const avatarSrc =
+    user.foto_path && isStoredKonfigAsset(user.foto_path)
+      ? resolveKonfigAssetUrl(user.foto_path)
+      : null
+
   return (
     <div
       className={`user-menu${compact ? ' user-menu--compact' : ''}${iconOnly ? ' user-menu--icon-only' : ''}`}
@@ -73,7 +80,11 @@ export function UserMenu({
         onClick={() => setOpen((value) => !value)}
       >
         <span className="user-menu__avatar" aria-hidden>
-          <MenuIcon name="user" size={compact || iconOnly ? 14 : 16} />
+          {avatarSrc ? (
+            <img src={avatarSrc} alt="" className="user-menu__avatar-image" />
+          ) : (
+            <MenuIcon name="user" size={compact || iconOnly ? 14 : 16} />
+          )}
         </span>
         {!iconOnly && (
           <>
@@ -90,6 +101,8 @@ export function UserMenu({
 
       {open && (
         <div className="user-menu__dropdown" role="menu" id={menuId}>
+          <ThemeToggle onSelect={() => setOpen(false)} />
+          <div className="user-menu__divider" role="separator" />
           <Link
             to="/profil"
             role="menuitem"

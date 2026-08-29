@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateMateriRequest;
 use App\Http\Responses\ApiResponse;
 use App\Http\Resources\MateriResource;
 use App\Services\MateriService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -28,11 +29,16 @@ class MateriController extends Controller
             ? $request->boolean('is_active')
             : ($request->boolean('active_only') ? true : null);
 
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->materiService->list(
             $request->query('q'),
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $activeFilter,
+            [],
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Resources\FiturResource;
 use App\Models\Fitur;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -15,8 +16,17 @@ class FiturService
         ?int $menuId = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = Fitur::query()->with('menu')->orderBy('nama');
+        $builder = Fitur::query()->with('menu');
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['nama', 'slug', 'is_active'],
+            'nama',
+        );
 
         if ($menuId !== null) {
             $builder->where('menu_id', $menuId);

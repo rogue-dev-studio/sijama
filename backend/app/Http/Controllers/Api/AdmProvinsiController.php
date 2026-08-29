@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateAdmProvinsiRequest;
 use App\Http\Resources\AdmProvinsiResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\AdmProvinsiService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,11 +25,15 @@ class AdmProvinsiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->admProvinsiService->list(
             $request->query('q'),
             $request->filled('negara_id') ? $request->integer('negara_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

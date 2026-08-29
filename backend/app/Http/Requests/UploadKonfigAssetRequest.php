@@ -22,7 +22,7 @@ class UploadKonfigAssetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'asset' => ['required', 'string', Rule::in(['logo-header', 'favicon', 'logo-footer', 'background'])],
+            'asset' => ['required', 'string', Rule::in(['logo-header', 'favicon', 'logo-footer', 'background', 'maintenance-background'])],
             'file' => ['required', 'file', 'max:2048', 'mimes:jpeg,jpg,png,gif,webp,svg,ico'],
         ];
     }

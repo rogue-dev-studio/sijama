@@ -17,6 +17,8 @@ import {
 import type { Lokasi, Materi, Pemateri, Pengajian, PengajianInput } from '../api/types'
 
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
+
 const emptyForm: PengajianInput = {
   judul: '',
   pemateri: '',
@@ -40,6 +42,7 @@ export function PengajianFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<PengajianInput>(emptyForm)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -146,6 +149,7 @@ export function PengajianFormPage() {
       } else {
         await pengajianService.create(payload)
       }
+      notifySaved('pengajian', isEdit ? 'update' : 'create')
       navigate('/pengajian')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan pengajian')

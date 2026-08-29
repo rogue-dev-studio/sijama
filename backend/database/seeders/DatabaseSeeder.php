@@ -27,7 +27,9 @@ class DatabaseSeeder extends Seeder
 
         $this->call(RbacSeeder::class);
         $this->call(KonfigSystemSeeder::class);
+        $this->call(KonfigDokumenSeeder::class);
         $this->call(WilayahAdministrasiSeeder::class);
+        $this->call(KodePosSeeder::class);
         $this->call(WilayahSeeder::class);
         $this->call(LookupMSeeder::class);
         $this->call(MasterEventSeeder::class);

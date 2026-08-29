@@ -21,7 +21,28 @@ class RbacSeeder extends Seeder
         $fiturs = $this->seedFiturs($menus);
         $permissions = $this->seedHakAkses($fiturs);
         HakAkses::whereIn('slug', ['konfig.create', 'konfig.delete'])->delete();
+        $this->purgeObsoletePekerjaanMaster();
         $this->assignPermissions($dapukan, $permissions);
+    }
+
+    private function purgeObsoletePekerjaanMaster(): void
+    {
+        Menu::where('slug', 'master-pekerjaan')->update(['is_active' => false]);
+        Fitur::where('slug', 'master-pekerjaan')->update(['is_active' => false]);
+
+        $obsoleteIds = HakAkses::query()
+            ->where(function ($query) {
+                $query->where('slug', 'like', 'pekerjaan.%')
+                    ->orWhereHas('fitur', fn ($fitur) => $fitur->where('slug', 'master-pekerjaan'));
+            })
+            ->pluck('id');
+
+        if ($obsoleteIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('dapukan_hak_akses')->whereIn('hak_akses_id', $obsoleteIds)->delete();
+        HakAkses::whereIn('id', $obsoleteIds)->delete();
     }
 
     private function purgeObsoleteDapukan(array $active): void
@@ -164,6 +185,11 @@ class RbacSeeder extends Seeder
         $definitions = [
             ['slug' => 'informasi', 'nama' => 'Informasi', 'path' => null, 'icon' => 'info', 'urutan' => 1, 'parent' => null],
             ['slug' => 'laporan', 'nama' => 'Laporan', 'path' => null, 'icon' => 'file-text', 'urutan' => 2, 'parent' => null],
+            ['slug' => 'laporan-kehadiran', 'nama' => 'Kehadiran', 'path' => '/laporan/kehadiran', 'icon' => 'clipboard-check', 'urutan' => 1, 'parent' => 'laporan'],
+            ['slug' => 'laporan-jamaah', 'nama' => 'Jamaah', 'path' => '/laporan/jamaah', 'icon' => 'users', 'urutan' => 2, 'parent' => 'laporan'],
+            ['slug' => 'laporan-pengajian', 'nama' => 'Pengajian', 'path' => '/laporan/pengajian', 'icon' => 'book-open', 'urutan' => 3, 'parent' => 'laporan'],
+            ['slug' => 'laporan-kegiatan', 'nama' => 'Kegiatan', 'path' => '/laporan/kegiatan', 'icon' => 'calendar', 'urutan' => 4, 'parent' => 'laporan'],
+
             ['slug' => 'transaksi', 'nama' => 'Transaksi', 'path' => null, 'icon' => 'arrow-left-right', 'urutan' => 3, 'parent' => null],
             ['slug' => 'master', 'nama' => 'Master', 'path' => null, 'icon' => 'database', 'urutan' => 4, 'parent' => null],
             ['slug' => 'aplikasi', 'nama' => 'Aplikasi', 'path' => null, 'icon' => 'settings', 'urutan' => 5, 'parent' => null],
@@ -178,12 +204,13 @@ class RbacSeeder extends Seeder
             ['slug' => 'absensi', 'nama' => 'Absensi', 'path' => '/absensi', 'icon' => 'scan-face', 'urutan' => 3, 'parent' => 'transaksi'],
 
             ['slug' => 'jamaah', 'nama' => 'Jamaah', 'path' => '/jamaah', 'icon' => 'users', 'urutan' => 1, 'parent' => 'master'],
-            ['slug' => 'master-lokasi', 'nama' => 'Lokasi', 'path' => '/master/lokasi', 'icon' => 'map-pin', 'urutan' => 2, 'parent' => 'master'],
-            ['slug' => 'master-pemateri', 'nama' => 'Pemateri', 'path' => '/master/pemateri', 'icon' => 'users', 'urutan' => 3, 'parent' => 'master'],
-            ['slug' => 'master-materi', 'nama' => 'Materi', 'path' => '/master/materi', 'icon' => 'book-open', 'urutan' => 4, 'parent' => 'master'],
-            ['slug' => 'master-kategori-kegiatan', 'nama' => 'Kategori Kegiatan', 'path' => '/master/kategori-kegiatan', 'icon' => 'calendar', 'urutan' => 5, 'parent' => 'master'],
-            ['slug' => 'master-lookup', 'nama' => 'Lookup', 'path' => '/master/lookup', 'icon' => 'list', 'urutan' => 6, 'parent' => 'master'],
-            ['slug' => 'wilayah', 'nama' => 'Wilayah Fungsional', 'path' => null, 'icon' => 'map', 'urutan' => 7, 'parent' => 'master'],
+            ['slug' => 'keluarga', 'nama' => 'Keluarga', 'path' => '/keluarga', 'icon' => 'home', 'urutan' => 2, 'parent' => 'master'],
+            ['slug' => 'master-lokasi', 'nama' => 'Lokasi', 'path' => '/master/lokasi', 'icon' => 'map-pin', 'urutan' => 3, 'parent' => 'master'],
+            ['slug' => 'master-pemateri', 'nama' => 'Pemateri', 'path' => '/master/pemateri', 'icon' => 'users', 'urutan' => 4, 'parent' => 'master'],
+            ['slug' => 'master-materi', 'nama' => 'Materi', 'path' => '/master/materi', 'icon' => 'book-open', 'urutan' => 5, 'parent' => 'master'],
+            ['slug' => 'master-kategori-kegiatan', 'nama' => 'Kategori Kegiatan', 'path' => '/master/kategori-kegiatan', 'icon' => 'calendar', 'urutan' => 6, 'parent' => 'master'],
+            ['slug' => 'master-lookup', 'nama' => 'Lookup', 'path' => '/master/lookup', 'icon' => 'list', 'urutan' => 7, 'parent' => 'master'],
+            ['slug' => 'wilayah', 'nama' => 'Wilayah Fungsional', 'path' => null, 'icon' => 'map', 'urutan' => 8, 'parent' => 'master'],
             ['slug' => 'master-pusat', 'nama' => 'Pusat', 'path' => '/master/pusat', 'icon' => 'building-2', 'urutan' => 1, 'parent' => 'wilayah'],
             ['slug' => 'master-daerah', 'nama' => 'Daerah', 'path' => '/master/daerah', 'icon' => 'map', 'urutan' => 2, 'parent' => 'wilayah'],
             ['slug' => 'master-desa', 'nama' => 'Desa', 'path' => '/master/desa', 'icon' => 'map-pin', 'urutan' => 3, 'parent' => 'wilayah'],
@@ -204,6 +231,7 @@ class RbacSeeder extends Seeder
             ['slug' => 'master-users', 'nama' => 'Pengguna', 'path' => '/master/users', 'icon' => 'user-cog', 'urutan' => 15, 'parent' => 'master'],
 
             ['slug' => 'aplikasi-konfig', 'nama' => 'Konfigurasi Sistem', 'path' => '/aplikasi/konfig', 'icon' => 'settings', 'urutan' => 1, 'parent' => 'aplikasi'],
+            ['slug' => 'aplikasi-konfig-dokumen', 'nama' => 'Konfigurasi Dokumen', 'path' => '/aplikasi/konfig-dokumen', 'icon' => 'file-text', 'urutan' => 2, 'parent' => 'aplikasi'],
         ];
 
         $result = [];
@@ -228,8 +256,7 @@ class RbacSeeder extends Seeder
             );
         }
 
-        Menu::whereIn('slug', ['rbac', 'master-pekerjaan'])->update(['is_active' => false]);
-        Fitur::where('slug', 'master-pekerjaan')->update(['is_active' => false]);
+        Menu::where('slug', 'rbac')->update(['is_active' => false]);
 
         return $result;
     }
@@ -241,7 +268,12 @@ class RbacSeeder extends Seeder
             'kehadiran',
             'kategori-umur',
             'kalender',
+            'laporan-kehadiran',
+            'laporan-jamaah',
+            'laporan-pengajian',
+            'laporan-kegiatan',
             'jamaah',
+            'keluarga',
             'master-lokasi',
             'master-pemateri',
             'master-materi',
@@ -268,6 +300,7 @@ class RbacSeeder extends Seeder
             'master-adm-desa-kelurahan',
             'master-adm-kode-pos',
             'aplikasi-konfig',
+            'aplikasi-konfig-dokumen',
         ];
 
         $result = [];
@@ -286,7 +319,542 @@ class RbacSeeder extends Seeder
             );
         }
 
+        $dashboardMenu = $menus['dashboard'];
+        $dashboardSubFiturs = [
+            'dashboard-kpi' => 'Kartu Ringkasan (KPI)',
+            'dashboard-absensi-overview' => 'Ringkasan Absensi',
+            'dashboard-jamaah-kelompok' => 'Jamaah per Kelompok',
+            'dashboard-kategori-umur' => 'Kategori Umur',
+        ];
+        foreach ($dashboardSubFiturs as $slug => $nama) {
+            $result[$slug] = Fitur::updateOrCreate(
+                ['slug' => $slug],
+                [
+                    'menu_id' => $dashboardMenu->id,
+                    'nama' => $nama,
+                    'deskripsi' => 'Widget dashboard',
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        $kalenderMenu = $menus['kalender'];
+        $kalenderSubFiturs = [
+            'kalender-grid' => 'Grid Bulanan',
+            'kalender-hari-libur' => 'Hari Libur',
+            'kalender-detail-hari' => 'Detail Hari',
+        ];
+        foreach ($kalenderSubFiturs as $slug => $nama) {
+            $result[$slug] = Fitur::updateOrCreate(
+                ['slug' => $slug],
+                [
+                    'menu_id' => $kalenderMenu->id,
+                    'nama' => $nama,
+                    'deskripsi' => 'Bagian kalender',
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        $konfigMenu = $menus['aplikasi-konfig'];
+        $konfigSubFiturs = [
+            'aplikasi-konfig-identitas' => 'Identitas',
+            'aplikasi-konfig-email' => 'Email / SMTP',
+            'aplikasi-konfig-integrasi' => 'Integrasi',
+            'aplikasi-konfig-branding' => 'Branding',
+            'aplikasi-konfig-tema' => 'Tema',
+            'aplikasi-konfig-operasional' => 'Operasional',
+        ];
+        foreach ($konfigSubFiturs as $slug => $nama) {
+            $result[$slug] = Fitur::updateOrCreate(
+                ['slug' => $slug],
+                [
+                    'menu_id' => $konfigMenu->id,
+                    'nama' => $nama,
+                    'deskripsi' => 'Tab konfigurasi sistem',
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        $konfigDokumenMenu = $menus['aplikasi-konfig-dokumen'];
+        $konfigDokumenSubFiturs = [
+            'aplikasi-konfig-dokumen-isi' => 'Isi Dokumen',
+            'aplikasi-konfig-dokumen-media' => 'Aktifkan di Media',
+        ];
+        foreach ($konfigDokumenSubFiturs as $slug => $nama) {
+            $result[$slug] = Fitur::updateOrCreate(
+                ['slug' => $slug],
+                [
+                    'menu_id' => $konfigDokumenMenu->id,
+                    'nama' => $nama,
+                    'deskripsi' => 'Bagian konfigurasi dokumen',
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        foreach ($this->listUiChromeCatalog() as $prefix => $config) {
+            $menu = $menus[$config['menu']] ?? null;
+            if (! $menu) {
+                continue;
+            }
+            foreach ($this->listUiChromeFiturDefs($prefix, $config) as $slug => $nama) {
+                $result[$slug] = Fitur::updateOrCreate(
+                    ['slug' => $slug],
+                    [
+                        'menu_id' => $menu->id,
+                        'nama' => $nama,
+                        'deskripsi' => 'Kontrol UI list (tombol / kolom)',
+                        'is_active' => true,
+                    ]
+                );
+            }
+        }
+
         return $result;
+    }
+
+    /**
+     * @return array<string, array{menu: string, columns: array<string, string>, buttons?: array<string, array{nama: string, aksi: string, slug?: string}>}>
+     */
+    private function listUiChromeCatalog(): array
+    {
+        $base = [
+            'jamaah' => [
+                'menu' => 'jamaah',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'kelompok' => 'Kolom Kelompok',
+                    'kategori' => 'Kolom Kategori',
+                    'nik' => 'Kolom NIK',
+                    'kontak' => 'Kolom Kontak',
+                    'status' => 'Kolom Status',
+                    'wajah' => 'Kolom Wajah',
+                ],
+            ],
+            'keluarga' => [
+                'menu' => 'keluarga',
+                'columns' => [
+                    'kepala' => 'Kolom Kepala Keluarga',
+                    'no_kk' => 'Kolom No. KK',
+                    'anggota' => 'Kolom Jumlah Anggota',
+                    'alamat' => 'Kolom Alamat',
+                    'kelompok' => 'Kolom Kelompok',
+                    'status' => 'Kolom Status',
+                ],
+            ],
+            'pengajian' => [
+                'menu' => 'pengajian',
+                'columns' => [
+                    'judul' => 'Kolom Judul',
+                    'pemateri' => 'Kolom Pemateri',
+                    'lokasi' => 'Kolom Lokasi',
+                    'waktu' => 'Kolom Waktu',
+                    'status' => 'Kolom Status',
+                ],
+            ],
+            'kegiatan' => [
+                'menu' => 'kegiatan',
+                'columns' => [
+                    'judul' => 'Kolom Judul',
+                    'jenis' => 'Kolom Jenis',
+                    'lokasi' => 'Kolom Lokasi',
+                    'tanggal' => 'Kolom Tanggal',
+                    'status' => 'Kolom Status',
+                ],
+            ],
+            'users' => [
+                'menu' => 'master-users',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'username' => 'Kolom Username',
+                    'dapukan' => 'Kolom Dapukan',
+                    'cakupan' => 'Kolom Cakupan',
+                    'status' => 'Kolom Status',
+                ],
+            ],
+            'kehadiran' => [
+                'menu' => 'kehadiran',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'metode' => 'Kolom Metode',
+                    'waktu' => 'Kolom Waktu',
+                ],
+            ],
+            'kategori_umur' => [
+                'menu' => 'kategori-umur',
+                'columns' => [
+                    'grup' => 'Kolom Grup',
+                    'kategori' => 'Kolom Kategori',
+                    'rentang' => 'Kolom Rentang',
+                    'jumlah' => 'Kolom Jumlah',
+                ],
+            ],
+            'laporan_kehadiran' => [
+                'menu' => 'laporan-kehadiran',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'nama' => 'Kolom Nama',
+                    'kelompok' => 'Kolom Kelompok',
+                    'sesi' => 'Kolom Sesi',
+                    'jenis' => 'Kolom Jenis',
+                    'metode' => 'Kolom Metode',
+                ],
+            ],
+            'laporan_jamaah' => [
+                'menu' => 'laporan-jamaah',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'kelompok' => 'Kolom Kelompok',
+                    'kategori' => 'Kolom Kategori',
+                    'nik' => 'Kolom NIK',
+                    'kontak' => 'Kolom Kontak',
+                    'status' => 'Kolom Status',
+                    'wajah' => 'Kolom Wajah',
+                ],
+            ],
+            'laporan_pengajian' => [
+                'menu' => 'laporan-pengajian',
+                'columns' => [
+                    'judul' => 'Kolom Judul',
+                    'pemateri' => 'Kolom Pemateri',
+                    'lokasi' => 'Kolom Lokasi',
+                    'waktu' => 'Kolom Waktu',
+                    'status' => 'Kolom Status',
+                ],
+            ],
+            'laporan_kegiatan' => [
+                'menu' => 'laporan-kegiatan',
+                'columns' => [
+                    'judul' => 'Kolom Judul',
+                    'jenis' => 'Kolom Jenis',
+                    'lokasi' => 'Kolom Lokasi',
+                    'tanggal' => 'Kolom Tanggal',
+                    'status' => 'Kolom Status',
+                ],
+            ],
+            'konfig_dokumen' => [
+                'menu' => 'aplikasi-konfig-dokumen',
+                'columns' => [
+                    'nama_cetakan' => 'Kolom Nama Cetakan',
+                    'value' => 'Kolom Value',
+                    'header' => 'Kolom Header',
+                    'media' => 'Kolom Media',
+                    'status' => 'Kolom Status',
+                ],
+            ],
+            'matriks' => [
+                'menu' => 'master-matriks',
+                'columns' => [],
+            ],
+            'lokasi' => [
+                'menu' => 'master-lokasi',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'jenis' => 'Kolom Jenis',
+                    'wilayah' => 'Kolom Wilayah',
+                    'maps' => 'Kolom Maps',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'pemateri' => [
+                'menu' => 'master-pemateri',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'kontak' => 'Kolom Kontak',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'materi' => [
+                'menu' => 'master-materi',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'kategori_kegiatan' => [
+                'menu' => 'master-kategori-kegiatan',
+                'columns' => [
+                    'nama' => 'Kolom Nama',
+                    'calendar_color' => 'Kolom Warna',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'lookup' => [
+                'menu' => 'master-lookup',
+                'columns' => [
+                    'lookup_type' => 'Kolom Tipe',
+                    'lookup_name' => 'Kolom Nama',
+                    'lookup_value' => 'Kolom Value',
+                    'lookup_kode' => 'Kolom Kode',
+                    'lookup_urutan' => 'Kolom Urutan',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'pusat' => [
+                'menu' => 'master-pusat',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'daerah' => [
+                'menu' => 'master-daerah',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'desa' => [
+                'menu' => 'master-desa',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'kelompok' => [
+                'menu' => 'master-kelompok',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'sub_kelompok' => [
+                'menu' => 'master-sub-kelompok',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'adm_negara' => [
+                'menu' => 'master-adm-negara',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'iso3' => 'Kolom ISO3',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'adm_provinsi' => [
+                'menu' => 'master-adm-provinsi',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'adm_kabupaten_kota' => [
+                'menu' => 'master-adm-kabupaten-kota',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'jenis' => 'Kolom Jenis',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'adm_kecamatan' => [
+                'menu' => 'master-adm-kecamatan',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'adm_desa_kelurahan' => [
+                'menu' => 'master-adm-desa-kelurahan',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'jenis' => 'Kolom Jenis',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'adm_kode_pos' => [
+                'menu' => 'master-adm-kode-pos',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'dapukan' => [
+                'menu' => 'master-dapukan',
+                'columns' => [
+                    'slug' => 'Kolom Slug',
+                    'nama' => 'Kolom Nama',
+                    'urutan' => 'Kolom Urutan',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'menu' => [
+                'menu' => 'master-menu',
+                'columns' => [
+                    'slug' => 'Kolom Slug',
+                    'nama' => 'Kolom Nama',
+                    'path' => 'Kolom Path',
+                    'icon' => 'Kolom Icon',
+                    'parent_id' => 'Kolom Parent',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'fitur' => [
+                'menu' => 'master-fitur',
+                'columns' => [
+                    'slug' => 'Kolom Slug',
+                    'nama' => 'Kolom Nama',
+                    'menu' => 'Kolom Menu',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'hak_akses' => [
+                'menu' => 'master-hak-akses',
+                'columns' => [
+                    'slug' => 'Kolom Slug',
+                    'nama' => 'Kolom Nama',
+                    'aksi' => 'Kolom Aksi',
+                    'fitur' => 'Kolom Fitur',
+                ],
+            ],
+        ];
+
+        $crudPrefixes = [
+            'jamaah', 'keluarga', 'pengajian', 'kegiatan', 'users', 'lokasi', 'pemateri', 'materi',
+            'kategori_kegiatan', 'lookup', 'pusat', 'daerah', 'desa', 'kelompok', 'sub_kelompok',
+            'adm_negara', 'adm_provinsi', 'adm_kabupaten_kota', 'adm_kecamatan',
+            'adm_desa_kelurahan', 'adm_kode_pos', 'dapukan', 'menu', 'fitur', 'hak_akses',
+        ];
+
+        foreach ($base as $prefix => &$config) {
+            if (in_array($prefix, $crudPrefixes, true)) {
+                $config['buttons'] = $this->crudAndExportButtons();
+            } else {
+                $config['buttons'] = $this->exportOnlyButtons();
+            }
+        }
+        unset($config);
+
+        $base['jamaah']['buttons']['enroll_face'] = [
+            'nama' => 'Tombol Wajah',
+            'aksi' => 'execute',
+            'slug' => 'jamaah.enroll_face',
+        ];
+        $base['konfig_dokumen']['buttons']['update'] = [
+            'nama' => 'Tombol Ubah',
+            'aksi' => 'update',
+            'slug' => 'konfig_dokumen.update',
+        ];
+        $base['matriks']['buttons']['update'] = [
+            'nama' => 'Tombol Simpan Matriks',
+            'aksi' => 'update',
+            'slug' => 'matriks.update',
+        ];
+        $base['users']['buttons']['update'] = [
+            'nama' => 'Tombol Edit / Nonaktifkan',
+            'aksi' => 'update',
+        ];
+
+        return $base;
+    }
+
+    /**
+     * @return array<string, array{nama: string, aksi: string, slug?: string}>
+     */
+    private function exportOnlyButtons(): array
+    {
+        return [
+            'print' => ['nama' => 'Tombol Cetak / PDF', 'aksi' => 'execute'],
+            'export_csv' => ['nama' => 'Tombol Unduh CSV', 'aksi' => 'execute'],
+            'export_excel' => ['nama' => 'Tombol Unduh Excel', 'aksi' => 'execute'],
+        ];
+    }
+
+    /**
+     * @return array<string, array{nama: string, aksi: string, slug?: string}>
+     */
+    private function crudAndExportButtons(): array
+    {
+        return array_merge([
+            'create' => ['nama' => 'Tombol Tambah', 'aksi' => 'create'],
+            'update' => ['nama' => 'Tombol Edit', 'aksi' => 'update'],
+            'delete' => ['nama' => 'Tombol Hapus', 'aksi' => 'delete'],
+        ], $this->exportOnlyButtons());
+    }
+
+    /**
+     * @param  array{menu: string, columns: array<string, string>, buttons?: array<string, array{nama: string, aksi: string, slug?: string}>}  $config
+     * @return array<string, string>
+     */
+    private function listUiChromeFiturDefs(string $prefix, array $config): array
+    {
+        $defs = [];
+        foreach ($config['buttons'] ?? [] as $key => $button) {
+            $defs["{$prefix}-btn-{$key}"] = $button['nama'];
+        }
+        foreach ($config['columns'] as $key => $nama) {
+            $defs["{$prefix}-col-{$key}"] = $nama;
+        }
+
+        return $defs;
+    }
+
+    private function buttonActionSlug(string $prefix, string $key, array $button): string
+    {
+        return $button['slug'] ?? "{$prefix}.{$key}";
+    }
+
+    /**
+     * Kode chrome yang dilampirkan otomatis (kolom + export + btn.view bila aksi sudah ada).
+     *
+     * @return list<string>
+     */
+    private function listUiChromePermissionCodes(string $prefix, array $existingCodes = []): array
+    {
+        $config = $this->listUiChromeCatalog()[$prefix] ?? null;
+        if (! $config) {
+            return [];
+        }
+
+        $codes = [];
+        $exportKeys = ['print', 'export_csv', 'export_excel'];
+
+        foreach ($config['buttons'] ?? [] as $key => $button) {
+            $actionSlug = $this->buttonActionSlug($prefix, $key, $button);
+            $viewSlug = "{$prefix}.btn.{$key}.view";
+            if (in_array($key, $exportKeys, true)) {
+                $codes[] = $viewSlug;
+                $codes[] = $actionSlug;
+                continue;
+            }
+            if (in_array($actionSlug, $existingCodes, true)) {
+                $codes[] = $viewSlug;
+            }
+        }
+
+        foreach (array_keys($config['columns']) as $key) {
+            $codes[] = "{$prefix}.col.{$key}.view";
+        }
+
+        return $codes;
+    }
+
+    /**
+     * @deprecated unused — kept for clarity; prefer listUiChromePermissionCodes
+     * @return list<string>
+     */
+    private function allListUiChromeCodes(): array
+    {
+        $codes = [];
+        foreach (array_keys($this->listUiChromeCatalog()) as $prefix) {
+            $codes = array_merge($codes, $this->listUiChromePermissionCodes($prefix));
+        }
+
+        return $codes;
     }
 
     private function seedHakAkses(array $fiturs): array
@@ -294,6 +862,18 @@ class RbacSeeder extends Seeder
         $definitions = [
             'dashboard' => [
                 ['slug' => 'dashboard.view', 'nama' => 'Lihat Dashboard', 'aksi' => 'view'],
+            ],
+            'dashboard-kpi' => [
+                ['slug' => 'dashboard.kpi.view', 'nama' => 'Lihat Kartu Ringkasan (KPI)', 'aksi' => 'view'],
+            ],
+            'dashboard-absensi-overview' => [
+                ['slug' => 'dashboard.absensi_overview.view', 'nama' => 'Lihat Ringkasan Absensi', 'aksi' => 'view'],
+            ],
+            'dashboard-jamaah-kelompok' => [
+                ['slug' => 'dashboard.jamaah_kelompok.view', 'nama' => 'Lihat Jamaah per Kelompok', 'aksi' => 'view'],
+            ],
+            'dashboard-kategori-umur' => [
+                ['slug' => 'dashboard.kategori_umur.view', 'nama' => 'Lihat Kategori Umur (Dashboard)', 'aksi' => 'view'],
             ],
             'kehadiran' => [
                 ['slug' => 'kehadiran.view', 'nama' => 'Lihat Daftar Kehadiran', 'aksi' => 'view'],
@@ -304,54 +884,53 @@ class RbacSeeder extends Seeder
             'kalender' => [
                 ['slug' => 'kalender.view', 'nama' => 'Lihat Kalender', 'aksi' => 'view'],
             ],
+            'kalender-grid' => [
+                ['slug' => 'kalender.grid.view', 'nama' => 'Lihat Grid Bulanan', 'aksi' => 'view'],
+            ],
+            'kalender-hari-libur' => [
+                ['slug' => 'kalender.hari_libur.view', 'nama' => 'Lihat Hari Libur', 'aksi' => 'view'],
+            ],
+            'kalender-detail-hari' => [
+                ['slug' => 'kalender.detail_hari.view', 'nama' => 'Lihat Detail Hari', 'aksi' => 'view'],
+            ],
+            'laporan-kehadiran' => [
+                ['slug' => 'laporan_kehadiran.view', 'nama' => 'Lihat Laporan Kehadiran', 'aksi' => 'view'],
+            ],
+            'laporan-jamaah' => [
+                ['slug' => 'laporan_jamaah.view', 'nama' => 'Lihat Laporan Jamaah', 'aksi' => 'view'],
+            ],
+            'laporan-pengajian' => [
+                ['slug' => 'laporan_pengajian.view', 'nama' => 'Lihat Laporan Pengajian', 'aksi' => 'view'],
+            ],
+            'laporan-kegiatan' => [
+                ['slug' => 'laporan_kegiatan.view', 'nama' => 'Lihat Laporan Kegiatan', 'aksi' => 'view'],
+            ],
             'jamaah' => [
                 ['slug' => 'jamaah.view', 'nama' => 'Lihat Jamaah', 'aksi' => 'view'],
-                ['slug' => 'jamaah.create', 'nama' => 'Tambah Jamaah', 'aksi' => 'create'],
-                ['slug' => 'jamaah.update', 'nama' => 'Ubah Jamaah', 'aksi' => 'update'],
-                ['slug' => 'jamaah.delete', 'nama' => 'Hapus Jamaah', 'aksi' => 'delete'],
-                ['slug' => 'jamaah.enroll_face', 'nama' => 'Enroll Wajah Jamaah', 'aksi' => 'execute'],
+            ],
+            'keluarga' => [
+                ['slug' => 'keluarga.view', 'nama' => 'Lihat Keluarga', 'aksi' => 'view'],
             ],
             'master-lokasi' => [
                 ['slug' => 'lokasi.view', 'nama' => 'Lihat Lokasi', 'aksi' => 'view'],
-                ['slug' => 'lokasi.create', 'nama' => 'Tambah Lokasi', 'aksi' => 'create'],
-                ['slug' => 'lokasi.update', 'nama' => 'Ubah Lokasi', 'aksi' => 'update'],
-                ['slug' => 'lokasi.delete', 'nama' => 'Hapus Lokasi', 'aksi' => 'delete'],
             ],
             'master-pemateri' => [
                 ['slug' => 'pemateri.view', 'nama' => 'Lihat Pemateri', 'aksi' => 'view'],
-                ['slug' => 'pemateri.create', 'nama' => 'Tambah Pemateri', 'aksi' => 'create'],
-                ['slug' => 'pemateri.update', 'nama' => 'Ubah Pemateri', 'aksi' => 'update'],
-                ['slug' => 'pemateri.delete', 'nama' => 'Hapus Pemateri', 'aksi' => 'delete'],
             ],
             'master-materi' => [
                 ['slug' => 'materi.view', 'nama' => 'Lihat Materi', 'aksi' => 'view'],
-                ['slug' => 'materi.create', 'nama' => 'Tambah Materi', 'aksi' => 'create'],
-                ['slug' => 'materi.update', 'nama' => 'Ubah Materi', 'aksi' => 'update'],
-                ['slug' => 'materi.delete', 'nama' => 'Hapus Materi', 'aksi' => 'delete'],
             ],
             'master-kategori-kegiatan' => [
                 ['slug' => 'kategori_kegiatan.view', 'nama' => 'Lihat Kategori Kegiatan', 'aksi' => 'view'],
-                ['slug' => 'kategori_kegiatan.create', 'nama' => 'Tambah Kategori Kegiatan', 'aksi' => 'create'],
-                ['slug' => 'kategori_kegiatan.update', 'nama' => 'Ubah Kategori Kegiatan', 'aksi' => 'update'],
-                ['slug' => 'kategori_kegiatan.delete', 'nama' => 'Hapus Kategori Kegiatan', 'aksi' => 'delete'],
             ],
             'master-lookup' => [
                 ['slug' => 'lookup.view', 'nama' => 'Lihat Lookup', 'aksi' => 'view'],
-                ['slug' => 'lookup.create', 'nama' => 'Tambah Lookup', 'aksi' => 'create'],
-                ['slug' => 'lookup.update', 'nama' => 'Ubah Lookup', 'aksi' => 'update'],
-                ['slug' => 'lookup.delete', 'nama' => 'Hapus Lookup', 'aksi' => 'delete'],
             ],
             'pengajian' => [
                 ['slug' => 'pengajian.view', 'nama' => 'Lihat Pengajian', 'aksi' => 'view'],
-                ['slug' => 'pengajian.create', 'nama' => 'Tambah Pengajian', 'aksi' => 'create'],
-                ['slug' => 'pengajian.update', 'nama' => 'Ubah Pengajian', 'aksi' => 'update'],
-                ['slug' => 'pengajian.delete', 'nama' => 'Hapus Pengajian', 'aksi' => 'delete'],
             ],
             'kegiatan' => [
                 ['slug' => 'kegiatan.view', 'nama' => 'Lihat Kegiatan', 'aksi' => 'view'],
-                ['slug' => 'kegiatan.create', 'nama' => 'Tambah Kegiatan', 'aksi' => 'create'],
-                ['slug' => 'kegiatan.update', 'nama' => 'Ubah Kegiatan', 'aksi' => 'update'],
-                ['slug' => 'kegiatan.delete', 'nama' => 'Hapus Kegiatan', 'aksi' => 'delete'],
             ],
             'absensi' => [
                 ['slug' => 'absensi.view', 'nama' => 'Lihat Absensi', 'aksi' => 'view'],
@@ -360,114 +939,118 @@ class RbacSeeder extends Seeder
             ],
             'master-dapukan' => [
                 ['slug' => 'dapukan.view', 'nama' => 'Lihat Dapukan', 'aksi' => 'view'],
-                ['slug' => 'dapukan.create', 'nama' => 'Tambah Dapukan', 'aksi' => 'create'],
-                ['slug' => 'dapukan.update', 'nama' => 'Ubah Dapukan', 'aksi' => 'update'],
-                ['slug' => 'dapukan.delete', 'nama' => 'Hapus Dapukan', 'aksi' => 'delete'],
             ],
             'master-menu' => [
                 ['slug' => 'menu.view', 'nama' => 'Lihat Menu', 'aksi' => 'view'],
-                ['slug' => 'menu.create', 'nama' => 'Tambah Menu', 'aksi' => 'create'],
-                ['slug' => 'menu.update', 'nama' => 'Ubah Menu', 'aksi' => 'update'],
-                ['slug' => 'menu.delete', 'nama' => 'Hapus Menu', 'aksi' => 'delete'],
             ],
             'master-fitur' => [
                 ['slug' => 'fitur.view', 'nama' => 'Lihat Fitur', 'aksi' => 'view'],
-                ['slug' => 'fitur.create', 'nama' => 'Tambah Fitur', 'aksi' => 'create'],
-                ['slug' => 'fitur.update', 'nama' => 'Ubah Fitur', 'aksi' => 'update'],
-                ['slug' => 'fitur.delete', 'nama' => 'Hapus Fitur', 'aksi' => 'delete'],
             ],
             'master-hak-akses' => [
                 ['slug' => 'hak_akses.view', 'nama' => 'Lihat Hak Akses', 'aksi' => 'view'],
-                ['slug' => 'hak_akses.create', 'nama' => 'Tambah Hak Akses', 'aksi' => 'create'],
-                ['slug' => 'hak_akses.update', 'nama' => 'Ubah Hak Akses', 'aksi' => 'update'],
-                ['slug' => 'hak_akses.delete', 'nama' => 'Hapus Hak Akses', 'aksi' => 'delete'],
             ],
             'master-matriks' => [
                 ['slug' => 'matriks.view', 'nama' => 'Lihat Matriks Akses', 'aksi' => 'view'],
-                ['slug' => 'matriks.update', 'nama' => 'Ubah Matriks Akses', 'aksi' => 'update'],
             ],
             'master-users' => [
                 ['slug' => 'users.view', 'nama' => 'Lihat Pengguna', 'aksi' => 'view'],
-                ['slug' => 'users.create', 'nama' => 'Tambah Pengguna', 'aksi' => 'create'],
-                ['slug' => 'users.update', 'nama' => 'Ubah Pengguna', 'aksi' => 'update'],
-                ['slug' => 'users.delete', 'nama' => 'Hapus Pengguna', 'aksi' => 'delete'],
             ],
             'master-pusat' => [
                 ['slug' => 'pusat.view', 'nama' => 'Lihat Pusat', 'aksi' => 'view'],
-                ['slug' => 'pusat.create', 'nama' => 'Tambah Pusat', 'aksi' => 'create'],
-                ['slug' => 'pusat.update', 'nama' => 'Ubah Pusat', 'aksi' => 'update'],
-                ['slug' => 'pusat.delete', 'nama' => 'Hapus Pusat', 'aksi' => 'delete'],
             ],
             'master-daerah' => [
                 ['slug' => 'daerah.view', 'nama' => 'Lihat Daerah', 'aksi' => 'view'],
-                ['slug' => 'daerah.create', 'nama' => 'Tambah Daerah', 'aksi' => 'create'],
-                ['slug' => 'daerah.update', 'nama' => 'Ubah Daerah', 'aksi' => 'update'],
-                ['slug' => 'daerah.delete', 'nama' => 'Hapus Daerah', 'aksi' => 'delete'],
             ],
             'master-desa' => [
                 ['slug' => 'desa.view', 'nama' => 'Lihat Desa', 'aksi' => 'view'],
-                ['slug' => 'desa.create', 'nama' => 'Tambah Desa', 'aksi' => 'create'],
-                ['slug' => 'desa.update', 'nama' => 'Ubah Desa', 'aksi' => 'update'],
-                ['slug' => 'desa.delete', 'nama' => 'Hapus Desa', 'aksi' => 'delete'],
             ],
             'master-kelompok' => [
                 ['slug' => 'kelompok.view', 'nama' => 'Lihat Kelompok', 'aksi' => 'view'],
-                ['slug' => 'kelompok.create', 'nama' => 'Tambah Kelompok', 'aksi' => 'create'],
-                ['slug' => 'kelompok.update', 'nama' => 'Ubah Kelompok', 'aksi' => 'update'],
-                ['slug' => 'kelompok.delete', 'nama' => 'Hapus Kelompok', 'aksi' => 'delete'],
             ],
             'master-sub-kelompok' => [
                 ['slug' => 'sub_kelompok.view', 'nama' => 'Lihat Sub Kelompok', 'aksi' => 'view'],
-                ['slug' => 'sub_kelompok.create', 'nama' => 'Tambah Sub Kelompok', 'aksi' => 'create'],
-                ['slug' => 'sub_kelompok.update', 'nama' => 'Ubah Sub Kelompok', 'aksi' => 'update'],
-                ['slug' => 'sub_kelompok.delete', 'nama' => 'Hapus Sub Kelompok', 'aksi' => 'delete'],
             ],
             'master-adm-negara' => [
                 ['slug' => 'adm_negara.view', 'nama' => 'Lihat Negara', 'aksi' => 'view'],
-                ['slug' => 'adm_negara.create', 'nama' => 'Tambah Negara', 'aksi' => 'create'],
-                ['slug' => 'adm_negara.update', 'nama' => 'Ubah Negara', 'aksi' => 'update'],
-                ['slug' => 'adm_negara.delete', 'nama' => 'Hapus Negara', 'aksi' => 'delete'],
             ],
             'master-adm-provinsi' => [
                 ['slug' => 'adm_provinsi.view', 'nama' => 'Lihat Provinsi', 'aksi' => 'view'],
-                ['slug' => 'adm_provinsi.create', 'nama' => 'Tambah Provinsi', 'aksi' => 'create'],
-                ['slug' => 'adm_provinsi.update', 'nama' => 'Ubah Provinsi', 'aksi' => 'update'],
-                ['slug' => 'adm_provinsi.delete', 'nama' => 'Hapus Provinsi', 'aksi' => 'delete'],
             ],
             'master-adm-kabupaten-kota' => [
                 ['slug' => 'adm_kabupaten_kota.view', 'nama' => 'Lihat Kabupaten/Kota', 'aksi' => 'view'],
-                ['slug' => 'adm_kabupaten_kota.create', 'nama' => 'Tambah Kabupaten/Kota', 'aksi' => 'create'],
-                ['slug' => 'adm_kabupaten_kota.update', 'nama' => 'Ubah Kabupaten/Kota', 'aksi' => 'update'],
-                ['slug' => 'adm_kabupaten_kota.delete', 'nama' => 'Hapus Kabupaten/Kota', 'aksi' => 'delete'],
             ],
             'master-adm-kecamatan' => [
                 ['slug' => 'adm_kecamatan.view', 'nama' => 'Lihat Kecamatan', 'aksi' => 'view'],
-                ['slug' => 'adm_kecamatan.create', 'nama' => 'Tambah Kecamatan', 'aksi' => 'create'],
-                ['slug' => 'adm_kecamatan.update', 'nama' => 'Ubah Kecamatan', 'aksi' => 'update'],
-                ['slug' => 'adm_kecamatan.delete', 'nama' => 'Hapus Kecamatan', 'aksi' => 'delete'],
             ],
             'master-adm-desa-kelurahan' => [
                 ['slug' => 'adm_desa_kelurahan.view', 'nama' => 'Lihat Desa/Kelurahan', 'aksi' => 'view'],
-                ['slug' => 'adm_desa_kelurahan.create', 'nama' => 'Tambah Desa/Kelurahan', 'aksi' => 'create'],
-                ['slug' => 'adm_desa_kelurahan.update', 'nama' => 'Ubah Desa/Kelurahan', 'aksi' => 'update'],
-                ['slug' => 'adm_desa_kelurahan.delete', 'nama' => 'Hapus Desa/Kelurahan', 'aksi' => 'delete'],
             ],
             'master-adm-kode-pos' => [
                 ['slug' => 'adm_kode_pos.view', 'nama' => 'Lihat Kode Pos', 'aksi' => 'view'],
-                ['slug' => 'adm_kode_pos.create', 'nama' => 'Tambah Kode Pos', 'aksi' => 'create'],
-                ['slug' => 'adm_kode_pos.update', 'nama' => 'Ubah Kode Pos', 'aksi' => 'update'],
-                ['slug' => 'adm_kode_pos.delete', 'nama' => 'Hapus Kode Pos', 'aksi' => 'delete'],
             ],
             'aplikasi-konfig' => [
                 ['slug' => 'konfig.view', 'nama' => 'Lihat Konfigurasi Sistem', 'aksi' => 'view'],
                 ['slug' => 'konfig.update', 'nama' => 'Ubah Konfigurasi Sistem', 'aksi' => 'update'],
             ],
+            'aplikasi-konfig-identitas' => [
+                ['slug' => 'konfig.identitas.view', 'nama' => 'Tab Identitas', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-email' => [
+                ['slug' => 'konfig.email.view', 'nama' => 'Tab Email / SMTP', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-integrasi' => [
+                ['slug' => 'konfig.integrasi.view', 'nama' => 'Tab Integrasi', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-branding' => [
+                ['slug' => 'konfig.branding.view', 'nama' => 'Tab Branding', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-tema' => [
+                ['slug' => 'konfig.tema.view', 'nama' => 'Tab Tema', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-operasional' => [
+                ['slug' => 'konfig.operasional.view', 'nama' => 'Tab Operasional', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-dokumen' => [
+                ['slug' => 'konfig_dokumen.view', 'nama' => 'Lihat Konfigurasi Dokumen', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-dokumen-isi' => [
+                ['slug' => 'konfig_dokumen.isi.view', 'nama' => 'Isi Dokumen', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-dokumen-media' => [
+                ['slug' => 'konfig_dokumen.media.view', 'nama' => 'Aktifkan di Media', 'aksi' => 'view'],
+            ],
         ];
+
+        foreach ($this->listUiChromeCatalog() as $prefix => $config) {
+            foreach ($config['buttons'] ?? [] as $key => $button) {
+                $actionSlug = $this->buttonActionSlug($prefix, $key, $button);
+                $definitions["{$prefix}-btn-{$key}"] = [
+                    [
+                        'slug' => "{$prefix}.btn.{$key}.view",
+                        'nama' => 'Lihat '.$button['nama'],
+                        'aksi' => 'view',
+                    ],
+                    [
+                        'slug' => $actionSlug,
+                        'nama' => $button['nama'],
+                        'aksi' => $button['aksi'],
+                    ],
+                ];
+            }
+            foreach ($config['columns'] as $key => $nama) {
+                $definitions["{$prefix}-col-{$key}"] = [
+                    ['slug' => "{$prefix}.col.{$key}.view", 'nama' => $nama, 'aksi' => 'view'],
+                ];
+            }
+        }
 
         $result = [];
 
         foreach ($definitions as $fiturKode => $permissions) {
-            $fitur = $fiturs[$fiturKode];
+            $fitur = $fiturs[$fiturKode] ?? null;
+            if (! $fitur) {
+                continue;
+            }
 
             foreach ($permissions as $permission) {
                 $result[$permission['slug']] = HakAkses::updateOrCreate(
@@ -486,31 +1069,54 @@ class RbacSeeder extends Seeder
 
     private function assignPermissions(array $dapukan, array $permissions): void
     {
-        $konfigSlugs = ['konfig.view', 'konfig.update'];
         $nonKonfigPermissions = collect($permissions)
-            ->reject(fn ($permission, string $slug) => in_array($slug, $konfigSlugs, true));
+            ->reject(fn ($permission, string $slug) => str_starts_with($slug, 'konfig.')
+                || str_starts_with($slug, 'konfig_dokumen.'));
 
         $allIds = $nonKonfigPermissions->pluck('id')->unique()->values()->all();
-        $konfigIds = collect($konfigSlugs)
-            ->map(fn (string $slug) => $permissions[$slug]->id ?? null)
-            ->filter()
+        $konfigIds = collect($permissions)
+            ->filter(fn ($permission, string $slug) => str_starts_with($slug, 'konfig.')
+                || str_starts_with($slug, 'konfig_dokumen.'))
+            ->pluck('id')
+            ->unique()
             ->values()
             ->all();
 
         $dapukan['superadmin']->hakAkses()->sync(array_values(array_unique(array_merge($allIds, $konfigIds))));
 
         $ids = fn (array $codes) => collect($codes)
-            ->map(fn (string $kode) => $permissions[$kode]->id)
+            ->map(fn (string $kode) => $permissions[$kode]->id ?? null)
+            ->filter()
             ->unique()
             ->values()
             ->all();
 
-        $opsCodes = [
+        $dashboardWidgetCodes = [
+            'dashboard.kpi.view',
+            'dashboard.absensi_overview.view',
+            'dashboard.jamaah_kelompok.view',
+            'dashboard.kategori_umur.view',
+        ];
+
+        $kalenderSectionCodes = [
+            'kalender.grid.view',
+            'kalender.hari_libur.view',
+            'kalender.detail_hari.view',
+        ];
+
+        $opsCodes = $this->withListUiChrome([
             'dashboard.view',
+            ...$dashboardWidgetCodes,
             'kehadiran.view',
             'kategori_umur.view',
             'kalender.view',
+            ...$kalenderSectionCodes,
+            'laporan_kehadiran.view',
+            'laporan_jamaah.view',
+            'laporan_pengajian.view',
+            'laporan_kegiatan.view',
             'jamaah.view', 'jamaah.create', 'jamaah.update', 'jamaah.delete', 'jamaah.enroll_face',
+            'keluarga.view', 'keluarga.create', 'keluarga.update', 'keluarga.delete',
             'lokasi.view', 'lokasi.create', 'lokasi.update', 'lokasi.delete',
             'pemateri.view', 'pemateri.create', 'pemateri.update', 'pemateri.delete',
             'materi.view', 'materi.create', 'materi.update', 'materi.delete',
@@ -519,18 +1125,18 @@ class RbacSeeder extends Seeder
             'pengajian.view', 'pengajian.create', 'pengajian.update', 'pengajian.delete',
             'kegiatan.view', 'kegiatan.create', 'kegiatan.update', 'kegiatan.delete',
             'absensi.view', 'absensi.create', 'absensi.execute',
-        ];
+        ]);
 
-        $admWilayahViewCodes = [
+        $admWilayahViewCodes = $this->withListUiChrome([
             'adm_negara.view',
             'adm_provinsi.view',
             'adm_kabupaten_kota.view',
             'adm_kecamatan.view',
             'adm_desa_kelurahan.view',
             'adm_kode_pos.view',
-        ];
+        ]);
 
-        $adminPusatCodes = array_merge($opsCodes, [
+        $adminPusatCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
             'pusat.view',
             'daerah.view', 'daerah.create', 'daerah.update', 'daerah.delete',
@@ -538,9 +1144,15 @@ class RbacSeeder extends Seeder
             'kelompok.view', 'kelompok.create', 'kelompok.update', 'kelompok.delete',
             'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
             'users.view', 'users.create', 'users.update',
-        ], $admWilayahViewCodes);
+            'matriks.view', 'matriks.update',
+            'menu.view', 'menu.create', 'menu.update', 'menu.delete',
+            'fitur.view', 'fitur.create', 'fitur.update', 'fitur.delete',
+            'hak_akses.view', 'hak_akses.create', 'hak_akses.update', 'hak_akses.delete',
+            'konfig_dokumen.view', 'konfig_dokumen.update',
+            'konfig_dokumen.isi.view', 'konfig_dokumen.media.view',
+        ], $admWilayahViewCodes));
 
-        $adminDaerahCodes = array_merge($opsCodes, [
+        $adminDaerahCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
             'pusat.view',
             'daerah.view',
@@ -548,9 +1160,9 @@ class RbacSeeder extends Seeder
             'kelompok.view', 'kelompok.create', 'kelompok.update', 'kelompok.delete',
             'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
             'users.view', 'users.create', 'users.update',
-        ], $admWilayahViewCodes);
+        ], $admWilayahViewCodes));
 
-        $adminDesaCodes = array_merge($opsCodes, [
+        $adminDesaCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
             'pusat.view',
             'daerah.view',
@@ -558,23 +1170,30 @@ class RbacSeeder extends Seeder
             'kelompok.view', 'kelompok.create', 'kelompok.update', 'kelompok.delete',
             'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
             'users.view', 'users.create', 'users.update',
-        ], $admWilayahViewCodes);
+        ], $admWilayahViewCodes));
 
-        $adminKelompokCodes = array_merge($opsCodes, [
+        $adminKelompokCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
             'pusat.view',
             'daerah.view',
             'desa.view',
             'kelompok.view',
             'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
-        ], $admWilayahViewCodes);
+        ], $admWilayahViewCodes));
 
-        $opsViewCodes = [
+        $opsViewCodes = $this->withListUiChrome([
             'dashboard.view',
+            ...$dashboardWidgetCodes,
             'kehadiran.view',
             'kategori_umur.view',
             'kalender.view',
+            ...$kalenderSectionCodes,
+            'laporan_kehadiran.view',
+            'laporan_jamaah.view',
+            'laporan_pengajian.view',
+            'laporan_kegiatan.view',
             'jamaah.view',
+            'keluarga.view',
             'lokasi.view',
             'pemateri.view',
             'materi.view',
@@ -585,16 +1204,21 @@ class RbacSeeder extends Seeder
             'absensi.view',
             'absensi.create',
             'absensi.execute',
-        ];
+        ]);
 
-        $jamaahKelompokCodes = [
+        $jamaahKelompokCodes = $this->withListUiChrome([
             'dashboard.view',
+            ...$dashboardWidgetCodes,
             'kehadiran.view',
             'kategori_umur.view',
             'kalender.view',
+            ...$kalenderSectionCodes,
+            'laporan_kehadiran.view',
+            'laporan_pengajian.view',
+            'laporan_kegiatan.view',
             'pengajian.view',
             'kegiatan.view',
-        ];
+        ]);
 
         $dapukan['admin_pusat']->hakAkses()->sync($ids($adminPusatCodes));
         $dapukan['admin_daerah']->hakAkses()->sync($ids($adminDaerahCodes));
@@ -617,5 +1241,26 @@ class RbacSeeder extends Seeder
         ] as $kode) {
             $dapukan[$kode]->hakAkses()->sync($opsViewIds);
         }
+    }
+
+    /**
+     * Lampirkan izin print/export/kolom untuk setiap prefix yang sudah punya *.view di paket.
+     *
+     * @param  list<string>  $codes
+     * @return list<string>
+     */
+    private function withListUiChrome(array $codes): array
+    {
+        $extra = [];
+        foreach (array_keys($this->listUiChromeCatalog()) as $prefix) {
+            $hasModuleAccess = in_array("{$prefix}.view", $codes, true)
+                || collect($codes)->contains(fn (string $code) => str_starts_with($code, "{$prefix}."));
+            if (! $hasModuleAccess) {
+                continue;
+            }
+            $extra = array_merge($extra, $this->listUiChromePermissionCodes($prefix, $codes));
+        }
+
+        return array_values(array_unique(array_merge($codes, $extra)));
     }
 }

@@ -2,13 +2,13 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-03 12:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:45:00
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
-import { useState } from 'react'
 import { masterLokasiService } from '../api/services'
 import type { Lokasi, LokasiJenis } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
+import { useToast } from '../components/ToastProvider'
 import { buildGoogleMapsShareUrl, copyText, isValidCoords } from '../lib/googleMaps'
 
 const JENIS_OPTIONS: { value: LokasiJenis; label: string }[] = [
@@ -35,18 +35,96 @@ function wilayahLabel(item: Lokasi): string {
 }
 
 export function MasterLokasiPage() {
-  const [copyHint, setCopyHint] = useState<string | null>(null)
+  const { notifySuccess, notifyError } = useToast()
 
   async function handleCopyMaps(item: Lokasi) {
     if (!isValidCoords(item.lat, item.lng)) return
-    const url = buildGoogleMapsShareUrl(item.lat as number, item.lng as number)
+    const url = buildGoogleMapsShareUrl(item.lat as number, item.lng as number, {
+      name: item.maps_place_name || item.nama,
+      placeId: item.maps_place_id,
+      mapsUrl: item.maps_url,
+    })
     const ok = await copyText(url)
-    setCopyHint(ok ? `Tautan Maps "${item.nama}" disalin.` : 'Gagal menyalin tautan Maps.')
+    if (ok) {
+      notifySuccess(`Tautan Maps "${item.nama}" disalin.`)
+    } else {
+      notifyError('Gagal menyalin tautan Maps.')
+    }
   }
+
+  const columns: GatedColumn<Lokasi>[] = [
+    {
+      key: 'nama',
+      label: 'Nama',
+      cell: (item) => item.nama,
+      exportValue: (item) => item.nama,
+    },
+    {
+      key: 'jenis',
+      label: 'Jenis',
+      cell: (item) => jenisLabel(item.jenis),
+      exportValue: (item) => jenisLabel(item.jenis),
+    },
+    {
+      key: 'wilayah',
+      label: 'Wilayah',
+      sortable: false,
+      cell: (item) => wilayahLabel(item),
+      exportValue: (item) => wilayahLabel(item),
+    },
+    {
+      key: 'maps',
+      label: 'Maps',
+      sortable: false,
+      cell: (item) =>
+        isValidCoords(item.lat, item.lng) ? (
+          <div className="data-table__actions">
+            <a
+              className="btn btn--secondary btn--small"
+              href={buildGoogleMapsShareUrl(item.lat as number, item.lng as number, {
+                name: item.maps_place_name || item.nama,
+                placeId: item.maps_place_id,
+                mapsUrl: item.maps_url,
+              })}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Buka
+            </a>
+            <button
+              type="button"
+              className="btn btn--secondary btn--small"
+              onClick={() => void handleCopyMaps(item)}
+            >
+              Salin
+            </button>
+          </div>
+        ) : (
+          '—'
+        ),
+      exportValue: (item) =>
+        isValidCoords(item.lat, item.lng)
+          ? buildGoogleMapsShareUrl(item.lat as number, item.lng as number, {
+              name: item.maps_place_name || item.nama,
+              placeId: item.maps_place_id,
+              mapsUrl: item.maps_url,
+            })
+          : '—',
+    },
+    {
+      key: 'is_active',
+      label: 'Status',
+      cell: (item) => (
+        <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+          {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+        </span>
+      ),
+      exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+    },
+  ]
 
   return (
     <>
-      {copyHint && <div className="alert alert--success">{copyHint}</div>}
       <SimpleMasterListPage<Lokasi>
         title="Master Lokasi"
         description="Lokasi kegiatan terhubung ke master wilayah administrasi."
@@ -64,42 +142,7 @@ export function MasterLokasiPage() {
             label: option.label,
           })),
         }}
-        renderExtraHeaders={() => (
-          <>
-            <th>Jenis</th>
-            <th>Wilayah</th>
-            <th>Maps</th>
-          </>
-        )}
-        renderExtraCells={(item) => (
-          <>
-            <td>{jenisLabel(item.jenis)}</td>
-            <td>{wilayahLabel(item)}</td>
-            <td>
-              {isValidCoords(item.lat, item.lng) ? (
-                <div className="data-table__actions">
-                  <a
-                    className="btn btn--secondary btn--small"
-                    href={buildGoogleMapsShareUrl(item.lat as number, item.lng as number)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Buka
-                  </a>
-                  <button
-                    type="button"
-                    className="btn btn--secondary btn--small"
-                    onClick={() => void handleCopyMaps(item)}
-                  >
-                    Salin
-                  </button>
-                </div>
-              ) : (
-                '—'
-              )}
-            </td>
-          </>
-        )}
+        columns={columns}
       />
     </>
   )

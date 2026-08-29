@@ -2,12 +2,12 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:41:12
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:41:12
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { admDesaKelurahanService, admKecamatanService } from '../api/services'
 import type { AdmDesaKelurahan } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
 
 async function loadKecamatanOptions() {
   const result = await admKecamatanService.list({ per_page: 10000 })
@@ -25,6 +25,37 @@ const parentFilter = {
   loadOptions: loadKecamatanOptions,
 }
 
+const columns: GatedColumn<AdmDesaKelurahan>[] = [
+  {
+    key: 'kode',
+    label: 'Kode',
+    cell: (item) => item.kode,
+    exportValue: (item) => item.kode,
+  },
+  {
+    key: 'nama',
+    label: 'Nama',
+    cell: (item) => item.nama,
+    exportValue: (item) => item.nama,
+  },
+  {
+    key: 'jenis',
+    label: 'Jenis',
+    cell: (item) => item.jenis.replace('_', ' '),
+    exportValue: (item) => item.jenis.replace('_', ' '),
+  },
+  {
+    key: 'is_active',
+    label: 'Status',
+    cell: (item) => (
+      <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+        {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+      </span>
+    ),
+    exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+  },
+]
+
 export function MasterAdmDesaKelurahanPage() {
   return (
     <SimpleMasterListPage<AdmDesaKelurahan>
@@ -40,18 +71,7 @@ export function MasterAdmDesaKelurahanPage() {
       list={admDesaKelurahanService.list}
       remove={admDesaKelurahanService.remove}
       parentFilter={parentFilter}
-      renderLeadingHeaders={() => (
-        <>
-          <th>Kode</th>
-          <th>Jenis</th>
-        </>
-      )}
-      renderLeadingCells={(item) => (
-        <>
-          <td>{item.kode}</td>
-          <td>{item.jenis.replace('_', ' ')}</td>
-        </>
-      )}
+      columns={columns}
     />
   )
 }

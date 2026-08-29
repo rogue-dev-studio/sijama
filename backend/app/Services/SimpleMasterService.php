@@ -11,6 +11,7 @@ namespace App\Services;
 
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -29,6 +30,22 @@ abstract class SimpleMasterService
     protected function orderColumn(): string
     {
         return 'nama';
+    }
+
+    protected function orderDirection(): string
+    {
+        return 'asc';
+    }
+
+    /**
+     * Kolom yang boleh di-sort dari query `sort_by`.
+     * Boleh list string atau map request-key => sql-column.
+     *
+     * @return array<string, string>|list<string>
+     */
+    protected function sortableColumns(): array
+    {
+        return ['nama', 'is_active'];
     }
 
     /** @return list<string> */
@@ -50,11 +67,20 @@ abstract class SimpleMasterService
         ?int $page = null,
         ?bool $activeOnly = null,
         array $extraFilters = [],
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
         $class = $this->modelClass();
-        $builder = $class::query()
-            ->with($this->withRelations())
-            ->orderBy($this->orderColumn());
+        $builder = $class::query()->with($this->withRelations());
+
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            $this->sortableColumns(),
+            $this->orderColumn(),
+            $this->orderDirection(),
+        );
 
         if ($activeOnly !== null) {
             $builder->where('is_active', $activeOnly);

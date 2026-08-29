@@ -9,6 +9,7 @@ use App\Models\Jamaah;
 use App\Models\User;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -32,6 +33,8 @@ class JamaahService
         ?string $kategoriUmur = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
         $includeFacePayload = $enrolled || $face === 'enrolled';
 
@@ -69,8 +72,23 @@ class JamaahService
 
         $builder = Jamaah::query()
             ->select($columns)
-            ->with(['kelompok:id,kode,nama', 'pekerjaanRef:id,nama', 'dapukan:id,slug,nama,tingkat'])
-            ->orderBy('nama');
+            ->with(['kelompok:id,kode,nama', 'pekerjaanRef:lookup_id,lookup_name,lookup_value', 'dapukan:id,slug,nama,tingkat']);
+
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            [
+                'nama',
+                'nik',
+                'status',
+                'kategori_umur',
+                'kelompok' => 'kelompok_id',
+                'face' => 'enrolled_at',
+                'kontak' => 'no_hp',
+            ],
+            'nama',
+        );
         $this->scopeService->applyJamaahScope($builder, $user);
 
         if ($query) {
@@ -94,7 +112,11 @@ class JamaahService
         }
 
         if ($kategoriUmur !== null && $kategoriUmur !== '') {
-            $builder->where('kategori_umur', $kategoriUmur);
+            if ($kategoriUmur === 'belum') {
+                $builder->whereNull('kategori_umur');
+            } else {
+                $builder->where('kategori_umur', $kategoriUmur);
+            }
         }
 
         return PaginationHelper::paginate($builder, $perPage, $page);

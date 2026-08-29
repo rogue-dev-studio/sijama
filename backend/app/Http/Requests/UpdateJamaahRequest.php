@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\JamaahContactRules;
 use App\Support\LookupRules;
 use App\Support\LookupTypes;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,9 +15,14 @@ class UpdateJamaahRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        JamaahContactRules::prepareEmptyContacts($this);
+    }
+
     public function rules(): array
     {
-        $jamaahId = $this->route('jamaah');
+        $jamaahId = (int) $this->route('jamaah');
 
         return [
             'nik' => ['nullable', 'string', 'max:16', Rule::unique('jamaah', 'nik')->ignore($jamaahId)],
@@ -33,8 +39,8 @@ class UpdateJamaahRequest extends FormRequest
             'alamat' => ['nullable', 'string'],
             'rt' => ['sometimes', 'nullable', 'string', 'max:10'],
             'rw' => ['sometimes', 'nullable', 'string', 'max:10'],
-            'no_hp' => ['sometimes', 'required', 'string', 'max:20'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'no_hp' => ['sometimes', ...JamaahContactRules::noHp($jamaahId)],
+            'email' => JamaahContactRules::email($jamaahId),
             'status' => ['nullable', Rule::in(['aktif', 'nonaktif'])],
             'foto_path' => ['nullable', 'string', 'max:500'],
             'kelompok_id' => ['sometimes', 'nullable', 'integer', 'exists:kelompok,id'],

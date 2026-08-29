@@ -2,13 +2,41 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:45:00
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { useCallback } from 'react'
 import { masterFiturService, masterHakAksesService } from '../api/services'
 import type { HakAkses } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
+
+const columns: GatedColumn<HakAkses>[] = [
+  {
+    key: 'slug',
+    label: 'Slug',
+    cell: (item) => item.slug,
+    exportValue: (item) => item.slug,
+  },
+  {
+    key: 'nama',
+    label: 'Nama',
+    cell: (item) => item.nama,
+    exportValue: (item) => item.nama,
+  },
+  {
+    key: 'aksi',
+    label: 'Aksi',
+    cell: (item) => item.aksi,
+    exportValue: (item) => item.aksi,
+  },
+  {
+    key: 'fitur',
+    label: 'Fitur',
+    sortable: false,
+    cell: (item) => item.fitur?.nama || item.fitur_id,
+    exportValue: (item) => item.fitur?.nama || String(item.fitur_id),
+  },
+]
 
 export function MasterHakAksesPage() {
   const loadFiturs = useCallback(async () => {
@@ -36,20 +64,7 @@ export function MasterHakAksesPage() {
         loadOptions: loadFiturs,
       }}
       actionsHeaderLabel="Kelola"
-      renderLeadingHeaders={() => <th>Slug</th>}
-      renderLeadingCells={(item) => <td>{item.slug}</td>}
-      renderExtraHeaders={() => (
-        <>
-          <th>Aksi</th>
-          <th>Fitur</th>
-        </>
-      )}
-      renderExtraCells={(item) => (
-        <>
-          <td>{item.aksi}</td>
-          <td>{item.fitur?.nama || item.fitur_id}</td>
-        </>
-      )}
+      columns={columns}
     />
   )
 }

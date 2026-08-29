@@ -1,34 +1,29 @@
 # SRS — Kategori Umur (Informasi)
 
-Version: 1.2.0
+Version: 1.5.0
 Status: Approved
 Author: business-analyst, system-analyst
-Last Updated: 2026-08-03
+Last Updated: 2026-08-27
 Project: sijama
 
 ---
 
 ## 1. Tujuan
 
-Menampilkan klasifikasi umur jamaah di menu **Informasi → Kategori Umur**, dihitung otomatis dari **tanggal lahir** + **status pernikahan**.
+Menu **Informasi → Kategori Umur** menampilkan **master klasifikasi umur** (bukan daftar jamaah), dengan jumlah jamaah aktif per kategori.
 
-## 2. Klasifikasi
+## 2. Tampilan
 
-| Kode | Label | Aturan |
-|------|-------|--------|
-| paud … remaja | Caberawit / muda-mudi | Usia 0–20 (status nikah diabaikan) |
-| pra_nikah | Pra Nikah | Usia 21–59 **dan** belum menikah |
-| dewasa | Dewasa | Usia 21–59 **dan** sudah menikah |
-| lansia | Lansia | Usia 60+ (status nikah diabaikan) |
+- Tabel: Grup | Kategori | Rentang | Jumlah
+- **Semua kategori selalu tampil**; jumlah **0** jika belum ada jamaah
+- Pagination berlaku pada **baris kategori** (sama pola master), bukan daftar anggota jamaah
+- Filter: cari nama/grup + filter grup
 
-Belum diklasifikasi: tanggal lahir kosong, atau usia 21–59 tanpa status pernikahan.
+## 3. Klasifikasi
 
-## 3. Field jamaah
-
-- `status_pernikahan`: `belum_menikah` \| `sudah_menikah`
-- `pekerjaan`, `pendidikan` tetap input manual
-- `kategori_umur` derived (bukan input form)
+Bayi … Lansia + Belum diklasifikasi — lihat `JamaahKategoriUmur` / `KATEGORI_UMUR_OPTIONS`.
 
 ## 4. API
 
-`GET /api/kategori-umur?kategori=`
+`GET /api/kategori-umur` → `{ items, meta, ringkasan }`  
+UI memakai `ringkasan` (semua kode + jumlah termasuk 0) sebagai sumber tabel + pagination.

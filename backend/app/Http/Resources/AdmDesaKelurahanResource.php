@@ -27,6 +27,14 @@ class AdmDesaKelurahanResource extends JsonResource
             'kode' => $this->kode,
             'nama' => $this->nama,
             'jenis' => $this->jenis,
+            'kode_pos' => $this->when(
+                $this->relationLoaded('kodePos'),
+                fn () => $this->kodePos
+                    ->sortBy('kode')
+                    ->first(fn ($item) => (bool) $item->is_active)
+                    ?->kode
+                    ?? $this->kodePos->sortBy('kode')->first()?->kode,
+            ),
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

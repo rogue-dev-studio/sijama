@@ -14,6 +14,7 @@ use App\Models\Pusat;
 use App\Models\User;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -27,8 +28,17 @@ class PusatService
         ?string $query = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = Pusat::query()->orderBy('nama');
+        $builder = Pusat::query();
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['nama', 'kode', 'is_active'],
+            'nama',
+        );
         $this->scopeService->applyPusatScope($builder, $user);
 
         if ($query) {

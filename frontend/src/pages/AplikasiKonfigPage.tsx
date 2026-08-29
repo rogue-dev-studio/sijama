@@ -5,16 +5,18 @@
  * @Last Modified time: 2026-08-27 10:53:00
  */
 
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useMemo, useState, type FormEvent } from 'react'
 import { ApiError } from '../api/client'
 import { aplikasiKonfigService } from '../api/services'
 import type { KonfigSystemInput } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useAppSettings } from '../auth/AppSettingsContext'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { PasswordInput } from '../components/PasswordInput'
 import { KonfigImageUpload } from '../components/KonfigImageUpload'
 import { ThemeColorField } from '../components/ThemeColorField'
 import { ThemePalettePicker } from '../components/ThemePalettePicker'
+import { useToast } from '../components/ToastProvider'
 import { KONFIG_ASSET_FIELD, type KonfigAssetKind } from '../lib/konfigAsset'
 import {
   DEFAULT_BACKGROUND_STYLE,
@@ -31,14 +33,15 @@ import {
   type ThemePalette,
 } from '../lib/themeDefaults'
 
-type KonfigTab = 'identitas' | 'email' | 'branding' | 'tema' | 'operasional'
+type KonfigTab = 'identitas' | 'email' | 'integrasi' | 'branding' | 'tema' | 'operasional'
 
-const TABS: Array<{ id: KonfigTab; label: string }> = [
-  { id: 'identitas', label: 'Identitas' },
-  { id: 'email', label: 'Email / SMTP' },
-  { id: 'branding', label: 'Branding' },
-  { id: 'tema', label: 'Tema' },
-  { id: 'operasional', label: 'Operasional' },
+const TABS: Array<{ id: KonfigTab; label: string; permission: string }> = [
+  { id: 'identitas', label: 'Identitas', permission: 'konfig.identitas.view' },
+  { id: 'email', label: 'Email / SMS', permission: 'konfig.email.view' },
+  { id: 'integrasi', label: 'Integrasi', permission: 'konfig.integrasi.view' },
+  { id: 'branding', label: 'Branding', permission: 'konfig.branding.view' },
+  { id: 'tema', label: 'Tema', permission: 'konfig.tema.view' },
+  { id: 'operasional', label: 'Operasional', permission: 'konfig.operasional.view' },
 ]
 
 const emptyForm: KonfigSystemInput = {
@@ -51,7 +54,6 @@ const emptyForm: KonfigSystemInput = {
   locale: 'id',
   mail_protocol: 'smtp',
   smtp_hostname: '',
-  mail_parameter: '',
   smtp_username: '',
   smtp_password: '',
   smtp_port: 587,
@@ -60,6 +62,20 @@ const emptyForm: KonfigSystemInput = {
   mail_from_address: '',
   mail_from_name: '',
   mail_reply_to: '',
+  password_reset_email_enabled: true,
+  password_reset_phone_enabled: false,
+  sms_driver: 'log',
+  sms_country_code: '62',
+  fonnte_token: '',
+  fonnte_endpoint: 'https://api.fonnte.com/send',
+  telegram_enabled: false,
+  telegram_bot_token: '',
+  telegram_bot_username: '',
+  telegram_default_chat_id: '',
+  n8n_enabled: false,
+  n8n_base_url: '',
+  n8n_webhook_url: '',
+  n8n_api_key: '',
   header: '',
   footer: '',
   website: '',
@@ -83,6 +99,9 @@ const emptyForm: KonfigSystemInput = {
   theme_color: '',
   maintenance_mode: false,
   maintenance_message: '',
+  path_maintenance_background: '',
+  maintenance_background_style: DEFAULT_BACKGROUND_STYLE,
+  maintenance_background_repeat_size: DEFAULT_BACKGROUND_REPEAT_SIZE,
   additional_data: '',
   is_active: true,
 }
@@ -90,17 +109,28 @@ const emptyForm: KonfigSystemInput = {
 export function AplikasiKonfigPage() {
   const { can } = useAuth()
   const { refreshSettings } = useAppSettings()
+  const { notifySuccess } = useToast()
   const canUpdate = can('konfig.update')
+  const visibleTabs = useMemo(() => TABS.filter((item) => can(item.permission)), [can])
   const tabsId = useId()
   const [tab, setTab] = useState<KonfigTab>('identitas')
   const [form, setForm] = useState<KonfigSystemInput>(emptyForm)
   const [passwordSet, setPasswordSet] = useState(false)
+  const [fonnteTokenSet, setFonnteTokenSet] = useState(false)
+  const [telegramTokenSet, setTelegramTokenSet] = useState(false)
+  const [n8nApiKeySet, setN8nApiKeySet] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [pendingAssets, setPendingAssets] = useState<Partial<Record<KonfigAssetKind, File>>>({})
   const [pendingAssetDeletes, setPendingAssetDeletes] = useState<Partial<Record<KonfigAssetKind, boolean>>>({})
+
+  useEffect(() => {
+    if (visibleTabs.length === 0) return
+    if (!visibleTabs.some((item) => item.id === tab)) {
+      setTab(visibleTabs[0].id)
+    }
+  }, [visibleTabs, tab])
 
   useEffect(() => {
     let active = true
@@ -110,6 +140,9 @@ export function AplikasiKonfigPage() {
         const item = await aplikasiKonfigService.get()
         if (!active) return
         setPasswordSet(item.smtp_password_set)
+        setFonnteTokenSet(item.fonnte_token_set)
+        setTelegramTokenSet(item.telegram_bot_token_set)
+        setN8nApiKeySet(item.n8n_api_key_set)
         setForm({
           app_nama: item.app_nama || '',
           nama_instansi: item.nama_instansi || '',
@@ -120,7 +153,6 @@ export function AplikasiKonfigPage() {
           locale: item.locale || 'id',
           mail_protocol: item.mail_protocol || 'smtp',
           smtp_hostname: item.smtp_hostname || '',
-          mail_parameter: item.mail_parameter || '',
           smtp_username: item.smtp_username || '',
           smtp_password: '',
           smtp_port: item.smtp_port,
@@ -129,6 +161,20 @@ export function AplikasiKonfigPage() {
           mail_from_address: item.mail_from_address || '',
           mail_from_name: item.mail_from_name || '',
           mail_reply_to: item.mail_reply_to || '',
+          password_reset_email_enabled: item.password_reset_email_enabled ?? true,
+          password_reset_phone_enabled: item.password_reset_phone_enabled,
+          sms_driver: item.sms_driver || 'log',
+          sms_country_code: item.sms_country_code || '62',
+          fonnte_token: '',
+          fonnte_endpoint: item.fonnte_endpoint || 'https://api.fonnte.com/send',
+          telegram_enabled: item.telegram_enabled,
+          telegram_bot_token: '',
+          telegram_bot_username: item.telegram_bot_username || '',
+          telegram_default_chat_id: item.telegram_default_chat_id || '',
+          n8n_enabled: item.n8n_enabled,
+          n8n_base_url: item.n8n_base_url || '',
+          n8n_webhook_url: item.n8n_webhook_url || '',
+          n8n_api_key: '',
           header: item.header || '',
           footer: item.footer || '',
           website: item.website || '',
@@ -152,6 +198,9 @@ export function AplikasiKonfigPage() {
           theme_color: item.theme_color || '',
           maintenance_mode: item.maintenance_mode,
           maintenance_message: item.maintenance_message || '',
+          path_maintenance_background: item.path_maintenance_background || '',
+          maintenance_background_style: normalizeBackgroundStyle(item.maintenance_background_style),
+          maintenance_background_repeat_size: normalizeBackgroundRepeatSize(item.maintenance_background_repeat_size),
           additional_data: item.additional_data || '',
           is_active: item.is_active,
         })
@@ -226,7 +275,7 @@ export function AplikasiKonfigPage() {
       theme_color: palette.colors.theme_color,
     }))
     setError(null)
-    setSuccess(`Palet “${palette.name}” diterapkan. Klik Simpan semua untuk menyimpan.`)
+    notifySuccess(`Palet “${palette.name}” diterapkan. Klik Simpan semua untuk menyimpan.`)
   }
 
   function resetThemeToDefault() {
@@ -258,7 +307,7 @@ export function AplikasiKonfigPage() {
     })
 
     setError(null)
-    setSuccess('Tema direset ke default. Klik Simpan semua untuk menerapkan.')
+    notifySuccess('Tema direset ke default. Klik Simpan semua untuk menerapkan.')
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -266,7 +315,6 @@ export function AplikasiKonfigPage() {
     if (!canUpdate) return
     setSubmitting(true)
     setError(null)
-    setSuccess(null)
 
     const payload: KonfigSystemInput = {
       ...form,
@@ -279,13 +327,26 @@ export function AplikasiKonfigPage() {
       locale: form.locale?.trim() || null,
       mail_protocol: form.mail_protocol?.trim() || null,
       smtp_hostname: form.smtp_hostname?.trim() || null,
-      mail_parameter: form.mail_parameter?.trim() || null,
       smtp_username: form.smtp_username?.trim() || null,
       smtp_password: form.smtp_password?.trim() || null,
       smtp_encryption: form.smtp_encryption?.trim() || null,
       mail_from_address: form.mail_from_address?.trim() || null,
       mail_from_name: form.mail_from_name?.trim() || null,
       mail_reply_to: form.mail_reply_to?.trim() || null,
+      password_reset_email_enabled: Boolean(form.password_reset_email_enabled),
+      password_reset_phone_enabled: Boolean(form.password_reset_phone_enabled),
+      sms_driver: form.sms_driver?.trim() || null,
+      sms_country_code: form.sms_country_code?.trim() || null,
+      fonnte_token: form.fonnte_token?.trim() || null,
+      fonnte_endpoint: form.fonnte_endpoint?.trim() || null,
+      telegram_enabled: Boolean(form.telegram_enabled),
+      telegram_bot_token: form.telegram_bot_token?.trim() || null,
+      telegram_bot_username: form.telegram_bot_username?.trim() || null,
+      telegram_default_chat_id: form.telegram_default_chat_id?.trim() || null,
+      n8n_enabled: Boolean(form.n8n_enabled),
+      n8n_base_url: form.n8n_base_url?.trim() || null,
+      n8n_webhook_url: form.n8n_webhook_url?.trim() || null,
+      n8n_api_key: form.n8n_api_key?.trim() || null,
       header: form.header?.trim() || null,
       footer: form.footer?.trim() || null,
       website: form.website?.trim() || null,
@@ -308,6 +369,9 @@ export function AplikasiKonfigPage() {
       color_border: form.color_border?.trim() || null,
       theme_color: form.theme_color?.trim() || null,
       maintenance_message: form.maintenance_message?.trim() || null,
+      path_maintenance_background: form.path_maintenance_background?.trim() || null,
+      maintenance_background_style: normalizeBackgroundStyle(form.maintenance_background_style),
+      maintenance_background_repeat_size: normalizeBackgroundRepeatSize(form.maintenance_background_repeat_size),
       additional_data: form.additional_data?.trim() || null,
     }
 
@@ -330,7 +394,13 @@ export function AplikasiKonfigPage() {
 
       const saved = await aplikasiKonfigService.update(payload)
       setPasswordSet(saved.smtp_password_set)
+      setFonnteTokenSet(saved.fonnte_token_set)
+      setTelegramTokenSet(saved.telegram_bot_token_set)
+      setN8nApiKeySet(saved.n8n_api_key_set)
       setField('smtp_password', '')
+      setField('fonnte_token', '')
+      setField('telegram_bot_token', '')
+      setField('n8n_api_key', '')
       setForm((prev) => ({
         ...prev,
         path_logoheader: saved.path_logoheader ?? '',
@@ -347,11 +417,14 @@ export function AplikasiKonfigPage() {
         color_muted: saved.color_muted ?? '',
         color_border: saved.color_border ?? '',
         theme_color: saved.theme_color ?? '',
+        path_maintenance_background: saved.path_maintenance_background ?? '',
+        maintenance_background_style: normalizeBackgroundStyle(saved.maintenance_background_style),
+        maintenance_background_repeat_size: normalizeBackgroundRepeatSize(saved.maintenance_background_repeat_size),
       }))
       setPendingAssets({})
       setPendingAssetDeletes({})
       await refreshSettings()
-      setSuccess('Konfigurasi sistem berhasil disimpan.')
+      notifySuccess('Konfigurasi sistem berhasil disimpan.')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan konfigurasi')
     } finally {
@@ -362,6 +435,10 @@ export function AplikasiKonfigPage() {
   const hasBackgroundAsset =
     Boolean(pendingAssets.background) ||
     (Boolean(form.path_background?.trim()) && !pendingAssetDeletes.background)
+
+  const hasMaintenanceBackgroundAsset =
+    Boolean(pendingAssets['maintenance-background']) ||
+    (Boolean(form.path_maintenance_background?.trim()) && !pendingAssetDeletes['maintenance-background'])
 
   const selectedPaletteId = matchThemePaletteId({
     color_bg: form.color_bg,
@@ -386,11 +463,10 @@ export function AplikasiKonfigPage() {
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}
-      {success && <div className="alert alert--success">{success}</div>}
 
       <form className="form-panel konfig-form" onSubmit={(event) => void handleSubmit(event)}>
         <div className="konfig-tabs" role="tablist" aria-label="Kategori konfigurasi">
-          {TABS.map((item) => {
+          {visibleTabs.map((item) => {
             const selected = tab === item.id
             return (
               <button
@@ -404,7 +480,6 @@ export function AplikasiKonfigPage() {
                 tabIndex={selected ? 0 : -1}
                 onClick={() => {
                   setTab(item.id)
-                  setSuccess(null)
                 }}
               >
                 {item.label}
@@ -413,12 +488,15 @@ export function AplikasiKonfigPage() {
           })}
         </div>
 
+        {visibleTabs.length === 0 ? (
+          <div className="empty-state">Tidak ada tab konfigurasi yang diizinkan untuk akun ini.</div>
+        ) : (
         <fieldset disabled={!canUpdate} className="konfig-form__fieldset">
           <div
             role="tabpanel"
             id={`${tabsId}-panel-identitas`}
             aria-labelledby={`${tabsId}-identitas`}
-            hidden={tab !== 'identitas'}
+            hidden={tab !== 'identitas' || !can('konfig.identitas.view')}
           >
             <div className="form-grid form-grid--2">
               <div className="field">
@@ -472,15 +550,21 @@ export function AplikasiKonfigPage() {
             role="tabpanel"
             id={`${tabsId}-panel-email`}
             aria-labelledby={`${tabsId}-email`}
-            hidden={tab !== 'email'}
+            hidden={tab !== 'email' || !can('konfig.email.view')}
           >
             <div className="form-grid form-grid--2">
               <div className="field">
                 <label htmlFor="mail_protocol">Protocol</label>
-                <input
+                <SearchableSelect
                   id="mail_protocol"
-                  value={form.mail_protocol || ''}
-                  onChange={(e) => setField('mail_protocol', e.target.value)}
+                  value={form.mail_protocol || 'smtp'}
+                  onChange={(next) => setField('mail_protocol', next)}
+                  options={[
+                    { value: 'smtp', label: 'SMTP' },
+                    { value: 'log', label: 'Log (dev)' },
+                    { value: 'sendmail', label: 'Sendmail' },
+                    { value: 'array', label: 'Array (test)' },
+                  ]}
                 />
               </div>
               <div className="field">
@@ -523,14 +607,6 @@ export function AplikasiKonfigPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="mail_parameter">Mail parameter</label>
-                <input
-                  id="mail_parameter"
-                  value={form.mail_parameter || ''}
-                  onChange={(e) => setField('mail_parameter', e.target.value)}
-                />
-              </div>
-              <div className="field">
                 <label htmlFor="smtp_username">SMTP username</label>
                 <input
                   id="smtp_username"
@@ -540,9 +616,8 @@ export function AplikasiKonfigPage() {
               </div>
               <div className="field">
                 <label htmlFor="smtp_password">SMTP password</label>
-                <input
+                <PasswordInput
                   id="smtp_password"
-                  type="password"
                   autoComplete="new-password"
                   placeholder={passwordSet ? 'Kosongkan jika tidak diubah' : ''}
                   value={form.smtp_password || ''}
@@ -575,6 +650,183 @@ export function AplikasiKonfigPage() {
                   onChange={(e) => setField('mail_reply_to', e.target.value)}
                 />
               </div>
+              <div className="field">
+                <label htmlFor="password_reset_email_enabled">Reset via email</label>
+                <SearchableSelect
+                  id="password_reset_email_enabled"
+                  value={form.password_reset_email_enabled ? '1' : '0'}
+                  onChange={(next) => setField('password_reset_email_enabled', next === '1')}
+                  options={[
+                    { value: '1', label: 'Aktif' },
+                    { value: '0', label: 'Maintenance (nonaktif)' },
+                  ]}
+                />
+              </div>
+            </div>
+
+            <h3 className="form-section-title" style={{ marginTop: '1.5rem' }}>
+              SMS / Reset via nomor HP
+            </h3>
+            <p className="field-hint" style={{ marginBottom: '1rem' }}>
+              Saat dinonaktifkan, lupa password hanya menerima email. Driver{' '}
+              <code>log</code> menulis OTP ke log backend (dev); <code>fonnte</code> kirim
+              lewat gateway Fonnte.
+            </p>
+            <div className="form-grid form-grid--2">
+              <div className="field">
+                <label htmlFor="password_reset_phone_enabled">Reset via HP</label>
+                <SearchableSelect
+                  id="password_reset_phone_enabled"
+                  value={form.password_reset_phone_enabled ? '1' : '0'}
+                  onChange={(next) => setField('password_reset_phone_enabled', next === '1')}
+                  options={[
+                    { value: '0', label: 'Maintenance (nonaktif)' },
+                    { value: '1', label: 'Aktif' },
+                  ]}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="sms_driver">SMS driver</label>
+                <SearchableSelect
+                  id="sms_driver"
+                  value={form.sms_driver || 'log'}
+                  onChange={(next) => setField('sms_driver', next)}
+                  options={[
+                    { value: 'log', label: 'Log (dev)' },
+                    { value: 'fonnte', label: 'Fonnte' },
+                  ]}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="sms_country_code">Kode negara</label>
+                <input
+                  id="sms_country_code"
+                  value={form.sms_country_code || ''}
+                  onChange={(e) => setField('sms_country_code', e.target.value)}
+                  placeholder="62"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="fonnte_endpoint">Fonnte endpoint</label>
+                <input
+                  id="fonnte_endpoint"
+                  value={form.fonnte_endpoint || ''}
+                  onChange={(e) => setField('fonnte_endpoint', e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="fonnte_token">Fonnte token</label>
+                <PasswordInput
+                  id="fonnte_token"
+                  autoComplete="new-password"
+                  placeholder={fonnteTokenSet ? 'Kosongkan jika tidak diubah' : ''}
+                  value={form.fonnte_token || ''}
+                  onChange={(e) => setField('fonnte_token', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            role="tabpanel"
+            id={`${tabsId}-panel-integrasi`}
+            aria-labelledby={`${tabsId}-integrasi`}
+            hidden={tab !== 'integrasi' || !can('konfig.integrasi.view')}
+          >
+            <h3 className="form-section-title form-section-title--first">Telegram Bot</h3>
+            <p className="field-hint" style={{ marginBottom: '1rem' }}>
+              Token dari @BotFather. Chat ID dipakai untuk notifikasi default (opsional).
+            </p>
+            <div className="form-grid form-grid--2">
+              <div className="field">
+                <label htmlFor="telegram_enabled">Status Telegram</label>
+                <SearchableSelect
+                  id="telegram_enabled"
+                  value={form.telegram_enabled ? '1' : '0'}
+                  onChange={(next) => setField('telegram_enabled', next === '1')}
+                  options={[
+                    { value: '0', label: 'Nonaktif' },
+                    { value: '1', label: 'Aktif' },
+                  ]}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="telegram_bot_username">Bot username</label>
+                <input
+                  id="telegram_bot_username"
+                  value={form.telegram_bot_username || ''}
+                  onChange={(e) => setField('telegram_bot_username', e.target.value)}
+                  placeholder="@nama_bot"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="telegram_bot_token">Bot token</label>
+                <PasswordInput
+                  id="telegram_bot_token"
+                  autoComplete="new-password"
+                  placeholder={telegramTokenSet ? 'Kosongkan jika tidak diubah' : ''}
+                  value={form.telegram_bot_token || ''}
+                  onChange={(e) => setField('telegram_bot_token', e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="telegram_default_chat_id">Default chat ID</label>
+                <input
+                  id="telegram_default_chat_id"
+                  value={form.telegram_default_chat_id || ''}
+                  onChange={(e) => setField('telegram_default_chat_id', e.target.value)}
+                  placeholder="Contoh: 123456789"
+                />
+              </div>
+            </div>
+
+            <h3 className="form-section-title" style={{ marginTop: '1.5rem' }}>
+              n8n
+            </h3>
+            <p className="field-hint" style={{ marginBottom: '1rem' }}>
+              Base URL instance n8n dan webhook workflow. API key opsional untuk autentikasi.
+            </p>
+            <div className="form-grid form-grid--2">
+              <div className="field">
+                <label htmlFor="n8n_enabled">Status n8n</label>
+                <SearchableSelect
+                  id="n8n_enabled"
+                  value={form.n8n_enabled ? '1' : '0'}
+                  onChange={(next) => setField('n8n_enabled', next === '1')}
+                  options={[
+                    { value: '0', label: 'Nonaktif' },
+                    { value: '1', label: 'Aktif' },
+                  ]}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="n8n_base_url">Base URL</label>
+                <input
+                  id="n8n_base_url"
+                  value={form.n8n_base_url || ''}
+                  onChange={(e) => setField('n8n_base_url', e.target.value)}
+                  placeholder="https://n8n.domain.com"
+                />
+              </div>
+              <div className="field" style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="n8n_webhook_url">Webhook URL</label>
+                <input
+                  id="n8n_webhook_url"
+                  value={form.n8n_webhook_url || ''}
+                  onChange={(e) => setField('n8n_webhook_url', e.target.value)}
+                  placeholder="https://n8n.domain.com/webhook/..."
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="n8n_api_key">API key</label>
+                <PasswordInput
+                  id="n8n_api_key"
+                  autoComplete="new-password"
+                  placeholder={n8nApiKeySet ? 'Kosongkan jika tidak diubah' : ''}
+                  value={form.n8n_api_key || ''}
+                  onChange={(e) => setField('n8n_api_key', e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
@@ -582,7 +834,7 @@ export function AplikasiKonfigPage() {
             role="tabpanel"
             id={`${tabsId}-panel-branding`}
             aria-labelledby={`${tabsId}-branding`}
-            hidden={tab !== 'branding'}
+            hidden={tab !== 'branding' || !can('konfig.branding.view')}
           >
             <div className="form-grid form-grid--2">
               <div className="field" style={{ gridColumn: '1 / -1' }}>
@@ -707,7 +959,7 @@ export function AplikasiKonfigPage() {
             role="tabpanel"
             id={`${tabsId}-panel-tema`}
             aria-labelledby={`${tabsId}-tema`}
-            hidden={tab !== 'tema'}
+            hidden={tab !== 'tema' || !can('konfig.tema.view')}
           >
             <div className="form-grid form-grid--2">
               <div className="konfig-theme-toolbar" style={{ gridColumn: '1 / -1' }}>
@@ -863,7 +1115,7 @@ export function AplikasiKonfigPage() {
             role="tabpanel"
             id={`${tabsId}-panel-operasional`}
             aria-labelledby={`${tabsId}-operasional`}
-            hidden={tab !== 'operasional'}
+            hidden={tab !== 'operasional' || !can('konfig.operasional.view')}
           >
             <div className="form-grid form-grid--2">
               <div className="field">
@@ -900,6 +1152,52 @@ export function AplikasiKonfigPage() {
                 />
               </div>
               <div className="field" style={{ gridColumn: '1 / -1' }}>
+                <KonfigImageUpload
+                  label="Background halaman maintenance"
+                  hint="Khusus tampilan /maintenance. Kosongkan untuk memakai background tema umum."
+                  asset="maintenance-background"
+                  savedPath={form.path_maintenance_background}
+                  pendingFile={pendingAssets['maintenance-background']}
+                  markedForDelete={pendingAssetDeletes['maintenance-background']}
+                  disabled={!canUpdate}
+                  onFileSelected={(file) => setPendingAsset('maintenance-background', file)}
+                  onMarkDelete={() => setPendingAssetDelete('maintenance-background', true)}
+                  onCancelDelete={() => setPendingAssetDelete('maintenance-background', false)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="maintenance_background_style">Style background maintenance</label>
+                <select
+                  id="maintenance_background_style"
+                  value={form.maintenance_background_style ?? DEFAULT_BACKGROUND_STYLE}
+                  disabled={!canUpdate || !hasMaintenanceBackgroundAsset}
+                  onChange={(event) => setField('maintenance_background_style', event.target.value)}
+                >
+                  {BACKGROUND_STYLE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {(form.maintenance_background_style ?? DEFAULT_BACKGROUND_STYLE) === 'repeat' && (
+                <div className="field">
+                  <label htmlFor="maintenance_background_repeat_size">Ukuran tile repeat</label>
+                  <select
+                    id="maintenance_background_repeat_size"
+                    value={form.maintenance_background_repeat_size ?? DEFAULT_BACKGROUND_REPEAT_SIZE}
+                    disabled={!canUpdate || !hasMaintenanceBackgroundAsset}
+                    onChange={(event) => setField('maintenance_background_repeat_size', event.target.value)}
+                  >
+                    {BACKGROUND_REPEAT_SIZE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="field" style={{ gridColumn: '1 / -1' }}>
                 <label htmlFor="additional_data">Additional data</label>
                 <textarea
                   id="additional_data"
@@ -911,8 +1209,9 @@ export function AplikasiKonfigPage() {
             </div>
           </div>
         </fieldset>
+        )}
 
-        {canUpdate && (
+        {canUpdate && visibleTabs.length > 0 && (
           <div className="form-actions">
             <button type="submit" className="btn btn--primary" disabled={submitting}>
               {submitting ? 'Menyimpan…' : 'Simpan semua'}

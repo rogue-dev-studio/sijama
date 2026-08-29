@@ -14,6 +14,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $attributes = [
+        'login_remember_minutes' => 1440,
+        'login_remember_until_logout' => false,
+    ];
+
     protected $fillable = [
         'name',
         'username',
@@ -26,6 +31,8 @@ class User extends Authenticatable
         'desa_id',
         'kelompok_id',
         'is_active',
+        'login_remember_minutes',
+        'login_remember_until_logout',
     ];
 
     protected $hidden = [
@@ -39,6 +46,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'login_remember_until_logout' => 'boolean',
         ];
     }
 
@@ -110,19 +118,11 @@ class User extends Authenticatable
 
     public function hasPermission(string $slug): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
         return in_array($slug, $this->permissionCodes(), true);
     }
 
     public function permissionCodes(): array
     {
-        if ($this->isSuperAdmin()) {
-            return HakAkses::query()->orderBy('slug')->pluck('slug')->all();
-        }
-
         $dapukan = new \Illuminate\Database\Eloquent\Collection($this->effectiveDapukan()->all());
         if ($dapukan->isEmpty()) {
             return [];

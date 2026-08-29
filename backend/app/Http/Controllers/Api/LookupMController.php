@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateLookupMRequest;
 use App\Http\Responses\ApiResponse;
 use App\Http\Resources\LookupMResource;
 use App\Services\LookupMService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -28,6 +29,8 @@ class LookupMController extends Controller
             ? $request->boolean('is_active')
             : ($request->boolean('active_only') ? true : null);
 
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->lookupMService->list(
             $request->query('q'),
             $request->filled('per_page') ? $request->integer('per_page') : null,
@@ -36,6 +39,8 @@ class LookupMController extends Controller
             [
                 'lookup_type' => $request->query('lookup_type'),
             ],
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

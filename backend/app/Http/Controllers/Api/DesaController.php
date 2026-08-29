@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateDesaRequest;
 use App\Http\Resources\DesaResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\DesaService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,12 +18,16 @@ class DesaController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->desaService->list(
             $request->user(),
             $request->query('q'),
             $request->filled('daerah_id') ? $request->integer('daerah_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

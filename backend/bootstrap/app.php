@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureMaintenanceAccess;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureSuperAdmin;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -31,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureRole::class,
             'permission' => EnsurePermission::class,
             'superadmin' => EnsureSuperAdmin::class,
+            'maintenance.access' => EnsureMaintenanceAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -72,6 +75,18 @@ return Application::configure(basePath: dirname(__DIR__))
                     is_string($message) && $message !== '' ? $message : 'Akses ditolak.',
                     null,
                     403
+                );
+            }
+        });
+
+        $exceptions->render(function (ServiceUnavailableHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                $message = $e->getMessage();
+
+                return ApiResponse::error(
+                    is_string($message) && $message !== '' ? $message : 'Aplikasi sedang dalam maintenance.',
+                    null,
+                    503
                 );
             }
         });

@@ -14,6 +14,7 @@ use App\Models\AdmNegara;
 use App\Models\AdmProvinsi;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -25,8 +26,17 @@ class AdmProvinsiService
         ?int $negaraId = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = AdmProvinsi::query()->with('negara')->orderBy('nama');
+        $builder = AdmProvinsi::query()->with('negara');
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['nama', 'kode', 'is_active'],
+            'nama',
+        );
 
         if ($negaraId !== null) {
             $builder->where('negara_id', $negaraId);

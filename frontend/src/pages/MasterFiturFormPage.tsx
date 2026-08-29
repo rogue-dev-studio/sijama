@@ -10,6 +10,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { masterFiturService, masterMenuService } from '../api/services'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
 import type { FiturInput, Menu } from '../api/types'
 
 const emptyForm: FiturInput = {
@@ -24,6 +25,7 @@ export function MasterFiturFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<FiturInput>(emptyForm)
   const [menus, setMenus] = useState<Menu[]>([])
   const [loading, setLoading] = useState(true)
@@ -83,6 +85,7 @@ export function MasterFiturFormPage() {
       } else {
         await masterFiturService.create(payload)
       }
+      notifySaved('fitur', isEdit ? 'update' : 'create')
       navigate('/master/fitur')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan fitur')

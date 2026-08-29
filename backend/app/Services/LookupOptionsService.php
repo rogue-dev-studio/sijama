@@ -20,7 +20,7 @@ class LookupOptionsService
      */
     public function byTypes(array $types): array
     {
-        $allowed = LookupTypes::JAMAAH_FORM_TYPES;
+        $allowed = LookupTypes::OPTION_TYPES;
         $normalized = [];
 
         foreach ($types as $type) {

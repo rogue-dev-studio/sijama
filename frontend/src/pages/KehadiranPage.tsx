@@ -2,14 +2,52 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-02 20:35:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-02 20:35:00
+ * @Last Modified time: 2026-08-27 17:16:38
  */
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { attendanceService } from '../api/services'
 import type { Attendance, AttendanceSession } from '../api/types'
-
+import { useAuth } from '../auth/AuthContext'
+import { SortableTh, bindSortableTh } from '../components/SortableTh'
+import { listColumnPerm, listExportAccess } from '../lib/listUiAccess'
+import { toggleSort, type ListSortState } from '../lib/listSort'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { ExportPrintActions } from '../components/ExportPrintActions'
+
+type ColumnDef = {
+  key: string
+  label: string
+  sortKey: string
+  cell: (item: Attendance) => ReactNode
+  exportValue: (item: Attendance) => string | number
+}
+
+const COLUMNS: ColumnDef[] = [
+  {
+    key: 'nama',
+    label: 'Nama',
+    sortKey: 'nama',
+    cell: (item) => item.jamaah?.nama ?? `Jamaah #${item.jamaah_id}`,
+    exportValue: (item) => item.jamaah?.nama ?? `Jamaah #${item.jamaah_id}`,
+  },
+  {
+    key: 'metode',
+    label: 'Metode',
+    sortKey: 'method',
+    cell: (item) => methodLabel(item.method),
+    exportValue: (item) => methodLabel(item.method),
+  },
+  {
+    key: 'waktu',
+    label: 'Waktu',
+    sortKey: 'recorded_at',
+    cell: (item) => formatDateTime(item.recorded_at),
+    exportValue: (item) => formatDateTime(item.recorded_at),
+  },
+]
+
+const PREFIX = 'kehadiran'
 const REFRESH_MS = 5000
 
 function formatDateTime(value?: string | null) {
@@ -24,16 +62,41 @@ function methodLabel(method: Attendance['method']) {
   return method === 'face' ? 'Wajah' : 'Manual'
 }
 
+function compareAttendances(
+  a: Attendance,
+  b: Attendance,
+  sortBy: string,
+  sortDir: 'asc' | 'desc',
+): number {
+  const dir = sortDir === 'asc' ? 1 : -1
+  if (sortBy === 'method') {
+    return a.method.localeCompare(b.method) * dir
+  }
+  if (sortBy === 'nama') {
+    const an = (a.jamaah?.nama ?? '').toLowerCase()
+    const bn = (b.jamaah?.nama ?? '').toLowerCase()
+    return an.localeCompare(bn, 'id') * dir
+  }
+  const aTime = a.recorded_at ? new Date(a.recorded_at).getTime() : 0
+  const bTime = b.recorded_at ? new Date(b.recorded_at).getTime() : 0
+  return (aTime - bTime) * dir
+}
+
 export function KehadiranPage() {
+  const { can } = useAuth()
   const [sessions, setSessions] = useState<AttendanceSession[]>([])
   const [sessionId, setSessionId] = useState('')
   const [activeSession, setActiveSession] = useState<AttendanceSession | null>(null)
   const [sessionStatusFilter, setSessionStatusFilter] = useState<'' | 'open' | 'closed'>('')
   const [methodFilter, setMethodFilter] = useState<'' | 'face' | 'manual'>('')
   const [namaQuery, setNamaQuery] = useState('')
+  const [sort, setSort] = useState<ListSortState>({ sortBy: 'recorded_at', sortDir: 'desc' })
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
+  const exportAccess = listExportAccess(can, PREFIX)
 
   const attendances = useMemo(() => {
     const items = activeSession?.attendances ?? []
@@ -47,12 +110,14 @@ export function KehadiranPage() {
         }
         return true
       })
-      .sort((a, b) => {
-        const aTime = a.recorded_at ? new Date(a.recorded_at).getTime() : 0
-        const bTime = b.recorded_at ? new Date(b.recorded_at).getTime() : 0
-        return bTime - aTime
-      })
-  }, [activeSession?.attendances, methodFilter, namaQuery])
+      .sort((a, b) => compareAttendances(a, b, sort.sortBy, sort.sortDir))
+  }, [activeSession?.attendances, methodFilter, namaQuery, sort])
+
+  function handleSort(column: string) {
+    setSort((current) => toggleSort(current, column))
+  }
+
+  const sortBind = bindSortableTh(sort, handleSort)
 
   const loadSessions = useCallback(async () => {
     const result = await attendanceService.listSessions({
@@ -136,8 +201,28 @@ export function KehadiranPage() {
   return (
     <>
       <header className="page-header">
-        <h1>Kehadiran</h1>
-        <p>Daftar jamaah yang sudah absen per sesi.</p>
+        <div className="page-header__row">
+          <div>
+            <h1>Kehadiran</h1>
+            <p>Daftar jamaah yang sudah absen per sesi.</p>
+          </div>
+          <div className="page-header__actions">
+            <ExportPrintActions
+              title={activeSession ? `Kehadiran — ${activeSession.title}` : 'Kehadiran'}
+              dokumenKey="kehadiran"
+              disabled={loading || attendances.length === 0 || visibleColumns.length === 0}
+              {...exportAccess}
+              getPayload={() => ({
+                title: activeSession ? `Kehadiran — ${activeSession.title}` : 'Kehadiran',
+                headers: ['No', ...visibleColumns.map((column) => column.label)],
+                rows: attendances.map((item, index) => [
+                  index + 1,
+                  ...visibleColumns.map((column) => column.exportValue(item)),
+                ]),
+              })}
+            />
+          </div>
+        </div>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}
@@ -224,24 +309,31 @@ export function KehadiranPage() {
 
           {attendances.length === 0 ? (
             <p className="empty-state">Belum ada jamaah yang absen pada sesi ini.</p>
+          ) : visibleColumns.length === 0 ? (
+            <p className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</p>
           ) : (
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th scope="col">No</th>
-                    <th scope="col">Nama</th>
-                    <th scope="col">Metode</th>
-                    <th scope="col">Waktu</th>
+                    {visibleColumns.map((column) => (
+                      <SortableTh
+                        key={column.key}
+                        label={column.label}
+                        column={column.sortKey}
+                        {...sortBind}
+                      />
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {attendances.map((item, index) => (
                     <tr key={item.id}>
                       <td className="col-no">{index + 1}</td>
-                      <td>{item.jamaah?.nama ?? `Jamaah #${item.jamaah_id}`}</td>
-                      <td>{methodLabel(item.method)}</td>
-                      <td>{formatDateTime(item.recorded_at)}</td>
+                      {visibleColumns.map((column) => (
+                        <td key={column.key}>{column.cell(item)}</td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>

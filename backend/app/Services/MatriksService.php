@@ -15,7 +15,7 @@ class MatriksService
     {
         $dapukan = Dapukan::query()->orderBy('urutan')->with('hakAkses')->get();
         $hakAkses = HakAkses::query()
-            ->where('slug', 'not like', 'konfig.%')
+            ->with(['fitur.menu.parent.parent'])
             ->orderBy('slug')
             ->get();
 
@@ -41,18 +41,8 @@ class MatriksService
             ]);
         }
 
-        $konfigIds = HakAkses::query()
-            ->where('slug', 'like', 'konfig.%')
-            ->pluck('id')
-            ->all();
-
-        if ($dapukan->slug === 'superadmin') {
-            $validIds = array_values(array_unique(array_merge($validIds, $konfigIds)));
-        } else {
-            $validIds = array_values(array_diff($validIds, $konfigIds));
-        }
-
-        $dapukan->hakAkses()->sync($validIds);
+        // Exact sync — matriks is the source of truth (no forced grants for any dapukan).
+        $dapukan->hakAkses()->sync(array_values(array_unique($validIds)));
 
         return new DapukanResource($dapukan->fresh()->load('hakAkses'));
     }

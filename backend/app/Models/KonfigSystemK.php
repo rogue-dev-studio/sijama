@@ -26,6 +26,9 @@ class KonfigSystemK extends Model
 
     protected $hidden = [
         'smtp_password',
+        'fonnte_token',
+        'telegram_bot_token',
+        'n8n_api_key',
     ];
 
     protected $fillable = [
@@ -50,6 +53,20 @@ class KonfigSystemK extends Model
         'mail_from_address',
         'mail_from_name',
         'mail_reply_to',
+        'password_reset_email_enabled',
+        'password_reset_phone_enabled',
+        'sms_driver',
+        'sms_country_code',
+        'fonnte_token',
+        'fonnte_endpoint',
+        'telegram_enabled',
+        'telegram_bot_token',
+        'telegram_bot_username',
+        'telegram_default_chat_id',
+        'n8n_enabled',
+        'n8n_base_url',
+        'n8n_webhook_url',
+        'n8n_api_key',
         'header',
         'footer',
         'website',
@@ -80,6 +97,9 @@ class KonfigSystemK extends Model
         'theme_color',
         'maintenance_mode',
         'maintenance_message',
+        'path_maintenance_background',
+        'maintenance_background_style',
+        'maintenance_background_repeat_size',
     ];
 
     protected function casts(): array
@@ -94,10 +114,17 @@ class KonfigSystemK extends Model
             'is_active' => 'boolean',
             'is_deleted' => 'boolean',
             'maintenance_mode' => 'boolean',
+            'password_reset_email_enabled' => 'boolean',
+            'password_reset_phone_enabled' => 'boolean',
+            'telegram_enabled' => 'boolean',
+            'n8n_enabled' => 'boolean',
             'created_date' => 'datetime',
             'last_modified_date' => 'datetime',
             'deleted_date' => 'datetime',
             'smtp_password' => 'encrypted',
+            'fonnte_token' => 'encrypted',
+            'telegram_bot_token' => 'encrypted',
+            'n8n_api_key' => 'encrypted',
         ];
     }
 

@@ -39,6 +39,38 @@ class AuthApiTest extends TestCase
             ]);
     }
 
+    public function test_login_succeeds_with_email(): void
+    {
+        $this->createAuthorizedUser(username: 'login.email', permissionSlugs: []);
+
+        $response = $this->postJson('/api/login', [
+            'username' => 'login.email@sijama.test',
+            'password' => 'password',
+        ]);
+
+        $response->assertOk()->assertJsonPath('data.user.username', 'login.email');
+    }
+
+    public function test_login_succeeds_with_jamaah_phone(): void
+    {
+        $user = $this->createAuthorizedUser(username: 'login.phone', permissionSlugs: []);
+        $jamaah = \App\Models\Jamaah::query()->create([
+            'nama' => $user->name,
+            'gender' => 'L',
+            'no_hp' => '081234567890',
+            'email' => 'login.phone@sijama.test',
+            'status' => 'aktif',
+        ]);
+        $user->update(['jamaah_id' => $jamaah->id, 'email' => $jamaah->email]);
+
+        $response = $this->postJson('/api/login', [
+            'username' => '081234567890',
+            'password' => 'password',
+        ]);
+
+        $response->assertOk()->assertJsonPath('data.user.username', 'login.phone');
+    }
+
     public function test_login_rejects_invalid_credentials(): void
     {
         $this->createAuthorizedUser(username: 'login.user');

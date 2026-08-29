@@ -8,6 +8,7 @@ use App\Models\Pusat;
 use App\Models\User;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -22,8 +23,17 @@ class DaerahService
         ?int $pusatId = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = Daerah::query()->with('pusat')->orderBy('nama');
+        $builder = Daerah::query()->with('pusat');
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['nama', 'kode', 'is_active'],
+            'nama',
+        );
         $this->scopeService->applyDaerahScope($builder, $user);
 
         if ($pusatId !== null) {

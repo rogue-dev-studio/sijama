@@ -6,18 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Responses\ApiResponse;
 use App\Services\AuthService;
+use App\Services\TrustedAdminDeviceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthService $authService) {}
+    public function __construct(
+        private readonly AuthService $authService,
+        private readonly TrustedAdminDeviceService $trustedAdminDeviceService,
+    ) {}
 
     public function login(LoginRequest $request): JsonResponse
     {
         $result = $this->authService->login(
             $request->validated('username'),
             $request->validated('password'),
+            $request,
         );
 
         return ApiResponse::success($result, 'Login berhasil');
@@ -32,6 +37,13 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return ApiResponse::success($this->authService->buildAuthPayload($request->user()));
+        $user = $request->user();
+        $this->trustedAdminDeviceService->remember(
+            $user,
+            $request,
+            $request->header('X-Device-Key'),
+        );
+
+        return ApiResponse::success($this->authService->buildAuthPayload($user));
     }
 }

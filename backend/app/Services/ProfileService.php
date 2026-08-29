@@ -16,18 +16,25 @@ use App\Models\AdmKabupatenKota;
 use App\Models\AdmKecamatan;
 use App\Models\AdmNegara;
 use App\Models\AdmProvinsi;
+use App\Support\NikWilayahResolver;
 use App\Models\Jamaah;
 use App\Models\LookupM;
 use App\Models\User;
 use App\Services\LookupOptionsService;
+use App\Support\LoginRememberOptions;
 use App\Support\LookupTypes;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ProfileService
 {
-    public function __construct(private readonly LookupOptionsService $lookupOptionsService) {}
+    public function __construct(
+        private readonly LookupOptionsService $lookupOptionsService,
+        private readonly ProfilePhotoService $profilePhotoService,
+    ) {}
 
-    public function show(User $user): array
+    public function show(User $user, ?PersonalAccessToken $currentAccessToken = null): array
     {
         $user->loadMissing(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok']);
 
@@ -75,6 +82,67 @@ class ProfileService
                     ->orderBy('nama')
                     ->get(['id', 'kode', 'nama']),
             ],
+            'login_session' => $this->buildLoginSessionPayload($user, $currentAccessToken),
+        ];
+    }
+
+    public function updateLoginSession(
+        User $user,
+        ?int $minutes,
+        bool $untilLogout,
+        ?PersonalAccessToken $currentAccessToken,
+    ): array {
+        if ($untilLogout) {
+            $minutes = null;
+        } elseif ($minutes !== null && ! LoginRememberOptions::isAllowed($minutes)) {
+            throw ValidationException::withMessages([
+                'login_remember_minutes' => [
+                    'Durasi sesi login harus antara '
+                    .LoginRememberOptions::MIN_MINUTES
+                    .' dan '
+                    .LoginRememberOptions::MAX_MINUTES
+                    .' menit.',
+                ],
+            ]);
+        }
+
+        $user->update([
+            'login_remember_minutes' => $minutes,
+            'login_remember_until_logout' => $untilLogout,
+        ]);
+
+        if ($currentAccessToken) {
+            $currentAccessToken->update([
+                'expires_at' => LoginRememberOptions::resolveLoginExpiration(
+                    $minutes,
+                    $untilLogout,
+                    true,
+                ),
+            ]);
+        }
+
+        return $this->show($user->fresh(), $currentAccessToken);
+    }
+
+    /**
+     * @return array{
+     *   login_remember_minutes: int|null,
+     *   login_remember_until_logout: bool,
+     *   current_token_expires_at: string|null,
+     *   min_minutes: int,
+     *   max_minutes: int,
+     *   default_minutes: int
+     * }
+     */
+    private function buildLoginSessionPayload(User $user, ?PersonalAccessToken $currentAccessToken): array
+    {
+        return [
+            'login_remember_minutes' => $user->login_remember_minutes,
+            'login_remember_until_logout' => (bool) $user->login_remember_until_logout,
+            'current_token_expires_at' => $currentAccessToken?->expires_at?->toIso8601String(),
+            'min_minutes' => LoginRememberOptions::MIN_MINUTES,
+            'max_minutes' => LoginRememberOptions::MAX_MINUTES,
+            'default_minutes' => LoginRememberOptions::DEFAULT_MINUTES,
         ];
     }
 
@@ -136,12 +204,17 @@ class ProfileService
             'desa_kelurahan' => AdmDesaKelurahan::query()
                 ->where('is_active', true)
                 ->when($parentId, fn ($q) => $q->where('kecamatan_id', $parentId))
+                ->with(['kodePos' => fn ($q) => $q->orderBy('kode')])
                 ->orderBy('nama')
                 ->get(['id', 'kode', 'nama'])
                 ->map(fn (AdmDesaKelurahan $item) => [
                     'id' => $item->id,
                     'kode' => $item->kode,
                     'nama' => $item->nama,
+                    'kode_pos' => $item->kodePos
+                        ->first(fn ($row) => (bool) $row->is_active)
+                        ?->kode
+                        ?? $item->kodePos->first()?->kode,
                 ])
                 ->values()
                 ->all(),
@@ -149,6 +222,16 @@ class ProfileService
                 'level' => ['Level wilayah tidak valid.'],
             ]),
         };
+    }
+
+    /**
+     * Resolve provinsi → kab/kota → kecamatan dari 6 digit awal NIK.
+     *
+     * @return array<string, mixed>
+     */
+    public function resolveWilayahFromNik(?string $nik): array
+    {
+        return (new NikWilayahResolver)->resolve($nik);
     }
 
     /**
@@ -191,6 +274,47 @@ class ProfileService
         ]);
 
         return $this->show($user->fresh());
+    }
+
+    public function updatePassword(User $user, string $password): void
+    {
+        $user->update([
+            'password' => $password,
+        ]);
+    }
+
+    public function uploadPhoto(User $user, UploadedFile $file): array
+    {
+        $jamaah = $this->resolveLinkedJamaah($user);
+        $this->profilePhotoService->upload($jamaah, $file);
+
+        return $this->show($user->fresh());
+    }
+
+    public function deletePhoto(User $user): array
+    {
+        $jamaah = $this->resolveLinkedJamaah($user);
+        $this->profilePhotoService->remove($jamaah);
+
+        return $this->show($user->fresh());
+    }
+
+    private function resolveLinkedJamaah(User $user): Jamaah
+    {
+        if (! $user->jamaah_id) {
+            throw ValidationException::withMessages([
+                'jamaah' => ['Akun belum ditautkan ke data jamaah.'],
+            ]);
+        }
+
+        $jamaah = Jamaah::query()->find($user->jamaah_id);
+        if (! $jamaah) {
+            throw ValidationException::withMessages([
+                'jamaah' => ['Data jamaah tidak ditemukan.'],
+            ]);
+        }
+
+        return $jamaah;
     }
 
     /**

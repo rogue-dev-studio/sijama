@@ -14,6 +14,7 @@ use App\Models\AdmDesaKelurahan;
 use App\Models\AdmKecamatan;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -26,8 +27,20 @@ class AdmDesaKelurahanService
         ?string $jenis = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = AdmDesaKelurahan::query()->with('kecamatan')->orderBy('nama');
+        $builder = AdmDesaKelurahan::query()->with([
+            'kecamatan',
+            'kodePos' => fn ($query) => $query->orderBy('kode'),
+        ]);
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['nama', 'kode', 'jenis', 'is_active'],
+            'nama',
+        );
 
         if ($kecamatanId !== null) {
             $builder->where('kecamatan_id', $kecamatanId);
@@ -50,12 +63,12 @@ class AdmDesaKelurahanService
 
         $desaKelurahan = AdmDesaKelurahan::create($data);
 
-        return new AdmDesaKelurahanResource($desaKelurahan->load('kecamatan'));
+        return new AdmDesaKelurahanResource($desaKelurahan->load(['kecamatan', 'kodePos']));
     }
 
     public function find(int $id): AdmDesaKelurahanResource
     {
-        return new AdmDesaKelurahanResource($this->findModel($id)->load('kecamatan'));
+        return new AdmDesaKelurahanResource($this->findModel($id)->load(['kecamatan', 'kodePos']));
     }
 
     public function update(int $id, array $data): AdmDesaKelurahanResource
@@ -68,7 +81,7 @@ class AdmDesaKelurahanService
 
         $desaKelurahan->update($data);
 
-        return new AdmDesaKelurahanResource($desaKelurahan->fresh()->load('kecamatan'));
+        return new AdmDesaKelurahanResource($desaKelurahan->fresh()->load(['kecamatan', 'kodePos']));
     }
 
     public function delete(int $id): void

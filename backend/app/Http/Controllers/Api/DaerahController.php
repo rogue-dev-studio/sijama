@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateDaerahRequest;
 use App\Http\Resources\DaerahResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\DaerahService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,12 +18,16 @@ class DaerahController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->daerahService->list(
             $request->user(),
             $request->query('q'),
             $request->filled('pusat_id') ? $request->integer('pusat_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

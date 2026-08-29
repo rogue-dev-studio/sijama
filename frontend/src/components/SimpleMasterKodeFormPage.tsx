@@ -9,6 +9,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { SearchableSelect } from './SearchableSelect'
+import { useToast } from './ToastProvider'
 
 export type KodeNamaForm = {
   kode: string
@@ -57,6 +58,7 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<TForm>(emptyForm)
   const [parentOptions, setParentOptions] = useState<Array<{ id: number; nama: string }>>([])
   const [loading, setLoading] = useState(true)
@@ -118,6 +120,7 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
       } else {
         await create(payload)
       }
+      notifySaved(entityLabel, isEdit ? 'update' : 'create')
       navigate(listPath)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : `Gagal menyimpan ${entityLabel}`)

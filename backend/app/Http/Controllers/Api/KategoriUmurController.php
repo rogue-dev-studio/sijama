@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-03 12:20:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-03 12:20:00
+ * @Last Modified time: 2026-08-27 15:05:00
  */
 
 namespace App\Http\Controllers\Api;
@@ -23,9 +23,17 @@ class KategoriUmurController extends Controller
     {
         $filter = $request->query('kategori');
         $filter = is_string($filter) && $filter !== '' ? $filter : null;
+        $query = $request->query('q');
+        $query = is_string($query) && $query !== '' ? $query : null;
 
         return ApiResponse::success(
-            $this->kategoriUmurService->summary($request->user(), $filter)
+            $this->kategoriUmurService->list(
+                $request->user(),
+                $filter,
+                $query,
+                $request->filled('per_page') ? $request->integer('per_page') : null,
+                $request->filled('page') ? $request->integer('page') : null,
+            )
         );
     }
 }

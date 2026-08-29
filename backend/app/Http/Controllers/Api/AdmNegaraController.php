@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateAdmNegaraRequest;
 use App\Http\Resources\AdmNegaraResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\AdmNegaraService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,10 +25,14 @@ class AdmNegaraController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->admNegaraService->list(
             $request->query('q'),
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

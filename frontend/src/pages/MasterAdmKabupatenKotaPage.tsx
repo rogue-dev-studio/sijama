@@ -2,12 +2,12 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-01 16:53:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:35:53
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { admKabupatenKotaService, admProvinsiService } from '../api/services'
 import type { AdmKabupatenKota } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
 
 async function loadProvinsiOptions() {
   const result = await admProvinsiService.list({ per_page: 10000 })
@@ -22,6 +22,37 @@ const parentFilter = {
   paramKey: 'provinsi_id',
   loadOptions: loadProvinsiOptions,
 }
+
+const columns: GatedColumn<AdmKabupatenKota>[] = [
+  {
+    key: 'kode',
+    label: 'Kode',
+    cell: (item) => item.kode,
+    exportValue: (item) => item.kode,
+  },
+  {
+    key: 'nama',
+    label: 'Nama',
+    cell: (item) => item.nama,
+    exportValue: (item) => item.nama,
+  },
+  {
+    key: 'jenis',
+    label: 'Jenis',
+    cell: (item) => item.jenis,
+    exportValue: (item) => item.jenis,
+  },
+  {
+    key: 'is_active',
+    label: 'Status',
+    cell: (item) => (
+      <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+        {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+      </span>
+    ),
+    exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+  },
+]
 
 export function MasterAdmKabupatenKotaPage() {
   return (
@@ -38,18 +69,7 @@ export function MasterAdmKabupatenKotaPage() {
       list={admKabupatenKotaService.list}
       remove={admKabupatenKotaService.remove}
       parentFilter={parentFilter}
-      renderLeadingHeaders={() => (
-        <>
-          <th>Kode</th>
-          <th>Jenis</th>
-        </>
-      )}
-      renderLeadingCells={(item) => (
-        <>
-          <td>{item.kode}</td>
-          <td>{item.jenis}</td>
-        </>
-      )}
+      columns={columns}
     />
   )
 }

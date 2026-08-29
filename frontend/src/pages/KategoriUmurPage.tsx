@@ -2,178 +2,328 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-03 12:25:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-03 12:25:00
+ * @Last Modified time: 2026-08-27 17:16:38
  */
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { kategoriUmurService } from '../api/services'
-import type { KategoriUmurSummary } from '../api/types'
+import type { KategoriUmurRingkasanRow, PaginationMeta } from '../api/types'
+import { useAuth } from '../auth/AuthContext'
+import { ExportPrintActions } from '../components/ExportPrintActions'
+import { Pagination, rowNumber } from '../components/Pagination'
+import { SearchableSelect } from '../components/SearchableSelect'
+import { SortableTh, bindSortableTh } from '../components/SortableTh'
+import { KATEGORI_UMUR_OPTIONS } from '../lib/jamaahOptions'
+import { listColumnPerm, listExportAccess } from '../lib/listUiAccess'
+import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
+import { toggleSort, type ListSortState } from '../lib/listSort'
+
+const FILTER_BELUM = 'belum'
+const PREFIX = 'kategori_umur'
+
+type ColumnDef = {
+  key: string
+  label: string
+  sortKey: string
+  cell: (row: KategoriUmurRingkasanRow) => ReactNode
+  exportValue: (row: KategoriUmurRingkasanRow) => string | number
+}
+
+const COLUMNS: ColumnDef[] = [
+  {
+    key: 'grup',
+    label: 'Grup',
+    sortKey: 'grup',
+    cell: (row) => row.grup,
+    exportValue: (row) => row.grup,
+  },
+  {
+    key: 'kategori',
+    label: 'Kategori',
+    sortKey: 'nama',
+    cell: (row) => row.nama,
+    exportValue: (row) => row.nama,
+  },
+  {
+    key: 'rentang',
+    label: 'Rentang',
+    sortKey: 'rentang_usia',
+    cell: (row) => row.rentang_usia,
+    exportValue: (row) => row.rentang_usia,
+  },
+  {
+    key: 'jumlah',
+    label: 'Jumlah',
+    sortKey: 'jumlah',
+    cell: (row) => row.jumlah,
+    exportValue: (row) => row.jumlah,
+  },
+]
+
+function emptyRingkasan(): KategoriUmurRingkasanRow[] {
+  return [
+    ...KATEGORI_UMUR_OPTIONS.map((option) => ({
+      kode: option.value,
+      nama: option.label,
+      grup: option.group,
+      rentang_usia: option.rentang,
+      jumlah: 0,
+    })),
+    {
+      kode: FILTER_BELUM,
+      nama: 'Belum diklasifikasi',
+      grup: 'Lainnya',
+      rentang_usia: 'Tgl lahir kosong / usia 21–59 tanpa status nikah',
+      jumlah: 0,
+    },
+  ]
+}
+
+function compareRows(
+  a: KategoriUmurRingkasanRow,
+  b: KategoriUmurRingkasanRow,
+  sortBy: string,
+  sortDir: 'asc' | 'desc',
+): number {
+  const dir = sortDir === 'asc' ? 1 : -1
+  let av: string | number = ''
+  let bv: string | number = ''
+  if (sortBy === 'grup') {
+    av = a.grup
+    bv = b.grup
+  } else if (sortBy === 'nama') {
+    av = a.nama
+    bv = b.nama
+  } else if (sortBy === 'rentang_usia') {
+    av = a.rentang_usia
+    bv = b.rentang_usia
+  } else if (sortBy === 'jumlah') {
+    av = a.jumlah
+    bv = b.jumlah
+  } else {
+    av = a.nama
+    bv = b.nama
+  }
+  if (typeof av === 'number' && typeof bv === 'number') {
+    return (av - bv) * dir
+  }
+  return String(av).localeCompare(String(bv), 'id') * dir
+}
 
 export function KategoriUmurPage() {
-  const [data, setData] = useState<KategoriUmurSummary | null>(null)
-  const [selected, setSelected] = useState<string>('')
+  const { can } = useAuth()
+  const [ringkasan, setRingkasan] = useState<KategoriUmurRingkasanRow[]>(emptyRingkasan)
+  const [query, setQuery] = useState('')
+  const [search, setSearch] = useState('')
+  const [grupFilter, setGrupFilter] = useState('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
+  const [sort, setSort] = useState<ListSortState>({ sortBy: 'nama', sortDir: 'asc' })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
+  const exportAccess = listExportAccess(can, PREFIX)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await kategoriUmurService.list({ page: 1, per_page: 5 })
+      setRingkasan(result.ringkasan?.length ? result.ringkasan : emptyRingkasan())
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Gagal memuat kategori umur')
+      setRingkasan(emptyRingkasan())
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    let active = true
-
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const result = await kategoriUmurService.summary(
-          selected && selected !== 'belum' ? { kategori: selected } : undefined,
-        )
-        if (active) setData(result)
-      } catch (err) {
-        if (active) {
-          setError(err instanceof ApiError ? err.message : 'Gagal memuat kategori umur')
-        }
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
     void load()
-    return () => {
-      active = false
-    }
-  }, [selected])
+  }, [load])
 
-  const activeGroup =
-    selected === 'belum'
-      ? data?.belum_diklasifikasi
-      : data?.kategori.find((item) => item.kode === selected) ?? null
+  const grupOptions = useMemo(() => {
+    const groups = [...new Set(ringkasan.map((row) => row.grup))]
+    return [
+      { value: '', label: 'Semua grup' },
+      ...groups.map((grup) => ({ value: grup, label: grup })),
+    ]
+  }, [ringkasan])
+
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const rows = ringkasan.filter((row) => {
+      if (grupFilter && row.grup !== grupFilter) return false
+      if (!q) return true
+      return (
+        row.nama.toLowerCase().includes(q) ||
+        row.grup.toLowerCase().includes(q) ||
+        row.rentang_usia.toLowerCase().includes(q)
+      )
+    })
+    return [...rows].sort((a, b) => compareRows(a, b, sort.sortBy, sort.sortDir))
+  }, [ringkasan, search, grupFilter, sort])
+
+  const meta: PaginationMeta = useMemo(() => {
+    const total = filteredRows.length
+    const lastPage = Math.max(1, Math.ceil(total / perPage) || 1)
+    const currentPage = Math.min(Math.max(1, page), lastPage)
+    return {
+      current_page: currentPage,
+      last_page: lastPage,
+      per_page: perPage,
+      total,
+    }
+  }, [filteredRows.length, page, perPage])
+
+  const pagedRows = useMemo(() => {
+    const start = (meta.current_page - 1) * meta.per_page
+    return filteredRows.slice(start, start + meta.per_page)
+  }, [filteredRows, meta.current_page, meta.per_page])
+
+  function handleSearchSubmit(event: FormEvent) {
+    event.preventDefault()
+    setSearch(query)
+    setPage(1)
+  }
+
+  function handleGrupChange(next: string) {
+    setGrupFilter(next)
+    setPage(1)
+  }
+
+  function clearFilters() {
+    setQuery('')
+    setSearch('')
+    setGrupFilter('')
+    setPage(1)
+  }
+
+  function handleSort(column: string) {
+    setSort((current) => toggleSort(current, column))
+    setPage(1)
+  }
+
+  const sortBind = bindSortableTh(sort, handleSort)
+
+  const hasActiveFilters = search !== '' || grupFilter !== ''
 
   return (
     <>
       <header className="page-header">
-        <h1>Kategori umur</h1>
-        <p>
-          Klasifikasi otomatis dari tanggal lahir dan status pernikahan (bukan input kategori manual).
-        </p>
+        <div className="page-header__row">
+          <div>
+            <h1>Kategori umur</h1>
+            <p>
+              Semua kategori tetap ditampilkan (jumlah 0 jika belum ada data). Klasifikasi dari
+              tanggal lahir dan status pernikahan.
+            </p>
+          </div>
+          <div className="page-header__actions">
+            <ExportPrintActions
+              title="Kategori Umur"
+              dokumenKey="kategori_umur"
+              disabled={loading || filteredRows.length === 0 || visibleColumns.length === 0}
+              {...exportAccess}
+              getPayload={() => ({
+                title: 'Kategori Umur',
+                headers: ['No', ...visibleColumns.map((column) => column.label)],
+                rows: filteredRows.map((row, index) => [
+                  index + 1,
+                  ...visibleColumns.map((column) => column.exportValue(row)),
+                ]),
+              })}
+            />
+          </div>
+        </div>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}
 
+      <div className="filter-bar">
+        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
+          <input
+            type="search"
+            placeholder="Cari kategori atau grup…"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            aria-label="Cari kategori umur"
+          />
+        </form>
+        <div className="filter-bar__fields">
+          <div className="field">
+            <label htmlFor="filter_grup">Grup</label>
+            <SearchableSelect
+              id="filter_grup"
+              value={grupFilter}
+              onChange={handleGrupChange}
+              placeholder="Semua grup"
+              options={grupOptions}
+            />
+          </div>
+        </div>
+        {hasActiveFilters && (
+          <div className="filter-bar__actions">
+            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
+              Hapus filter
+            </button>
+          </div>
+        )}
+      </div>
+
       {loading && <div className="loading-state">Memuat kategori umur…</div>}
 
-      {!loading && data && (
-        <>
-          <section className="dash-panel">
-            <div className="kehadiran-panel__head">
-              <h2>Ringkasan</h2>
-              <p>Total jamaah aktif: {data.total_aktif}</p>
-            </div>
-            <div className="form-grid form-grid--2" style={{ marginTop: '1rem' }}>
-              {data.kategori.map((item) => (
-                <button
-                  key={item.kode ?? item.nama}
-                  type="button"
-                  className={`btn ${selected === item.kode ? 'btn--primary' : 'btn--secondary'}`}
-                  onClick={() =>
-                    setSelected(item.kode && item.kode === selected ? '' : (item.kode ?? ''))
-                  }
-                >
-                  {item.nama} · {item.jumlah}
-                  <span className="field-hint" style={{ display: 'block', marginTop: 4 }}>
-                    {item.rentang_usia}
-                  </span>
-                </button>
+      {!loading && filteredRows.length === 0 && (
+        <div className="empty-state">
+          {hasActiveFilters ? 'Tidak ada kategori yang cocok.' : 'Belum ada master kategori umur.'}
+        </div>
+      )}
+
+      {!loading && filteredRows.length > 0 && visibleColumns.length === 0 && (
+        <div className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</div>
+      )}
+
+      {!loading && filteredRows.length > 0 && visibleColumns.length > 0 && (
+        <div className="data-table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                {visibleColumns.map((column) => (
+                  <SortableTh
+                    key={column.key}
+                    label={column.label}
+                    column={column.sortKey}
+                    {...sortBind}
+                  />
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedRows.map((row, index) => (
+                <tr key={row.kode ?? FILTER_BELUM}>
+                  <td className="col-no">{rowNumber(meta, index)}</td>
+                  {visibleColumns.map((column) => (
+                    <td key={column.key}>{column.cell(row)}</td>
+                  ))}
+                </tr>
               ))}
-              <button
-                type="button"
-                className={`btn ${selected === 'belum' ? 'btn--primary' : 'btn--secondary'}`}
-                onClick={() => setSelected(selected === 'belum' ? '' : 'belum')}
-              >
-                Belum diklasifikasi · {data.belum_diklasifikasi.jumlah}
-                <span className="field-hint" style={{ display: 'block', marginTop: 4 }}>
-                  Tanggal lahir kosong
-                </span>
-              </button>
-            </div>
-          </section>
+            </tbody>
+          </table>
+        </div>
+      )}
 
-          <section className="dash-panel" style={{ marginTop: '1rem' }}>
-            <div className="kehadiran-panel__head">
-              <h2>{activeGroup ? activeGroup.nama : 'Semua kategori'}</h2>
-              <p>
-                {activeGroup
-                  ? `${activeGroup.jumlah} jamaah · ${activeGroup.rentang_usia}`
-                  : 'Pilih kategori di atas untuk melihat daftar, atau lihat ringkasan jumlah.'}
-              </p>
-            </div>
-
-            {activeGroup && activeGroup.items.length === 0 && (
-              <div className="empty-state">Tidak ada jamaah di kategori ini.</div>
-            )}
-
-            {activeGroup && activeGroup.items.length > 0 && (
-              <div className="data-table-wrap" style={{ marginTop: '1rem' }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>No</th>
-                      <th>Nama</th>
-                      <th>Usia</th>
-                      <th>Status nikah</th>
-                      <th>Tgl lahir</th>
-                      <th>Kelompok</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeGroup.items.map((item, index) => (
-                      <tr key={item.id}>
-                        <td className="col-no">{index + 1}</td>
-                        <td>{item.nama}</td>
-                        <td>{item.usia ?? '—'}</td>
-                        <td>{item.status_pernikahan_label || '—'}</td>
-                        <td>{item.tanggal_lahir || '—'}</td>
-                        <td>{item.kelompok?.nama || '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {!activeGroup && (
-              <div className="data-table-wrap" style={{ marginTop: '1rem' }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Grup</th>
-                      <th>Kategori</th>
-                      <th>Rentang</th>
-                      <th>Jumlah</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.asumsi_rentang.map((item) => {
-                      const count =
-                        data.kategori.find((row) => row.kode === item.kode)?.jumlah ?? 0
-                      return (
-                        <tr key={item.kode}>
-                          <td>{item.grup}</td>
-                          <td>{item.nama}</td>
-                          <td>{item.rentang_usia}</td>
-                          <td>{count}</td>
-                        </tr>
-                      )
-                    })}
-                    <tr>
-                      <td>Lainnya</td>
-                      <td>Belum diklasifikasi</td>
-                      <td>Tanggal lahir kosong</td>
-                      <td>{data.belum_diklasifikasi.jumlah}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        </>
+      {!loading && (
+        <Pagination
+          meta={meta.total > 0 ? meta : { ...DEFAULT_PAGINATION_META, per_page: perPage }}
+          showWhenEmpty
+          onPageChange={setPage}
+          onPerPageChange={(next) => {
+            setPerPage(next)
+            setPage(1)
+          }}
+        />
       )}
     </>
   )

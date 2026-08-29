@@ -1,15 +1,92 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { masterDapukanService, masterUserService } from '../api/services'
 import { useAuth } from '../auth/AuthContext'
 import { Pagination, rowNumber } from '../components/Pagination'
+import { SortableTh, bindSortableTh } from '../components/SortableTh'
 import type { Dapukan, MasterUser, PaginationMeta } from '../api/types'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
-
+import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
+import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { ExportPrintActions } from '../components/ExportPrintActions'
+import { PermissionLink } from '../components/PermissionLink'
+import { useToast } from '../components/ToastProvider'
+
+function formatScope(item: MasterUser) {
+  const parts = [
+    item.scope?.pusat?.nama,
+    item.scope?.daerah?.nama,
+    item.scope?.desa?.nama,
+    item.scope?.kelompok?.nama,
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join(' → ') : '—'
+}
+
+function dapukanLabel(item: MasterUser) {
+  return (
+    (item.dapukan_list && item.dapukan_list.length > 0
+      ? item.dapukan_list.map((d) => d.nama).join(', ')
+      : item.dapukan?.nama) || '—'
+  )
+}
+
+type ColumnDef = {
+  key: string
+  label: string
+  sortKey?: string
+  sortable?: boolean
+  cell: (item: MasterUser) => ReactNode
+  exportValue: (item: MasterUser) => string | number
+}
+
+const COLUMNS: ColumnDef[] = [
+  {
+    key: 'nama',
+    label: 'Nama',
+    sortKey: 'name',
+    cell: (item) => item.name,
+    exportValue: (item) => item.name,
+  },
+  {
+    key: 'username',
+    label: 'Username',
+    sortKey: 'username',
+    cell: (item) => item.username,
+    exportValue: (item) => item.username,
+  },
+  {
+    key: 'dapukan',
+    label: 'Dapukan',
+    sortable: false,
+    cell: (item) => dapukanLabel(item),
+    exportValue: (item) => dapukanLabel(item),
+  },
+  {
+    key: 'cakupan',
+    label: 'Cakupan',
+    sortable: false,
+    cell: (item) => formatScope(item),
+    exportValue: (item) => formatScope(item),
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    sortKey: 'is_active',
+    cell: (item) => (
+      <span className={`badge ${item.is_active ? 'badge--ok' : 'badge--muted'}`}>
+        {item.is_active ? 'Aktif' : 'Nonaktif'}
+      </span>
+    ),
+    exportValue: (item) => (item.is_active ? 'Aktif' : 'Nonaktif'),
+  },
+]
+
+const PREFIX = 'users'
+
 export function MasterUsersPage() {
   const { can } = useAuth()
+  const { notifySuccess } = useToast()
   const [items, setItems] = useState<MasterUser[]>([])
   const [dapukanList, setDapukanList] = useState<Dapukan[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
@@ -19,8 +96,15 @@ export function MasterUsersPage() {
   const [dapukanFilter, setDapukanFilter] = useState(0)
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
+  const [sort, setSort] = useState<ListSortState>({ sortBy: 'name', sortDir: 'asc' })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
+  const exportAccess = listExportAccess(can, PREFIX)
+  const createAccess = listButtonAccess(can, PREFIX, 'create')
+  const updateAccess = listButtonAccess(can, PREFIX, 'update')
+  const showActions = updateAccess.visible
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -32,6 +116,7 @@ export function MasterUsersPage() {
         dapukan_id: dapukanFilter || undefined,
         page,
         per_page: perPage,
+        ...toSortParams(sort),
       })
       setItems(users.items)
       setMeta(users.meta)
@@ -40,7 +125,7 @@ export function MasterUsersPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, isActiveFilter, dapukanFilter, page, perPage])
+  }, [search, isActiveFilter, dapukanFilter, page, perPage, sort])
 
   useEffect(() => {
     void load()
@@ -63,6 +148,7 @@ export function MasterUsersPage() {
     setError(null)
     try {
       await masterUserService.deactivate(item.id)
+      notifySuccess('Pengguna berhasil dinonaktifkan.')
       await load()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menonaktifkan pengguna')
@@ -83,17 +169,14 @@ export function MasterUsersPage() {
     setPage(1)
   }
 
-  const hasActiveFilters = search !== '' || isActiveFilter !== '' || dapukanFilter > 0
-
-  function formatScope(item: MasterUser) {
-    const parts = [
-      item.scope?.pusat?.nama,
-      item.scope?.daerah?.nama,
-      item.scope?.desa?.nama,
-      item.scope?.kelompok?.nama,
-    ].filter(Boolean)
-    return parts.length > 0 ? parts.join(' → ') : '—'
+  function handleSort(column: string) {
+    setSort((current) => toggleSort(current, column))
+    setPage(1)
   }
+
+  const sortBind = bindSortableTh(sort, handleSort)
+
+  const hasActiveFilters = search !== '' || isActiveFilter !== '' || dapukanFilter > 0
 
   return (
     <>
@@ -103,11 +186,31 @@ export function MasterUsersPage() {
             <h1>Master Pengguna</h1>
             <p>Akun login ditautkan ke jamaah; dapukan & cakupan dari master jamaah.</p>
           </div>
-          {can('users.create') && (
-            <Link to="/master/users/new" className="btn btn--primary">
-              Tambah pengguna
-            </Link>
-          )}
+          <div className="page-header__actions">
+            <ExportPrintActions
+              title="Master Pengguna"
+              dokumenKey="master_users"
+              disabled={loading || items.length === 0 || visibleColumns.length === 0}
+              {...exportAccess}
+              getPayload={() => ({
+                title: 'Master Pengguna',
+                headers: ['No', ...visibleColumns.map((column) => column.label)],
+                rows: items.map((item, index) => [
+                  rowNumber(meta, index),
+                  ...visibleColumns.map((column) => column.exportValue(item)),
+                ]),
+              })}
+            />
+            {createAccess.visible && (
+              <PermissionLink
+                to="/master/users/new"
+                enabled={createAccess.enabled}
+                className="btn btn--primary"
+              >
+                Tambah pengguna
+              </PermissionLink>
+            )}
+          </div>
         </div>
       </header>
 
@@ -135,9 +238,9 @@ export function MasterUsersPage() {
               }}
               placeholder="Semua"
               options={[
-                { value: "", label: "Semua" },
-                { value: "1", label: "Aktif" },
-                { value: "0", label: "Nonaktif" },
+                { value: '', label: 'Semua' },
+                { value: '1', label: 'Aktif' },
+                { value: '0', label: 'Nonaktif' },
               ]}
             />
           </div>
@@ -159,9 +262,11 @@ export function MasterUsersPage() {
           </div>
         </div>
         {hasActiveFilters && (
-          <button type="button" className="btn btn--secondary btn--small" onClick={clearFilters}>
-            Hapus filter
-          </button>
+          <div className="filter-bar__actions">
+            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
+              Hapus filter
+            </button>
+          </div>
         )}
       </div>
 
@@ -173,59 +278,62 @@ export function MasterUsersPage() {
         </div>
       )}
 
-      {!loading && items.length > 0 && (
+      {!loading && items.length > 0 && visibleColumns.length === 0 && !showActions && (
+        <div className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</div>
+      )}
+
+      {!loading && items.length > 0 && (visibleColumns.length > 0 || showActions) && (
         <>
           <div className="data-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>No</th>
-                  <th>Nama</th>
-                  <th>Username</th>
-                  <th>Dapukan</th>
-                  <th>Cakupan</th>
-                  <th>Status</th>
-                  <th>Kelola</th>
+                  {visibleColumns.map((column) =>
+                    column.sortable === false ? (
+                      <th key={column.key}>{column.label}</th>
+                    ) : (
+                      <SortableTh
+                        key={column.key}
+                        label={column.label}
+                        column={column.sortKey ?? column.key}
+                        {...sortBind}
+                      />
+                    ),
+                  )}
+                  {showActions && <th>Kelola</th>}
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, index) => (
                   <tr key={item.id}>
                     <td className="col-no">{rowNumber(meta, index)}</td>
-                    <td>{item.name}</td>
-                    <td>{item.username}</td>
-                    <td>
-                      {(item.dapukan_list && item.dapukan_list.length > 0
-                        ? item.dapukan_list.map((d) => d.nama).join(', ')
-                        : item.dapukan?.nama) || '—'}
-                    </td>
-                    <td>{formatScope(item)}</td>
-                    <td>
-                      <span className={`badge ${item.is_active ? 'badge--ok' : 'badge--muted'}`}>
-                        {item.is_active ? 'Aktif' : 'Nonaktif'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="data-table__actions">
-                        {can('users.update') && (
-                          <Link
+                    {visibleColumns.map((column) => (
+                      <td key={column.key}>{column.cell(item)}</td>
+                    ))}
+                    {showActions && (
+                      <td>
+                        <div className="data-table__actions">
+                          <PermissionLink
                             to={`/master/users/${item.id}/edit`}
+                            enabled={updateAccess.enabled}
                             className="btn btn--secondary btn--small"
                           >
                             Edit
-                          </Link>
-                        )}
-                        {can('users.update') && item.is_active && (
-                          <button
-                            type="button"
-                            className="btn btn--danger btn--small"
-                            onClick={() => void handleDeactivate(item)}
-                          >
-                            Nonaktifkan
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                          </PermissionLink>
+                          {item.is_active && (
+                            <button
+                              type="button"
+                              className="btn btn--danger btn--small"
+                              disabled={!updateAccess.enabled}
+                              onClick={() => void handleDeactivate(item)}
+                            >
+                              Nonaktifkan
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

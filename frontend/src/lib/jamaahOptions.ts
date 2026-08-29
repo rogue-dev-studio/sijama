@@ -2,10 +2,12 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-03 12:05:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-03 12:30:00
+ * @Last Modified time: 2026-08-27 14:45:00
  */
 
 export type KategoriUmur =
+  | 'bayi'
+  | 'balita'
   | 'paud'
   | 'caberawit_a'
   | 'caberawit_b'
@@ -29,13 +31,16 @@ export type Pendidikan =
   | 's3'
   | 'lainnya'
 
+/** Selaras dengan `App\Support\JamaahKategoriUmur` (backend). */
 export const KATEGORI_UMUR_OPTIONS: Array<{
   value: KategoriUmur
   label: string
   group: string
   rentang: string
 }> = [
-  { value: 'paud', label: 'PAUD', group: 'Caberawit', rentang: '0–5 tahun' },
+  { value: 'bayi', label: 'Bayi', group: 'Caberawit', rentang: '0–1 tahun' },
+  { value: 'balita', label: 'Balita', group: 'Caberawit', rentang: '2–4 tahun' },
+  { value: 'paud', label: 'PAUD', group: 'Caberawit', rentang: '5 tahun' },
   { value: 'caberawit_a', label: 'Caberawit A', group: 'Caberawit', rentang: '6–8 tahun' },
   { value: 'caberawit_b', label: 'Caberawit B', group: 'Caberawit', rentang: '9–11 tahun' },
   { value: 'caberawit_c', label: 'Caberawit C', group: 'Caberawit', rentang: '12–14 tahun' },
@@ -51,7 +56,7 @@ export const KATEGORI_UMUR_OPTIONS: Array<{
     value: 'dewasa',
     label: 'Dewasa',
     group: 'Dewasa',
-    rentang: '21–59 tahun · sudah menikah',
+    rentang: '21–59 tahun · sudah menikah / cerai',
   },
   { value: 'lansia', label: 'Lansia', group: 'Lansia', rentang: '60+ tahun' },
 ]

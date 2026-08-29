@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateAdmKecamatanRequest;
 use App\Http\Resources\AdmKecamatanResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\AdmKecamatanService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,11 +25,15 @@ class AdmKecamatanController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->admKecamatanService->list(
             $request->query('q'),
             $request->filled('kabupaten_kota_id') ? $request->integer('kabupaten_kota_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

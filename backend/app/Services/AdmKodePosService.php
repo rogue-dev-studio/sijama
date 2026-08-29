@@ -3,30 +3,47 @@
 /**
  * @Author: rogue-dev-studio
  * @Date:   2026-08-01 16:38:00
- * @Last Modified by:   rogue-dev-studio
- * @Last Modified time: 2026-08-01 16:38:00
+ * @Last Modified by: rogue-dev-studio
+ * @Last Modified time: 2026-08-29 15:25:00
  */
 
 namespace App\Services;
 
 use App\Http\Resources\AdmKodePosResource;
 use App\Models\AdmDesaKelurahan;
-use App\Models\AdmKecamatan;
 use App\Models\AdmKodePos;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 
 class AdmKodePosService
 {
+    private const WILAYAH_RELATIONS = [
+        'desaKelurahan.kecamatan.kabupatenKota.provinsi.negara',
+    ];
+
     public function list(
         ?string $query = null,
         ?int $desaKelurahanId = null,
         ?int $kecamatanId = null,
+        ?int $kabupatenKotaId = null,
+        ?int $provinsiId = null,
+        ?int $negaraId = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = AdmKodePos::query()->with(['desaKelurahan', 'kecamatan'])->orderBy('kode');
+        $builder = AdmKodePos::query()->with(self::WILAYAH_RELATIONS);
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['kode', 'is_active'],
+            'kode',
+        );
 
         if ($desaKelurahanId !== null) {
             $builder->where('desa_kelurahan_id', $desaKelurahanId);
@@ -36,8 +53,42 @@ class AdmKodePosService
             $builder->where('kecamatan_id', $kecamatanId);
         }
 
+        if ($kabupatenKotaId !== null) {
+            $builder->whereHas(
+                'desaKelurahan.kecamatan',
+                fn ($q) => $q->where('kabupaten_kota_id', $kabupatenKotaId),
+            );
+        }
+
+        if ($provinsiId !== null) {
+            $builder->whereHas(
+                'desaKelurahan.kecamatan.kabupatenKota',
+                fn ($q) => $q->where('provinsi_id', $provinsiId),
+            );
+        }
+
+        if ($negaraId !== null) {
+            $builder->whereHas(
+                'desaKelurahan.kecamatan.kabupatenKota.provinsi',
+                fn ($q) => $q->where('negara_id', $negaraId),
+            );
+        }
+
         if ($query) {
-            $builder->where('kode', 'like', "%{$query}%");
+            $term = trim($query);
+            $builder->where(function ($nested) use ($term) {
+                $nested->where('kode', 'like', "%{$term}%")
+                    ->orWhereHas('desaKelurahan', fn ($desa) => $desa->where('nama', 'like', "%{$term}%"))
+                    ->orWhereHas('desaKelurahan.kecamatan', fn ($kec) => $kec->where('nama', 'like', "%{$term}%"))
+                    ->orWhereHas(
+                        'desaKelurahan.kecamatan.kabupatenKota',
+                        fn ($kab) => $kab->where('nama', 'like', "%{$term}%"),
+                    )
+                    ->orWhereHas(
+                        'desaKelurahan.kecamatan.kabupatenKota.provinsi',
+                        fn ($prov) => $prov->where('nama', 'like', "%{$term}%"),
+                    );
+            });
         }
 
         return PaginationHelper::paginate($builder, $perPage, $page);
@@ -45,44 +96,55 @@ class AdmKodePosService
 
     public function create(array $data): AdmKodePosResource
     {
-        if (! empty($data['desa_kelurahan_id'])) {
-            AdmDesaKelurahan::findOrFail($data['desa_kelurahan_id']);
-        }
-
-        if (! empty($data['kecamatan_id'])) {
-            AdmKecamatan::findOrFail($data['kecamatan_id']);
-        }
+        $data = $this->normalizeWilayah($data);
 
         $kodePos = AdmKodePos::create($data);
 
-        return new AdmKodePosResource($kodePos->load(['desaKelurahan', 'kecamatan']));
+        return new AdmKodePosResource($kodePos->load(self::WILAYAH_RELATIONS));
     }
 
     public function find(int $id): AdmKodePosResource
     {
-        return new AdmKodePosResource($this->findModel($id)->load(['desaKelurahan', 'kecamatan']));
+        return new AdmKodePosResource($this->findModel($id)->load(self::WILAYAH_RELATIONS));
     }
 
     public function update(int $id, array $data): AdmKodePosResource
     {
         $kodePos = $this->findModel($id);
-
-        if (! empty($data['desa_kelurahan_id'])) {
-            AdmDesaKelurahan::findOrFail($data['desa_kelurahan_id']);
-        }
-
-        if (! empty($data['kecamatan_id'])) {
-            AdmKecamatan::findOrFail($data['kecamatan_id']);
-        }
+        $data = $this->normalizeWilayah($data, $kodePos);
 
         $kodePos->update($data);
 
-        return new AdmKodePosResource($kodePos->fresh()->load(['desaKelurahan', 'kecamatan']));
+        return new AdmKodePosResource($kodePos->fresh()->load(self::WILAYAH_RELATIONS));
     }
 
     public function delete(int $id): void
     {
         $this->findModel($id)->delete();
+    }
+
+    private function normalizeWilayah(array $data, ?AdmKodePos $existing = null): array
+    {
+        unset($data['kecamatan_id'], $data['nama_wilayah']);
+
+        $desaId = $data['desa_kelurahan_id'] ?? $existing?->desa_kelurahan_id;
+        if (! $desaId) {
+            throw ValidationException::withMessages([
+                'desa_kelurahan_id' => ['Desa/kelurahan wajib dipilih.'],
+            ]);
+        }
+
+        $desa = AdmDesaKelurahan::query()->find($desaId);
+        if (! $desa) {
+            throw ValidationException::withMessages([
+                'desa_kelurahan_id' => ['Desa/kelurahan tidak ditemukan.'],
+            ]);
+        }
+
+        $data['desa_kelurahan_id'] = $desa->id;
+        $data['kecamatan_id'] = $desa->kecamatan_id;
+
+        return $data;
     }
 
     private function findModel(int $id): AdmKodePos

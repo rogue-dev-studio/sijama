@@ -5,6 +5,26 @@
     <meta name="theme-color" content="#0f6b4c" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SIJAMA — Sistem Informasi Jamaah</title>
+    <script>
+      (function () {
+        var key = 'sijama.color_scheme';
+        var preference = 'light';
+        try {
+          var stored = localStorage.getItem(key);
+          if (stored === 'light' || stored === 'dark' || stored === 'system') {
+            preference = stored;
+          }
+        } catch (e) {}
+        var effective =
+          preference === 'system'
+            ? window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
+            : preference;
+        document.documentElement.dataset.theme = effective;
+        document.documentElement.style.colorScheme = effective;
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

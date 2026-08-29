@@ -46,6 +46,23 @@ class KonfigSystemSeeder extends Seeder
             'mail_from_address' => env('MAIL_FROM_ADDRESS', 'hello@sijama.local'),
             'mail_from_name' => env('MAIL_FROM_NAME', config('app.name', 'SIJAMA')),
             'mail_reply_to' => env('MAIL_FROM_ADDRESS', 'hello@sijama.local'),
+            'password_reset_email_enabled' => filter_var(
+                env('PASSWORD_RESET_EMAIL_ENABLED', true),
+                FILTER_VALIDATE_BOOLEAN,
+            ),
+            'password_reset_phone_enabled' => filter_var(
+                env('PASSWORD_RESET_PHONE_ENABLED', false),
+                FILTER_VALIDATE_BOOLEAN,
+            ),
+            'sms_driver' => env('SMS_DRIVER', 'log'),
+            'sms_country_code' => env('SMS_COUNTRY_CODE', '62'),
+            'fonnte_endpoint' => env('FONNTE_ENDPOINT', 'https://api.fonnte.com/send'),
+            'telegram_enabled' => filter_var(env('TELEGRAM_BOT_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+            'telegram_bot_username' => env('TELEGRAM_BOT_USERNAME'),
+            'telegram_default_chat_id' => env('TELEGRAM_DEFAULT_CHAT_ID'),
+            'n8n_enabled' => filter_var(env('N8N_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+            'n8n_base_url' => env('N8N_BASE_URL'),
+            'n8n_webhook_url' => env('N8N_WEBHOOK_URL'),
             'header' => config('app.name', 'SIJAMA'),
             'footer' => 'Rogue Development',
             'website' => 'https://github.com/rogue-dev-studio',
@@ -69,6 +86,9 @@ class KonfigSystemSeeder extends Seeder
             'theme_color' => null,
             'maintenance_mode' => false,
             'maintenance_message' => 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
+            'path_maintenance_background' => null,
+            'maintenance_background_style' => 'cover',
+            'maintenance_background_repeat_size' => '28px',
             'additional_data' => null,
             'is_active' => true,
             'is_deleted' => false,
@@ -76,6 +96,18 @@ class KonfigSystemSeeder extends Seeder
 
         if ($mailPassword = env('MAIL_PASSWORD')) {
             $payload['smtp_password'] = $mailPassword;
+        }
+
+        if ($fonnteToken = env('FONNTE_TOKEN')) {
+            $payload['fonnte_token'] = $fonnteToken;
+        }
+
+        if ($telegramToken = env('TELEGRAM_BOT_TOKEN')) {
+            $payload['telegram_bot_token'] = $telegramToken;
+        }
+
+        if ($n8nKey = env('N8N_API_KEY')) {
+            $payload['n8n_api_key'] = $n8nKey;
         }
 
         if ($primary) {

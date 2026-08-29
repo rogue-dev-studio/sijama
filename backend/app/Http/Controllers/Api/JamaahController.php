@@ -12,6 +12,7 @@ use App\Http\Responses\ApiResponse;
 use App\Services\DapukanService;
 use App\Services\JamaahService;
 use App\Services\KelompokService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -25,6 +26,8 @@ class JamaahController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->jamaahService->list(
             $request->user(),
             $request->query('q'),
@@ -35,6 +38,8 @@ class JamaahController extends Controller
             $request->query('kategori_umur') ?: null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

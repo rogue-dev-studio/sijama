@@ -10,6 +10,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ResolveMapsCoordsRequest;
 use App\Http\Requests\ResolveMapsLocationRequest;
 use App\Http\Requests\SearchMapsPlacesRequest;
 use App\Http\Requests\StoreLokasiRequest;
@@ -18,6 +19,7 @@ use App\Http\Responses\ApiResponse;
 use App\Http\Resources\LokasiResource;
 use App\Services\LokasiService;
 use App\Services\MapsLocationResolverService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -35,12 +37,16 @@ class LokasiController extends Controller
             ? $request->boolean('is_active')
             : ($request->boolean('active_only') ? true : null);
 
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->lokasiService->list(
             $request->query('q'),
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $activeFilter,
             ['jenis' => $request->query('jenis')],
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([
@@ -86,6 +92,19 @@ class LokasiController extends Controller
         } catch (RuntimeException $exception) {
             return ApiResponse::error($exception->getMessage(), null, 422);
         }
+    }
+
+    public function resolveCoords(ResolveMapsCoordsRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        return ApiResponse::success(
+            $this->mapsLocationResolver->resolveCoords(
+                (float) $validated['lat'],
+                (float) $validated['lng'],
+            ),
+            'Wilayah dari koordinat berhasil disiapkan',
+        );
     }
 
     public function searchPlaces(SearchMapsPlacesRequest $request): JsonResponse

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import {
@@ -9,6 +9,7 @@ import {
   admProvinsiService,
   jamaahService,
   lookupOptionsService,
+  profileService,
 } from '../api/services'
 import type {
   AdmDesaKelurahan,
@@ -23,6 +24,7 @@ import type {
 } from '../api/types'
 import { JAMAAH_FORM_TYPES, LOOKUP_TYPE } from '../lib/lookupTypes'
 import { parseBirthInfoFromNik } from '../lib/nik'
+import { useToast } from '../components/ToastProvider'
 import { JamaahAddressFields } from './jamaah/JamaahAddressFields'
 import { JamaahProfileFields } from './jamaah/JamaahProfileFields'
 import {
@@ -36,6 +38,7 @@ export function JamaahFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [kelompokList, setKelompokList] = useState<Kelompok[]>([])
   const [form, setForm] = useState<JamaahInput>(emptyForm)
   const [loading, setLoading] = useState(true)
@@ -60,6 +63,8 @@ export function JamaahFormPage() {
   const [dapukanList, setDapukanList] = useState<JamaahDapukanOption[]>([])
   const [dapukanError, setDapukanError] = useState<string | null>(null)
   const [kelompokError, setKelompokError] = useState<string | null>(null)
+  const [nikWilayahHint, setNikWilayahHint] = useState<string | null>(null)
+  const nikWilayahTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const jamaahKelompokDapukanId = useMemo(() => {
     const item = dapukanList.find((dapukan) => dapukan.slug === JAMAHA_KELOMPOK_DAPUKAN_SLUG)
@@ -77,6 +82,12 @@ export function JamaahFormPage() {
       }
     })
   }, [jamaahKelompokDapukanId, form.kelompok_id])
+
+  useEffect(() => {
+    return () => {
+      if (nikWilayahTimer.current) clearTimeout(nikWilayahTimer.current)
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -262,7 +273,7 @@ export function JamaahFormPage() {
     setKabupatenKotaList([])
     setKecamatanList([])
     setDesaKelurahanList([])
-    updateField('adm_desa_kelurahan_id', null)
+    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
     setProvinsiList(negaraId > 0 ? await loadProvinsiForNegara(negaraId) : [])
   }
 
@@ -272,7 +283,7 @@ export function JamaahFormPage() {
     setSelectedKecamatanId(0)
     setKecamatanList([])
     setDesaKelurahanList([])
-    updateField('adm_desa_kelurahan_id', null)
+    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
     setKabupatenKotaList(provinsiId > 0 ? await loadKabupatenKotaForProvinsi(provinsiId) : [])
   }
 
@@ -280,13 +291,13 @@ export function JamaahFormPage() {
     setSelectedKabupatenKotaId(kabupatenKotaId)
     setSelectedKecamatanId(0)
     setDesaKelurahanList([])
-    updateField('adm_desa_kelurahan_id', null)
+    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
     setKecamatanList(kabupatenKotaId > 0 ? await loadKecamatanForKabupatenKota(kabupatenKotaId) : [])
   }
 
   async function handleKecamatanChange(kecamatanId: number) {
     setSelectedKecamatanId(kecamatanId)
-    updateField('adm_desa_kelurahan_id', null)
+    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
     setDesaKelurahanList(kecamatanId > 0 ? await loadDesaKelurahanForKecamatan(kecamatanId) : [])
   }
 
@@ -306,6 +317,46 @@ export function JamaahFormPage() {
 
   function isFieldInvalid(name: string): boolean {
     return Boolean(fieldErrors[name]?.length)
+  }
+
+  async function applyWilayahFromNik(nikDigits: string) {
+    if (nikDigits.length < 6) {
+      setNikWilayahHint(null)
+      return
+    }
+
+    try {
+      const result = await profileService.wilayahFromNik(nikDigits)
+      if (
+        !result.found ||
+        !result.negara_id ||
+        !result.provinsi_id ||
+        !result.kabupaten_kota_id ||
+        !result.kecamatan_id
+      ) {
+        setNikWilayahHint('Kode wilayah NIK (6 digit awal) tidak ditemukan di master administrasi.')
+        return
+      }
+
+      setSelectedNegaraId(result.negara_id)
+      setProvinsiList(await loadProvinsiForNegara(result.negara_id))
+      setSelectedProvinsiId(result.provinsi_id)
+      setKabupatenKotaList(await loadKabupatenKotaForProvinsi(result.provinsi_id))
+      setSelectedKabupatenKotaId(result.kabupaten_kota_id)
+      setKecamatanList(await loadKecamatanForKabupatenKota(result.kabupaten_kota_id))
+      setSelectedKecamatanId(result.kecamatan_id)
+      setDesaKelurahanList(await loadDesaKelurahanForKecamatan(result.kecamatan_id))
+      setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
+
+      const kecamatanNama = result.kecamatan?.nama || 'Kecamatan'
+      const kabNama = result.kabupaten_kota?.nama || 'Kab/Kota'
+      const provNama = result.provinsi?.nama || 'Provinsi'
+      setNikWilayahHint(
+        `Wilayah terisi otomatis: ${kecamatanNama}, ${kabNama}, ${provNama}. Pilih desa/kelurahan manual.`,
+      )
+    } catch {
+      setNikWilayahHint(null)
+    }
   }
 
   function handleNikChange(rawValue: string) {
@@ -330,6 +381,15 @@ export function JamaahFormPage() {
       delete next.gender
       return next
     })
+
+    if (nikWilayahTimer.current) clearTimeout(nikWilayahTimer.current)
+    if (nik.length >= 6) {
+      nikWilayahTimer.current = setTimeout(() => {
+        void applyWilayahFromNik(nik)
+      }, 350)
+    } else {
+      setNikWilayahHint(null)
+    }
   }
 
   function toggleDapukan(id: number) {
@@ -384,6 +444,7 @@ export function JamaahFormPage() {
       } else {
         await jamaahService.create(payload)
       }
+      notifySaved('jamaah', isEdit ? 'update' : 'create')
       navigate('/jamaah')
     } catch (err) {
       if (err instanceof ApiError) {
@@ -451,6 +512,7 @@ export function JamaahFormPage() {
             })
           }}
           onNikChange={handleNikChange}
+          nikWilayahHint={nikWilayahHint}
           onToggleDapukan={toggleDapukan}
           onPekerjaanChange={(pekerjaanId) => {
             const selected = pekerjaanOptions.find((item) => item.id === pekerjaanId)

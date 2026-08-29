@@ -2,17 +2,23 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 16:57:14
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:45:00
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import type { Paginated, PaginationMeta } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
+import { ExportPrintActions } from './ExportPrintActions'
+import { PermissionLink } from './PermissionLink'
 import { Pagination, rowNumber } from './Pagination'
 import { SearchableSelect } from './SearchableSelect'
+import { SortableTh, bindSortableTh } from './SortableTh'
+import { useToast } from './ToastProvider'
+import type { ExportTablePayload } from '../lib/tableExport'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
+import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
 
 export type SimpleMasterListItem = {
   id: number
@@ -25,6 +31,8 @@ export type MasterListParams = {
   is_active?: boolean
   page?: number
   per_page?: number
+  sort_by?: string
+  sort_dir?: 'asc' | 'desc'
   [key: string]: string | number | boolean | undefined
 }
 
@@ -42,6 +50,24 @@ export type SelectFilterConfig = {
   allLabel?: string
 }
 
+export type SortColumnDef = { key: string; label: string }
+
+export type SortColumnsConfig = {
+  leading?: SortColumnDef[]
+  nama?: SortColumnDef | false
+  extra?: SortColumnDef[]
+  status?: SortColumnDef | false
+}
+
+export type GatedColumn<T> = {
+  key: string
+  label: string
+  sortKey?: string
+  sortable?: boolean
+  cell: (item: T) => ReactNode
+  exportValue: (item: T) => string | number
+}
+
 type SimpleMasterListPageProps<T extends SimpleMasterListItem> = {
   title: string
   description: string
@@ -56,8 +82,14 @@ type SimpleMasterListPageProps<T extends SimpleMasterListItem> = {
   showStatusColumn?: boolean
   parentFilter?: ParentFilterConfig
   selectFilter?: SelectFilterConfig
+  /** Filter tambahan (mis. cascade wilayah) — digabung ke params list. */
+  extraFilterParams?: Record<string, string | number | boolean | undefined>
+  renderExtraFilters?: (helpers: { setPage: (page: number) => void }) => ReactNode
+  hasExtraFilters?: boolean
+  onClearExtraFilters?: () => void
   requireParentOptionsForCreate?: boolean
   canDeleteItem?: (item: T) => boolean
+  columns?: GatedColumn<T>[]
   renderLeadingHeaders?: () => ReactNode
   renderLeadingCells?: (item: T) => ReactNode
   renderExtraHeaders?: () => ReactNode
@@ -65,6 +97,13 @@ type SimpleMasterListPageProps<T extends SimpleMasterListItem> = {
   renderStatusExtra?: (item: T) => ReactNode
   itemLabel?: (item: T) => string
   actionsHeaderLabel?: string
+  /** Tombol Ekspor / Cetak di header (default: true). */
+  enableExport?: boolean
+  /** Kunci cetakan = lookup_value tipe konfig_dokumen. */
+  dokumenKey?: string
+  getExportPayload?: (items: T[], meta: PaginationMeta) => ExportTablePayload
+  sortColumns?: SortColumnsConfig
+  defaultSortBy?: string
 }
 
 export function SimpleMasterListPage<T extends SimpleMasterListItem>({
@@ -81,8 +120,13 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   showStatusColumn = true,
   parentFilter,
   selectFilter,
+  extraFilterParams,
+  renderExtraFilters,
+  hasExtraFilters = false,
+  onClearExtraFilters,
   requireParentOptionsForCreate = false,
   canDeleteItem,
+  columns,
   renderLeadingHeaders,
   renderLeadingCells,
   renderExtraHeaders,
@@ -90,8 +134,14 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   renderStatusExtra,
   itemLabel,
   actionsHeaderLabel = 'Aksi',
+  enableExport = true,
+  dokumenKey = 'master_list',
+  getExportPayload,
+  sortColumns,
+  defaultSortBy = 'nama',
 }: SimpleMasterListPageProps<T>) {
   const { can } = useAuth()
+  const { notifyDeleted } = useToast()
   const [items, setItems] = useState<T[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [query, setQuery] = useState('')
@@ -102,8 +152,28 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   const [parentOptions, setParentOptions] = useState<Array<{ id: number; nama: string }>>([])
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
+  const [sort, setSort] = useState<ListSortState>({ sortBy: defaultSortBy, sortDir: 'asc' })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const useGatedColumns = columns !== undefined
+  const visibleColumns = useGatedColumns
+    ? columns.filter((column) => can(listColumnPerm(permissionPrefix, column.key)))
+    : []
+  const exportAccess = listExportAccess(can, permissionPrefix)
+  const createAccess = listButtonAccess(can, permissionPrefix, 'create')
+  const updateAccess = listButtonAccess(can, permissionPrefix, 'update')
+  const deleteAccess = listButtonAccess(can, permissionPrefix, 'delete')
+  const showActions = useGatedColumns
+    ? updateAccess.visible || deleteAccess.visible
+    : true
+
+  const namaColumn =
+    sortColumns?.nama === false ? null : (sortColumns?.nama ?? { key: 'nama', label: 'Nama' })
+  const statusColumn =
+    showStatusColumn && sortColumns?.status !== false
+      ? (sortColumns?.status ?? { key: 'is_active', label: 'Status' })
+      : null
 
   useEffect(() => {
     if (!parentFilter) return
@@ -135,12 +205,20 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
           showStatusFilter && isActiveFilter !== '' ? isActiveFilter === '1' : undefined,
         page,
         per_page: perPage,
+        ...toSortParams(sort),
       }
       if (parentFilter && parentId > 0) {
         params[parentFilter.paramKey] = parentId
       }
       if (selectFilter && selectValue) {
         params[selectFilter.paramKey] = selectValue
+      }
+      if (extraFilterParams) {
+        for (const [key, value] of Object.entries(extraFilterParams)) {
+          if (value !== undefined && value !== '' && value !== 0) {
+            params[key] = value
+          }
+        }
       }
       const result = await list(params)
       setItems(result.items)
@@ -155,6 +233,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     isActiveFilter,
     page,
     perPage,
+    sort,
     list,
     entityLabel,
     showStatusFilter,
@@ -162,11 +241,19 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     parentId,
     selectFilter,
     selectValue,
+    extraFilterParams,
   ])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  function handleSort(column: string) {
+    setSort((current) => toggleSort(current, column))
+    setPage(1)
+  }
+
+  const sortBind = bindSortableTh(sort, handleSort)
 
   async function handleDelete(item: T) {
     const label = itemLabel?.(item) ?? item.nama
@@ -174,6 +261,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     setError(null)
     try {
       await remove(item.id)
+      notifyDeleted(entityLabel)
       await load()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : `Gagal menghapus ${entityLabel}`)
@@ -192,6 +280,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     setIsActiveFilter('')
     setParentId(0)
     setSelectValue('')
+    onClearExtraFilters?.()
     setPage(1)
   }
 
@@ -199,11 +288,55 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     search !== '' ||
     (showStatusFilter && isActiveFilter !== '') ||
     (parentFilter !== undefined && parentId > 0) ||
-    (selectFilter !== undefined && selectValue !== '')
+    (selectFilter !== undefined && selectValue !== '') ||
+    hasExtraFilters
 
-  const canCreate =
-    can(`${permissionPrefix}.create`) &&
-    (!requireParentOptionsForCreate || parentOptions.length > 0)
+  const createEnabled =
+    createAccess.enabled && (!requireParentOptionsForCreate || parentOptions.length > 0)
+
+  function defaultGatedExportPayload(): ExportTablePayload {
+    return {
+      title,
+      headers: ['No', ...visibleColumns.map((column) => column.label)],
+      rows: items.map((item, index) => [
+        rowNumber(meta, index),
+        ...visibleColumns.map((column) => column.exportValue(item)),
+      ]),
+    }
+  }
+
+  function defaultLegacyExportPayload(): ExportTablePayload {
+    return {
+      title,
+      headers: showStatusColumn ? ['No', 'Nama', 'Status'] : ['No', 'Nama'],
+      rows: items.map((item, index) => {
+        const no = String(rowNumber(meta, index))
+        const nama = itemLabel?.(item) ?? item.nama
+        if (!showStatusColumn) return [no, nama]
+        return [no, nama, item.is_active !== false ? 'Aktif' : 'Nonaktif']
+      }),
+    }
+  }
+
+  function renderColumnHeader(column: GatedColumn<T>) {
+    const sortable = column.sortable !== false
+    if (!sortable) {
+      return <th key={column.key}>{column.label}</th>
+    }
+    return (
+      <SortableTh
+        key={column.key}
+        label={column.label}
+        column={column.sortKey ?? column.key}
+        {...sortBind}
+      />
+    )
+  }
+
+  const showTable =
+    !loading &&
+    items.length > 0 &&
+    (!useGatedColumns || visibleColumns.length > 0 || showActions)
 
   return (
     <>
@@ -213,11 +346,34 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
             <h1>{title}</h1>
             <p>{description}</p>
           </div>
-          {canCreate && (
-            <Link to={`${basePath}/new`} className="btn btn--primary">
-              {createLabel}
-            </Link>
-          )}
+          <div className="page-header__actions">
+            {enableExport && (
+              <ExportPrintActions
+                title={title}
+                dokumenKey={dokumenKey}
+                disabled={
+                  loading ||
+                  items.length === 0 ||
+                  (useGatedColumns && visibleColumns.length === 0)
+                }
+                {...exportAccess}
+                getPayload={() => {
+                  if (getExportPayload) return getExportPayload(items, meta)
+                  if (useGatedColumns) return defaultGatedExportPayload()
+                  return defaultLegacyExportPayload()
+                }}
+              />
+            )}
+            {createAccess.visible && (
+              <PermissionLink
+                to={`${basePath}/new`}
+                enabled={createEnabled}
+                className="btn btn--primary"
+              >
+                {createLabel}
+              </PermissionLink>
+            )}
+          </div>
         </div>
       </header>
 
@@ -273,6 +429,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
               />
             </div>
           )}
+          {renderExtraFilters?.({ setPage })}
           {showStatusFilter && (
             <div className="field">
               <label htmlFor="filter_status">Status</label>
@@ -294,9 +451,11 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
           )}
         </div>
         {hasActiveFilters && (
-          <button type="button" className="btn btn--secondary btn--small" onClick={clearFilters}>
-            Hapus filter
-          </button>
+          <div className="filter-bar__actions">
+            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
+              Hapus filter
+            </button>
+          </div>
         )}
       </div>
 
@@ -310,59 +469,154 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
         </div>
       )}
 
-      {!loading && items.length > 0 && (
+      {!loading &&
+        items.length > 0 &&
+        useGatedColumns &&
+        visibleColumns.length === 0 &&
+        !showActions && (
+          <div className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</div>
+        )}
+
+      {showTable && (
         <>
           <div className="data-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>No</th>
-                  {renderLeadingHeaders?.()}
-                  <th>Nama</th>
-                  {renderExtraHeaders?.()}
-                  {showStatusColumn && <th>Status</th>}
-                  <th>{actionsHeaderLabel}</th>
+                  {useGatedColumns ? (
+                    <>
+                      {visibleColumns.map((column) => renderColumnHeader(column))}
+                      {showActions && <th>{actionsHeaderLabel}</th>}
+                    </>
+                  ) : (
+                    <>
+                      {sortColumns?.leading
+                        ? sortColumns.leading.map((col) => (
+                            <SortableTh
+                              key={col.key}
+                              label={col.label}
+                              column={col.key}
+                              {...sortBind}
+                            />
+                          ))
+                        : renderLeadingHeaders?.()}
+                      {namaColumn ? (
+                        <SortableTh
+                          label={namaColumn.label}
+                          column={namaColumn.key}
+                          {...sortBind}
+                        />
+                      ) : (
+                        <th>Nama</th>
+                      )}
+                      {sortColumns?.extra
+                        ? sortColumns.extra.map((col) => (
+                            <SortableTh
+                              key={col.key}
+                              label={col.label}
+                              column={col.key}
+                              {...sortBind}
+                            />
+                          ))
+                        : null}
+                      {renderExtraHeaders?.()}
+                      {showStatusColumn &&
+                        (statusColumn ? (
+                          <SortableTh
+                            label={statusColumn.label}
+                            column={statusColumn.key}
+                            {...sortBind}
+                          />
+                        ) : (
+                          <th>Status</th>
+                        ))}
+                      <th>{actionsHeaderLabel}</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, index) => (
                   <tr key={item.id}>
                     <td className="col-no">{rowNumber(meta, index)}</td>
-                    {renderLeadingCells?.(item)}
-                    <td>{item.nama}</td>
-                    {renderExtraCells?.(item)}
-                    {showStatusColumn && (
-                      <td>
-                        <span
-                          className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}
-                        >
-                          {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
-                        </span>
-                        {renderStatusExtra?.(item)}
-                      </td>
+                    {useGatedColumns ? (
+                      <>
+                        {visibleColumns.map((column) => (
+                          <td key={column.key}>{column.cell(item)}</td>
+                        ))}
+                        {showActions && (
+                          <td>
+                            <div className="data-table__actions">
+                              {updateAccess.visible && (
+                                <PermissionLink
+                                  to={`${basePath}/${item.id}/edit`}
+                                  enabled={updateAccess.enabled}
+                                  className="btn btn--secondary btn--small"
+                                >
+                                  Edit
+                                </PermissionLink>
+                              )}
+                              {deleteAccess.visible && (
+                                <button
+                                  type="button"
+                                  className="btn btn--danger btn--small"
+                                  disabled={
+                                    !deleteAccess.enabled ||
+                                    (canDeleteItem ? !canDeleteItem(item) : false)
+                                  }
+                                  onClick={() => void handleDelete(item)}
+                                >
+                                  Hapus
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {renderLeadingCells?.(item)}
+                        <td>{item.nama}</td>
+                        {renderExtraCells?.(item)}
+                        {showStatusColumn && (
+                          <td>
+                            <span
+                              className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}
+                            >
+                              {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                            {renderStatusExtra?.(item)}
+                          </td>
+                        )}
+                        <td>
+                          <div className="data-table__actions">
+                            {updateAccess.visible && (
+                              <PermissionLink
+                                to={`${basePath}/${item.id}/edit`}
+                                enabled={updateAccess.enabled}
+                                className="btn btn--secondary btn--small"
+                              >
+                                Edit
+                              </PermissionLink>
+                            )}
+                            {deleteAccess.visible && (
+                              <button
+                                type="button"
+                                className="btn btn--danger btn--small"
+                                disabled={
+                                  !deleteAccess.enabled ||
+                                  (canDeleteItem ? !canDeleteItem(item) : false)
+                                }
+                                onClick={() => void handleDelete(item)}
+                              >
+                                Hapus
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </>
                     )}
-                    <td>
-                      <div className="data-table__actions">
-                        {can(`${permissionPrefix}.update`) && (
-                          <Link
-                            to={`${basePath}/${item.id}/edit`}
-                            className="btn btn--secondary btn--small"
-                          >
-                            Edit
-                          </Link>
-                        )}
-                        {can(`${permissionPrefix}.delete`) &&
-                          (canDeleteItem ? canDeleteItem(item) : true) && (
-                          <button
-                            type="button"
-                            className="btn btn--danger btn--small"
-                            onClick={() => void handleDelete(item)}
-                          >
-                            Hapus
-                          </button>
-                        )}
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>

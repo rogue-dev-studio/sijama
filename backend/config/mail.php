@@ -17,6 +17,14 @@ return [
     'default' => env('MAIL_MAILER', 'log'),
 
     /*
+    | Sementara false: reset password via email dalam maintenance.
+    */
+    'password_reset_enabled' => filter_var(
+        env('PASSWORD_RESET_EMAIL_ENABLED', true),
+        FILTER_VALIDATE_BOOLEAN,
+    ),
+
+    /*
     |--------------------------------------------------------------------------
     | Mailer Configurations
     |--------------------------------------------------------------------------

@@ -21,6 +21,11 @@ final class LookupTypes
 
     public const PENDIDIKAN = 'pendidikan';
 
+    public const HUBUNGAN_KELUARGA = 'hubungan_keluarga';
+
+    /** Master lookup tipe cetakan dokumen (nama + value = jenis cetakan). */
+    public const KONFIG_DOKUMEN = 'konfig_dokumen';
+
     public const JAMAAH_FORM_TYPES = [
         self::PEKERJAAN,
         self::JENIS_KELAMIN,
@@ -29,11 +34,19 @@ final class LookupTypes
         self::PENDIDIKAN,
     ];
 
+    /** Types exposed via GET /lookup-options (form dropdowns). */
+    public const OPTION_TYPES = [
+        ...self::JAMAAH_FORM_TYPES,
+        self::HUBUNGAN_KELUARGA,
+    ];
+
     public const LABELS = [
         self::PEKERJAAN => 'Pekerjaan',
         self::JENIS_KELAMIN => 'Jenis kelamin',
         self::GOLONGAN_DARAH => 'Golongan darah',
         self::STATUS_PERNIKAHAN => 'Status pernikahan',
         self::PENDIDIKAN => 'Pendidikan',
+        self::HUBUNGAN_KELUARGA => 'Hubungan keluarga',
+        self::KONFIG_DOKUMEN => 'Konfigurasi dokumen',
     ];
 }

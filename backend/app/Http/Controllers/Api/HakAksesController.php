@@ -9,6 +9,7 @@ use App\Http\Resources\HakAksesResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\HakAksesService;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,11 +19,15 @@ class HakAksesController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->hakAksesService->list(
             $request->query('q'),
             $request->filled('fitur_id') ? $request->integer('fitur_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success(

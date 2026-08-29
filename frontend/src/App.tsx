@@ -8,23 +8,57 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppSettingsProvider } from './auth/AppSettingsContext'
 import { AuthProvider } from './auth/AuthContext'
+import { ColorSchemeProvider } from './auth/ColorSchemeContext'
+import { MaintenancePublicGate } from './auth/MaintenancePublicGate'
+import { MaintenanceRoute } from './auth/MaintenanceRoute'
 import { ProtectedRoute } from './auth/ProtectedRoute'
+import { ToastProvider } from './components/ToastProvider'
 import { APP_SHELL_ROUTES, renderAppRoutes } from './appRoutes'
 import { AppShell } from './layout/AppShell'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { LoginPage } from './pages/LoginPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 
 export default function App() {
   return (
     <AppSettingsProvider>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AppShell />}>{renderAppRoutes(APP_SHELL_ROUTES)}</Route>
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
+      <ColorSchemeProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              <Route path="/maintenance" element={<MaintenanceRoute />} />
+              <Route
+                path="/login"
+                element={
+                  <MaintenancePublicGate>
+                    <LoginPage />
+                  </MaintenancePublicGate>
+                }
+              />
+              <Route
+                path="/forgot-password"
+                element={
+                  <MaintenancePublicGate>
+                    <ForgotPasswordPage />
+                  </MaintenancePublicGate>
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  <MaintenancePublicGate>
+                    <ResetPasswordPage />
+                  </MaintenancePublicGate>
+                }
+              />
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppShell />}>{renderAppRoutes(APP_SHELL_ROUTES)}</Route>
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ToastProvider>
+        </AuthProvider>
+      </ColorSchemeProvider>
     </AppSettingsProvider>
   )
 }

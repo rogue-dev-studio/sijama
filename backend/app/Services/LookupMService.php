@@ -13,6 +13,7 @@ use App\Http\Resources\LookupMResource;
 use App\Models\LookupM;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -41,6 +42,19 @@ class LookupMService extends SimpleMasterService
         return 'lookup_type';
     }
 
+    protected function sortableColumns(): array
+    {
+        return [
+            'lookup_type',
+            'lookup_name',
+            'nama' => 'lookup_name',
+            'lookup_value',
+            'lookup_kode',
+            'lookup_urutan',
+            'is_active',
+        ];
+    }
+
     protected function prepare(array $data): array
     {
         unset($data['is_deleted'], $data['deleted_date'], $data['deleted_by']);
@@ -54,12 +68,23 @@ class LookupMService extends SimpleMasterService
         ?int $page = null,
         ?bool $activeOnly = null,
         array $extraFilters = [],
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = LookupM::query()
-            ->notDeleted()
-            ->orderBy('lookup_type')
-            ->orderBy('lookup_urutan')
-            ->orderBy('lookup_name');
+        $builder = LookupM::query()->notDeleted();
+
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            $this->sortableColumns(),
+            $this->orderColumn(),
+            $this->orderDirection(),
+        );
+
+        if (! $sortBy) {
+            $builder->orderBy('lookup_urutan')->orderBy('lookup_name');
+        }
 
         if ($activeOnly !== null) {
             $builder->where('is_active', $activeOnly);

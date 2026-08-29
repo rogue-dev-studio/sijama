@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateSubKelompokRequest;
 use App\Http\Resources\SubKelompokResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\SubKelompokService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,12 +18,16 @@ class SubKelompokController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->subKelompokService->list(
             $request->user(),
             $request->query('q'),
             $request->filled('kelompok_id') ? $request->integer('kelompok_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

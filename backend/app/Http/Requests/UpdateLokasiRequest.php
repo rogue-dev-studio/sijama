@@ -23,6 +23,9 @@ class UpdateLokasiRequest extends FormRequest
             'alamat' => ['nullable', 'string'],
             'lat' => ['nullable', 'numeric', 'between:-90,90'],
             'lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'maps_place_id' => ['nullable', 'string', 'max:120'],
+            'maps_place_name' => ['nullable', 'string', 'max:255'],
+            'maps_url' => ['nullable', 'string', 'max:2000'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];

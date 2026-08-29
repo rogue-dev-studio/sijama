@@ -9,17 +9,18 @@ import { useEffect, useId, useRef, useState } from 'react'
 import {
   isStoredKonfigAsset,
   resolveKonfigAssetUrl,
-  type KonfigAssetKind,
+  type ImageUploadAssetKind,
 } from '../lib/konfigAsset'
 
 type KonfigImageUploadProps = {
   label: string
   hint?: string
-  asset: KonfigAssetKind
+  asset: ImageUploadAssetKind
   savedPath?: string | null
   pendingFile?: File | null
   markedForDelete?: boolean
   disabled?: boolean
+  pendingSaveLabel?: string
   onFileSelected: (file: File | null) => void
   onMarkDelete: () => void
   onCancelDelete: () => void
@@ -52,6 +53,7 @@ export function KonfigImageUpload({
   pendingFile,
   markedForDelete = false,
   disabled = false,
+  pendingSaveLabel = 'Simpan semua',
   onFileSelected,
   onMarkDelete,
   onCancelDelete,
@@ -118,7 +120,7 @@ export function KonfigImageUpload({
         <div className="konfig-image-upload__meta">
           {pendingFile && (
             <>
-              <p className="field-hint">Menunggu disimpan — klik &quot;Simpan semua&quot;.</p>
+              <p className="field-hint">Menunggu disimpan — klik &quot;{pendingSaveLabel}&quot;.</p>
               <button type="button" className="btn btn--ghost btn--small" onClick={handleClearPending} disabled={disabled}>
                 Batalkan pilihan
               </button>
@@ -126,7 +128,7 @@ export function KonfigImageUpload({
           )}
           {markedForDelete && !pendingFile && (
             <>
-              <p className="field-hint">Akan dihapus — klik &quot;Simpan semua&quot;.</p>
+              <p className="field-hint">Akan dihapus — klik &quot;{pendingSaveLabel}&quot;.</p>
               <button type="button" className="btn btn--ghost btn--small" onClick={onCancelDelete} disabled={disabled}>
                 Batalkan hapus
               </button>

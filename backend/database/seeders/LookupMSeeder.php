@@ -47,6 +47,15 @@ class LookupMSeeder extends Seeder
                 ])
                 ->values()
                 ->all(),
+            LookupTypes::HUBUNGAN_KELUARGA => [
+                ['lookup_value' => 'kepala', 'lookup_name' => 'Kepala keluarga', 'lookup_kode' => 'KK'],
+                ['lookup_value' => 'istri', 'lookup_name' => 'Istri', 'lookup_kode' => 'IST'],
+                ['lookup_value' => 'suami', 'lookup_name' => 'Suami', 'lookup_kode' => 'SU'],
+                ['lookup_value' => 'anak', 'lookup_name' => 'Anak', 'lookup_kode' => 'AN'],
+                ['lookup_value' => 'orang_tua', 'lookup_name' => 'Orang tua', 'lookup_kode' => 'OT'],
+                ['lookup_value' => 'saudara', 'lookup_name' => 'Saudara', 'lookup_kode' => 'SD'],
+                ['lookup_value' => 'lainnya', 'lookup_name' => 'Lainnya', 'lookup_kode' => 'LL'],
+            ],
             LookupTypes::PEKERJAAN => [
                 ['lookup_value' => 'pns_asn', 'lookup_name' => 'PNS / ASN', 'lookup_kode' => 'PNS'],
                 ['lookup_value' => 'tni_polri', 'lookup_name' => 'TNI / Polri', 'lookup_kode' => 'TNI'],

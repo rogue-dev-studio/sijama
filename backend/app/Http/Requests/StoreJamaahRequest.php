@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\JamaahContactRules;
 use App\Support\LookupRules;
 use App\Support\LookupTypes;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,6 +13,11 @@ class StoreJamaahRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        JamaahContactRules::prepareEmptyContacts($this);
     }
 
     public function rules(): array
@@ -31,8 +37,8 @@ class StoreJamaahRequest extends FormRequest
             'alamat' => ['nullable', 'string'],
             'rt' => ['nullable', 'string', 'max:10'],
             'rw' => ['nullable', 'string', 'max:10'],
-            'no_hp' => ['required', 'string', 'max:20'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'no_hp' => JamaahContactRules::noHp(),
+            'email' => JamaahContactRules::email(),
             'status' => ['nullable', Rule::in(['aktif', 'nonaktif'])],
             'foto_path' => ['nullable', 'string', 'max:500'],
             'kelompok_id' => ['nullable', 'integer', 'exists:kelompok,id'],

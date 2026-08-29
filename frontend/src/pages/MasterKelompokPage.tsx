@@ -2,12 +2,12 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:35:53
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:35:53
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { masterDesaService, masterKelompokService } from '../api/services'
 import type { Kelompok } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
 
 async function loadDesaOptions() {
   const result = await masterDesaService.list({ per_page: 10000 })
@@ -22,6 +22,31 @@ const parentFilter = {
   paramKey: 'desa_id',
   loadOptions: loadDesaOptions,
 }
+
+const columns: GatedColumn<Kelompok>[] = [
+  {
+    key: 'kode',
+    label: 'Kode',
+    cell: (item) => item.kode,
+    exportValue: (item) => item.kode,
+  },
+  {
+    key: 'nama',
+    label: 'Nama',
+    cell: (item) => item.nama,
+    exportValue: (item) => item.nama,
+  },
+  {
+    key: 'is_active',
+    label: 'Status',
+    cell: (item) => (
+      <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+        {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+      </span>
+    ),
+    exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+  },
+]
 
 export function MasterKelompokPage() {
   return (
@@ -38,8 +63,7 @@ export function MasterKelompokPage() {
       list={masterKelompokService.list}
       remove={masterKelompokService.remove}
       parentFilter={parentFilter}
-      renderLeadingHeaders={() => <th>Kode</th>}
-      renderLeadingCells={(item) => <td>{item.kode}</td>}
+      columns={columns}
     />
   )
 }

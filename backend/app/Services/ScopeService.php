@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Daerah;
 use App\Models\Desa;
 use App\Models\Jamaah;
+use App\Models\Keluarga;
 use App\Models\Kelompok;
 use App\Models\Pusat;
 use App\Models\User;
@@ -21,6 +22,42 @@ class ScopeService
     public function isGlobal(User $user): bool
     {
         return $this->tingkat($user) === 'global' || $user->isSuperAdmin();
+    }
+
+    public function applyKeluargaScope(Builder $query, User $user): Builder
+    {
+        if ($this->isGlobal($user)) {
+            return $query;
+        }
+
+        return match ($this->tingkat($user)) {
+            'pusat' => $query->whereHas('kelompok.desa.daerah', fn (Builder $q) => $q->where('pusat_id', $user->pusat_id)),
+            'daerah' => $query->whereHas('kelompok.desa', fn (Builder $q) => $q->where('daerah_id', $user->daerah_id)),
+            'desa' => $query->whereHas('kelompok', fn (Builder $q) => $q->where('desa_id', $user->desa_id)),
+            'kelompok' => $query->where('keluarga.kelompok_id', $user->kelompok_id),
+            default => $query->whereKey([]),
+        };
+    }
+
+    public function assertKeluargaInScope(User $user, Keluarga $keluarga): void
+    {
+        if ($this->isGlobal($user)) {
+            return;
+        }
+
+        $keluarga->loadMissing('kelompok.desa.daerah');
+
+        $inScope = match ($this->tingkat($user)) {
+            'pusat' => $keluarga->kelompok?->desa?->daerah?->pusat_id === $user->pusat_id,
+            'daerah' => $keluarga->kelompok?->desa?->daerah_id === $user->daerah_id,
+            'desa' => $keluarga->kelompok?->desa_id === $user->desa_id,
+            'kelompok' => $keluarga->kelompok_id === $user->kelompok_id,
+            default => false,
+        };
+
+        if (! $inScope) {
+            throw new AccessDeniedHttpException('Keluarga di luar cakupan akses Anda.');
+        }
     }
 
     public function applyJamaahScope(Builder $query, User $user): Builder

@@ -25,41 +25,28 @@ class RbacMenuService
             ->get();
 
         $permissionCodes = $user->permissionCodes();
-        $isSuperAdmin = $user->isSuperAdmin();
 
         return $menus
-            ->map(fn (Menu $menu) => $this->buildMenuNode($menu, $permissionCodes, $isSuperAdmin))
+            ->map(fn (Menu $menu) => $this->buildMenuNode($menu, $permissionCodes))
             ->filter()
             ->values()
             ->all();
     }
 
-    private function buildMenuNode(Menu $menu, array $permissionCodes, bool $isSuperAdmin): ?array
+    private function buildMenuNode(Menu $menu, array $permissionCodes): ?array
     {
         $children = $menu->children
             ->filter(fn (Menu $child) => $child->is_active)
             ->sortBy('urutan')
-            ->map(fn (Menu $child) => $this->buildMenuNode($child, $permissionCodes, $isSuperAdmin))
+            ->map(fn (Menu $child) => $this->buildMenuNode($child, $permissionCodes))
             ->filter()
             ->values()
             ->all();
 
         $hasChildAccess = count($children) > 0;
 
-        // Folder / section
+        // Folder / section: tampil hanya jika ada anak yang diizinkan matriks.
         if ($menu->path === null) {
-            // Super Admin: tampilkan semua section (termasuk kosong seperti Laporan/Aplikasi).
-            if ($isSuperAdmin) {
-                return [
-                    'id' => $menu->id,
-                    'slug' => $menu->slug,
-                    'nama' => $menu->nama,
-                    'path' => $menu->path,
-                    'icon' => $menu->icon,
-                    'children' => $children,
-                ];
-            }
-
             if (! $hasChildAccess) {
                 return null;
             }
@@ -74,7 +61,7 @@ class RbacMenuService
             ];
         }
 
-        if ($isSuperAdmin || $this->menuHasViewPermission($menu, $permissionCodes)) {
+        if ($this->menuHasViewPermission($menu, $permissionCodes)) {
             return [
                 'id' => $menu->id,
                 'slug' => $menu->slug,

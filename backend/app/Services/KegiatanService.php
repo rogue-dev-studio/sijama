@@ -7,6 +7,7 @@ use App\Http\Resources\KegiatanResource;
 use App\Models\AttendanceSession;
 use App\Models\Kegiatan;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -20,10 +21,20 @@ class KegiatanService
         ?string $dateTo = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
         $builder = Kegiatan::query()
-            ->with(['lokasiRef:id,nama,jenis', 'kategoriKegiatan:id,nama'])
-            ->orderByDesc('tanggal');
+            ->with(['lokasiRef:id,nama,jenis', 'kategoriKegiatan:id,nama']);
+
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['judul', 'jenis', 'lokasi', 'tanggal', 'status'],
+            'tanggal',
+            'desc',
+        );
 
         if ($query) {
             $builder->where(function ($q) use ($query) {

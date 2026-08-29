@@ -32,7 +32,10 @@ const defaultIcon = L.icon({
 type Props = {
   lat: number | null | undefined
   lng: number | null | undefined
-  onPick: (coords: { lat: number; lng: number }, meta?: { label?: string }) => void
+  onPick: (
+    coords: { lat: number; lng: number },
+    meta?: { label?: string; source?: 'click' | 'drag' | 'place' },
+  ) => void
 }
 
 export function LokasiMapPicker({ lat, lng, onPick }: Props) {
@@ -65,7 +68,7 @@ export function LokasiMapPicker({ lat, lng, onPick }: Props) {
 
     map.on('click', (event: L.LeafletMouseEvent) => {
       const next = { lat: event.latlng.lat, lng: event.latlng.lng }
-      onPickRef.current(next)
+      onPickRef.current(next, { source: 'click' })
     })
 
     mapRef.current = map
@@ -106,7 +109,7 @@ export function LokasiMapPicker({ lat, lng, onPick }: Props) {
         .on('dragend', () => {
           const pos = markerRef.current?.getLatLng()
           if (!pos) return
-          onPickRef.current({ lat: pos.lat, lng: pos.lng })
+          onPickRef.current({ lat: pos.lat, lng: pos.lng }, { source: 'drag' })
         })
       map.setView(position, Math.max(map.getZoom(), POINT_ZOOM))
       return
@@ -151,7 +154,7 @@ export function LokasiMapPicker({ lat, lng, onPick }: Props) {
   }
 
   function selectPlace(item: MapsPlaceSearchItem) {
-    onPick({ lat: item.lat, lng: item.lng }, { label: item.name })
+    onPick({ lat: item.lat, lng: item.lng }, { label: item.name, source: 'place' })
     setResults([])
     setQuery(item.name)
     setSearchError(null)

@@ -27,6 +27,7 @@ type JamaahProfileFieldsProps = {
   updateField: <K extends keyof JamaahInput>(key: K, value: JamaahInput[K]) => void
   onKelompokChange: (kelompokId: number) => void
   onNikChange: (value: string) => void
+  nikWilayahHint?: string | null
   onToggleDapukan: (id: number) => void
   onPekerjaanChange: (pekerjaanId: number | null) => void
 }
@@ -58,6 +59,7 @@ export function JamaahProfileFields({
   updateField,
   onKelompokChange,
   onNikChange,
+  nikWilayahHint,
   onToggleDapukan,
   onPekerjaanChange,
 }: JamaahProfileFieldsProps) {
@@ -128,8 +130,18 @@ export function JamaahProfileFields({
           <p className="field-hint field-hint--error">{fieldMessage('nik')}</p>
         )}
         <p className="field-hint">
-          Jika NIK 16 digit valid, tanggal lahir dan jenis kelamin diisi otomatis dari kode NIK.
+          NIK 16 digit: tanggal lahir & jenis kelamin (digit 7–12), provinsi/kabupaten/kecamatan
+          (digit 1–6). Desa/kelurahan tidak ada di NIK — pilih manual.
         </p>
+        {nikWilayahHint && (
+          <p
+            className={`field-hint${
+              nikWilayahHint.includes('tidak ditemukan') ? ' field-hint--error' : ''
+            }`}
+          >
+            {nikWilayahHint}
+          </p>
+        )}
       </div>
       <div className="field">
         <label htmlFor="gender">Jenis kelamin</label>
@@ -251,9 +263,8 @@ export function JamaahProfileFields({
         <label htmlFor="no_hp">No. HP</label>
         <input
           id="no_hp"
-          value={form.no_hp}
-          onChange={(event) => updateField('no_hp', event.target.value)}
-          required
+          value={form.no_hp ?? ''}
+          onChange={(event) => updateField('no_hp', event.target.value || null)}
           aria-invalid={isFieldInvalid('no_hp')}
         />
         {fieldMessage('no_hp') && (

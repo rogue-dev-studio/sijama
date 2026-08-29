@@ -24,6 +24,7 @@ class KonfigAssetService
         'favicon' => 'path_favicon',
         'logo-footer' => 'path_logofooter',
         'background' => 'path_background',
+        'maintenance-background' => 'path_maintenance_background',
     ];
 
     public function upload(KonfigSystemK $konfig, string $asset, UploadedFile $file): KonfigSystemK

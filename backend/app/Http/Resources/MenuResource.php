@@ -18,6 +18,7 @@ class MenuResource extends JsonResource
             'icon' => $this->icon,
             'urutan' => $this->urutan,
             'is_active' => $this->is_active,
+            'parent' => new MenuResource($this->whenLoaded('parent')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

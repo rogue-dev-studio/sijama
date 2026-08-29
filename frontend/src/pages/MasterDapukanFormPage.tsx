@@ -11,6 +11,7 @@ import { ApiError } from '../api/client'
 import { masterDapukanService } from '../api/services'
 import type { DapukanInput } from '../api/types'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
 
 const emptyForm: DapukanInput = {
   slug: '',
@@ -24,6 +25,7 @@ export function MasterDapukanFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<DapukanInput>(emptyForm)
   const [isSystem, setIsSystem] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -78,6 +80,7 @@ export function MasterDapukanFormPage() {
       } else {
         await masterDapukanService.create(payload)
       }
+      notifySaved('dapukan', isEdit ? 'update' : 'create')
       navigate('/master/dapukan')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan dapukan')

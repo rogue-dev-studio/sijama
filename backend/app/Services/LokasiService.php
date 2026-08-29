@@ -30,6 +30,11 @@ class LokasiService extends SimpleMasterService
         return ['nama', 'kota', 'alamat'];
     }
 
+    protected function sortableColumns(): array
+    {
+        return ['jenis', 'nama', 'is_active'];
+    }
+
     protected function withRelations(): array
     {
         return [

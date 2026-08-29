@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateMasterUserRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\MasterUserService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,12 +18,16 @@ class MasterUserController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->masterUserService->list(
             $request->query('q'),
             $request->has('is_active') ? $request->boolean('is_active') : null,
             $request->filled('dapukan_id') ? $request->integer('dapukan_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

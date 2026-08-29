@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateKegiatanRequest;
 use App\Http\Resources\KegiatanResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\KegiatanService;
+use App\Support\SortHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,6 +19,8 @@ class KegiatanController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        [$sortBy, $sortDir] = SortHelper::fromRequest($request);
+
         $paginator = $this->kegiatanService->list(
             $request->query('q'),
             $request->query('status') ?: null,
@@ -25,6 +28,8 @@ class KegiatanController extends Controller
             $request->query('date_to') ?: null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $sortBy,
+            $sortDir,
         );
 
         return ApiResponse::success([

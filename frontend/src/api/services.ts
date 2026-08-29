@@ -34,14 +34,25 @@ import type {
   JamaahInput,
   KategoriKegiatan,
   KategoriKegiatanInput,
-  KategoriUmurSummary,
+  KategoriUmurList,
   Kegiatan,
   KegiatanInput,
+  Keluarga,
+  KeluargaInput,
+  KeluargaJamaahOption,
   Kelompok,
   KelompokInput,
   KonfigSystem,
   KonfigSystemInput,
+  KonfigDokumen,
+  KonfigDokumenInput,
+  KonfigDokumenAssetKind,
+  LaporanKehadiranRow,
+  LoginInput,
   LoginResult,
+  ForgotPasswordInput,
+  ForgotPasswordResult,
+  ResetPasswordInput,
   Lokasi,
   LokasiInput,
   LookupM,
@@ -57,6 +68,8 @@ import type {
   Menu,
   MenuInput,
   OpenSessionInput,
+  OwnLoginSessionInput,
+  OwnPasswordInput,
   OwnProfileInput,
   LookupOption,
   Paginated,
@@ -66,6 +79,7 @@ import type {
   PengajianInput,
   ProfileResult,
   ProfileWilayahOption,
+  WilayahFromNikResult,
   Pusat,
   PusatInput,
   SubKelompok,
@@ -89,11 +103,32 @@ function buildListQuery(entries: Array<[string, ListQueryValue]>): string {
   return query ? `?${query}` : ''
 }
 
+function withSort(
+  entries: Array<[string, ListQueryValue]>,
+  params?: { sort_by?: string; sort_dir?: string },
+): Array<[string, ListQueryValue]> {
+  return [...entries, ['sort_by', params?.sort_by], ['sort_dir', params?.sort_dir]]
+}
+
 export const authService = {
-  login(username: string, password: string) {
+  login(data: LoginInput) {
     return apiRequest<LoginResult>('/login', {
       method: 'POST',
-      body: { username, password },
+      body: data,
+      auth: false,
+    })
+  },
+  forgotPassword(data: ForgotPasswordInput) {
+    return apiRequest<ForgotPasswordResult>('/forgot-password', {
+      method: 'POST',
+      body: data,
+      auth: false,
+    })
+  },
+  resetPassword(data: ResetPasswordInput) {
+    return apiRequest<null>('/reset-password', {
+      method: 'POST',
+      body: data,
       auth: false,
     })
   },
@@ -120,16 +155,46 @@ export const profileService = {
       ])}`,
     )
   },
+  wilayahFromNik(nik: string) {
+    return apiRequest<WilayahFromNikResult>(
+      `/profile/wilayah-from-nik${buildListQuery([['nik', nik]])}`,
+    )
+  },
+  updatePassword(data: OwnPasswordInput) {
+    return apiRequest<null>('/profile/password', { method: 'PUT', body: data })
+  },
+  updateLoginSession(data: OwnLoginSessionInput) {
+    return apiRequest<ProfileResult>('/profile/login-session', { method: 'PUT', body: data })
+  },
+  uploadPhoto(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiUploadRequest<ProfileResult>('/profile/photo', formData)
+  },
+  deletePhoto() {
+    return apiRequest<ProfileResult>('/profile/photo', { method: 'DELETE' })
+  },
 }
 
 export const masterPusatService = {
-  list(params?: { q?: string; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Pusat>>(
-      `/master/pusat${buildListQuery([
-        ['q', params?.q],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/pusat${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -154,16 +219,23 @@ export const masterLokasiService = {
     is_active?: boolean
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Lokasi>>(
-      `/master/lokasi${buildListQuery([
-        ['q', params?.q],
-        ['jenis', params?.jenis],
-        ['active_only', params?.active_only],
-        ['is_active', params?.is_active],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/lokasi${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['jenis', params?.jenis],
+            ['active_only', params?.active_only],
+            ['is_active', params?.is_active],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -184,6 +256,12 @@ export const masterLokasiService = {
       body: { input },
     })
   },
+  resolveCoords(lat: number, lng: number) {
+    return apiRequest<MapsLocationResolveResult>('/master/lokasi/resolve-coords', {
+      method: 'POST',
+      body: { lat, lng },
+    })
+  },
   searchPlaces(q: string, limit = 6) {
     return apiRequest<{ items: MapsPlaceSearchItem[] }>(
       `/master/lokasi/search-places${buildListQuery([
@@ -195,15 +273,28 @@ export const masterLokasiService = {
 }
 
 export const masterPemateriService = {
-  list(params?: { q?: string; active_only?: boolean; is_active?: boolean; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    active_only?: boolean
+    is_active?: boolean
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Pemateri>>(
-      `/master/pemateri${buildListQuery([
-        ['q', params?.q],
-        ['active_only', params?.active_only],
-        ['is_active', params?.is_active],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/pemateri${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['active_only', params?.active_only],
+            ['is_active', params?.is_active],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -236,16 +327,23 @@ export const masterLookupService = {
     is_active?: boolean
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<LookupM>>(
-      `/master/lookup${buildListQuery([
-        ['q', params?.q],
-        ['lookup_type', params?.lookup_type],
-        ['active_only', params?.active_only],
-        ['is_active', params?.is_active],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/lookup${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['lookup_type', params?.lookup_type],
+            ['active_only', params?.active_only],
+            ['is_active', params?.is_active],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -282,16 +380,68 @@ export const aplikasiKonfigService = {
   },
 }
 
+export const aplikasiKonfigDokumenService = {
+  list(params?: {
+    q?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<KonfigDokumen>>(
+      `/aplikasi/konfig-dokumen${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  get(lookupId: number) {
+    return apiRequest<KonfigDokumen>(`/aplikasi/konfig-dokumen/${lookupId}`)
+  },
+  update(data: Partial<KonfigDokumenInput> & { lookup_id: number }) {
+    return apiRequest<KonfigDokumen>('/aplikasi/konfig-dokumen', { method: 'PUT', body: data })
+  },
+  uploadAsset(lookupId: number, asset: KonfigDokumenAssetKind, file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiUploadRequest<KonfigDokumen>(`/aplikasi/konfig-dokumen/${lookupId}/assets/${asset}`, formData)
+  },
+  deleteAsset(lookupId: number, asset: KonfigDokumenAssetKind) {
+    return apiRequest<KonfigDokumen>(`/aplikasi/konfig-dokumen/${lookupId}/assets/${asset}`, {
+      method: 'DELETE',
+    })
+  },
+}
+
 export const masterMateriService = {
-  list(params?: { q?: string; active_only?: boolean; is_active?: boolean; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    active_only?: boolean
+    is_active?: boolean
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Materi>>(
-      `/master/materi${buildListQuery([
-        ['q', params?.q],
-        ['active_only', params?.active_only],
-        ['is_active', params?.is_active],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/materi${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['active_only', params?.active_only],
+            ['is_active', params?.is_active],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -309,15 +459,28 @@ export const masterMateriService = {
 }
 
 export const masterKategoriKegiatanService = {
-  list(params?: { q?: string; active_only?: boolean; is_active?: boolean; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    active_only?: boolean
+    is_active?: boolean
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<KategoriKegiatan>>(
-      `/master/kategori-kegiatan${buildListQuery([
-        ['q', params?.q],
-        ['active_only', params?.active_only],
-        ['is_active', params?.is_active],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/kategori-kegiatan${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['active_only', params?.active_only],
+            ['is_active', params?.is_active],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -338,14 +501,26 @@ export const masterKategoriKegiatanService = {
 }
 
 export const masterDaerahService = {
-  list(params?: { q?: string; pusat_id?: number; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    pusat_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Daerah>>(
-      `/master/daerah${buildListQuery([
-        ['q', params?.q],
-        ['pusat_id', params?.pusat_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/daerah${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['pusat_id', params?.pusat_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -363,14 +538,26 @@ export const masterDaerahService = {
 }
 
 export const masterDesaService = {
-  list(params?: { q?: string; daerah_id?: number; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    daerah_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Desa>>(
-      `/master/desa${buildListQuery([
-        ['q', params?.q],
-        ['daerah_id', params?.daerah_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/desa${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['daerah_id', params?.daerah_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -395,16 +582,23 @@ export const masterKelompokService = {
     is_active?: boolean
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Kelompok>>(
-      `/master/kelompok${buildListQuery([
-        ['q', params?.q],
-        ['desa_id', params?.desa_id],
-        ['daerah_id', params?.daerah_id],
-        ['is_active', params?.is_active],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/kelompok${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['desa_id', params?.desa_id],
+            ['daerah_id', params?.daerah_id],
+            ['is_active', params?.is_active],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -422,14 +616,26 @@ export const masterKelompokService = {
 }
 
 export const masterSubKelompokService = {
-  list(params?: { q?: string; kelompok_id?: number; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    kelompok_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<SubKelompok>>(
-      `/master/sub-kelompok${buildListQuery([
-        ['q', params?.q],
-        ['kelompok_id', params?.kelompok_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/sub-kelompok${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['kelompok_id', params?.kelompok_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -447,13 +653,24 @@ export const masterSubKelompokService = {
 }
 
 export const admNegaraService = {
-  list(params?: { q?: string; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<AdmNegara>>(
-      `/master/adm/negara${buildListQuery([
-        ['q', params?.q],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/adm/negara${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -471,14 +688,26 @@ export const admNegaraService = {
 }
 
 export const admProvinsiService = {
-  list(params?: { q?: string; negara_id?: number; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    negara_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<AdmProvinsi>>(
-      `/master/adm/provinsi${buildListQuery([
-        ['q', params?.q],
-        ['negara_id', params?.negara_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/adm/provinsi${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['negara_id', params?.negara_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -502,15 +731,22 @@ export const admKabupatenKotaService = {
     jenis?: string
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmKabupatenKota>>(
-      `/master/adm/kabupaten-kota${buildListQuery([
-        ['q', params?.q],
-        ['provinsi_id', params?.provinsi_id],
-        ['jenis', params?.jenis],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/adm/kabupaten-kota${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['provinsi_id', params?.provinsi_id],
+            ['jenis', params?.jenis],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -531,14 +767,26 @@ export const admKabupatenKotaService = {
 }
 
 export const admKecamatanService = {
-  list(params?: { q?: string; kabupaten_kota_id?: number; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    kabupaten_kota_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<AdmKecamatan>>(
-      `/master/adm/kecamatan${buildListQuery([
-        ['q', params?.q],
-        ['kabupaten_kota_id', params?.kabupaten_kota_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/adm/kecamatan${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['kabupaten_kota_id', params?.kabupaten_kota_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -562,15 +810,22 @@ export const admDesaKelurahanService = {
     jenis?: string
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmDesaKelurahan>>(
-      `/master/adm/desa-kelurahan${buildListQuery([
-        ['q', params?.q],
-        ['kecamatan_id', params?.kecamatan_id],
-        ['jenis', params?.jenis],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/adm/desa-kelurahan${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['kecamatan_id', params?.kecamatan_id],
+            ['jenis', params?.jenis],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -595,17 +850,30 @@ export const admKodePosService = {
     q?: string
     desa_kelurahan_id?: number
     kecamatan_id?: number
+    kabupaten_kota_id?: number
+    provinsi_id?: number
+    negara_id?: number
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmKodePos>>(
-      `/master/adm/kode-pos${buildListQuery([
-        ['q', params?.q],
-        ['desa_kelurahan_id', params?.desa_kelurahan_id],
-        ['kecamatan_id', params?.kecamatan_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/adm/kode-pos${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['desa_kelurahan_id', params?.desa_kelurahan_id],
+            ['kecamatan_id', params?.kecamatan_id],
+            ['kabupaten_kota_id', params?.kabupaten_kota_id],
+            ['provinsi_id', params?.provinsi_id],
+            ['negara_id', params?.negara_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -623,13 +891,24 @@ export const admKodePosService = {
 }
 
 export const masterDapukanService = {
-  list(params?: { q?: string; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Dapukan>>(
-      `/master/dapukan${buildListQuery([
-        ['q', params?.q],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/dapukan${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -647,13 +926,24 @@ export const masterDapukanService = {
 }
 
 export const masterMenuService = {
-  list(params?: { q?: string; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Menu>>(
-      `/master/menus${buildListQuery([
-        ['q', params?.q],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/menus${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -671,14 +961,26 @@ export const masterMenuService = {
 }
 
 export const masterFiturService = {
-  list(params?: { q?: string; menu_id?: number; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    menu_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<Fitur>>(
-      `/master/fiturs${buildListQuery([
-        ['q', params?.q],
-        ['menu_id', params?.menu_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/fiturs${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['menu_id', params?.menu_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -696,14 +998,26 @@ export const masterFiturService = {
 }
 
 export const masterHakAksesService = {
-  list(params?: { q?: string; fitur_id?: number; page?: number; per_page?: number }) {
+  list(params?: {
+    q?: string
+    fitur_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<HakAkses>>(
-      `/master/hak-akses${buildListQuery([
-        ['q', params?.q],
-        ['fitur_id', params?.fitur_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/hak-akses${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['fitur_id', params?.fitur_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -739,15 +1053,22 @@ export const masterUserService = {
     dapukan_id?: number
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<MasterUser>>(
-      `/master/users${buildListQuery([
-        ['q', params?.q],
-        ['is_active', params?.is_active],
-        ['dapukan_id', params?.dapukan_id],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/master/users${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['is_active', params?.is_active],
+            ['dapukan_id', params?.dapukan_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -779,9 +1100,26 @@ export const dashboardService = {
 }
 
 export const kategoriUmurService = {
-  summary(params?: { kategori?: string }) {
-    return apiRequest<KategoriUmurSummary>(
-      `/kategori-umur${buildListQuery([['kategori', params?.kategori]])}`,
+  list(params?: {
+    kategori?: string
+    q?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<KategoriUmurList>(
+      `/kategori-umur${buildListQuery(
+        withSort(
+          [
+            ['kategori', params?.kategori],
+            ['q', params?.q],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
 }
@@ -796,18 +1134,25 @@ export const jamaahService = {
     kategori_umur?: string
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Jamaah>>(
-      `/jamaah${buildListQuery([
-        ['q', params?.q],
-        ['enrolled', params?.enrolled],
-        ['status', params?.status],
-        ['kelompok_id', params?.kelompok_id],
-        ['face', params?.face],
-        ['kategori_umur', params?.kategori_umur],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/jamaah${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['enrolled', params?.enrolled],
+            ['status', params?.status],
+            ['kelompok_id', params?.kelompok_id],
+            ['face', params?.face],
+            ['kategori_umur', params?.kategori_umur],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -839,6 +1184,53 @@ export const jamaahService = {
   },
 }
 
+export const keluargaService = {
+  list(params?: {
+    q?: string
+    status?: string
+    kelompok_id?: number
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<Keluarga>>(
+      `/keluarga${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['status', params?.status],
+            ['kelompok_id', params?.kelompok_id],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  get(id: number) {
+    return apiRequest<Keluarga>(`/keluarga/${id}`)
+  },
+  jamaahOptions(params?: { kelompok_id?: number; except_keluarga_id?: number }) {
+    return apiRequest<KeluargaJamaahOption[]>(
+      `/keluarga/jamaah-options${buildListQuery([
+        ['kelompok_id', params?.kelompok_id],
+        ['except_keluarga_id', params?.except_keluarga_id],
+      ])}`,
+    )
+  },
+  create(data: KeluargaInput) {
+    return apiRequest<Keluarga>('/keluarga', { method: 'POST', body: data })
+  },
+  update(id: number, data: KeluargaInput) {
+    return apiRequest<Keluarga>(`/keluarga/${id}`, { method: 'PUT', body: data })
+  },
+  remove(id: number) {
+    return apiRequest<null>(`/keluarga/${id}`, { method: 'DELETE' })
+  },
+}
+
 export const pengajianService = {
   list(params?: {
     q?: string
@@ -847,16 +1239,23 @@ export const pengajianService = {
     date_to?: string
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Pengajian>>(
-      `/pengajian${buildListQuery([
-        ['q', params?.q],
-        ['status', params?.status],
-        ['date_from', params?.date_from],
-        ['date_to', params?.date_to],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/pengajian${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['status', params?.status],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -881,16 +1280,23 @@ export const kegiatanService = {
     date_to?: string
     page?: number
     per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Kegiatan>>(
-      `/kegiatan${buildListQuery([
-        ['q', params?.q],
-        ['status', params?.status],
-        ['date_from', params?.date_from],
-        ['date_to', params?.date_to],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/kegiatan${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['status', params?.status],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   get(id: number) {
@@ -908,13 +1314,24 @@ export const kegiatanService = {
 }
 
 export const attendanceService = {
-  listSessions(params?: { status?: string; page?: number; per_page?: number }) {
+  listSessions(params?: {
+    status?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
     return apiRequest<Paginated<AttendanceSession>>(
-      `/attendance/sessions${buildListQuery([
-        ['status', params?.status],
-        ['page', params?.page],
-        ['per_page', params?.per_page],
-      ])}`,
+      `/attendance/sessions${buildListQuery(
+        withSort(
+          [
+            ['status', params?.status],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
   getSession(id: number) {
@@ -946,6 +1363,117 @@ export const calendarService = {
         ['year', params?.year],
         ['month', params?.month],
       ])}`,
+    )
+  },
+}
+
+export const laporanService = {
+  kehadiran(params?: {
+    q?: string
+    date_from?: string
+    date_to?: string
+    type?: string
+    method?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<LaporanKehadiranRow>>(
+      `/laporan/kehadiran${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['type', params?.type],
+            ['method', params?.method],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  jamaah(params?: {
+    q?: string
+    status?: string
+    face?: string
+    kelompok_id?: number
+    kategori_umur?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<Jamaah>>(
+      `/laporan/jamaah${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['status', params?.status],
+            ['face', params?.face],
+            ['kelompok_id', params?.kelompok_id],
+            ['kategori_umur', params?.kategori_umur],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  pengajian(params?: {
+    q?: string
+    status?: string
+    date_from?: string
+    date_to?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<Pengajian>>(
+      `/laporan/pengajian${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['status', params?.status],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  kegiatan(params?: {
+    q?: string
+    status?: string
+    date_from?: string
+    date_to?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<Kegiatan>>(
+      `/laporan/kegiatan${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['status', params?.status],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
     )
   },
 }

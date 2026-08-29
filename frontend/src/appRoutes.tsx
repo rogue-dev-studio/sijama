@@ -9,14 +9,22 @@ import type { ReactElement, ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import { PermissionRoute } from './auth/PermissionRoute'
 import { AbsensiPage } from './pages/AbsensiPage'
+import { AplikasiKonfigDokumenFormPage } from './pages/AplikasiKonfigDokumenFormPage'
+import { AplikasiKonfigDokumenPage } from './pages/AplikasiKonfigDokumenPage'
 import { AplikasiKonfigPage } from './pages/AplikasiKonfigPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { KehadiranPage } from './pages/KehadiranPage'
 import { KalenderPage } from './pages/KalenderPage'
 import { KategoriUmurPage } from './pages/KategoriUmurPage'
+import { LaporanJamaahPage } from './pages/LaporanJamaahPage'
+import { LaporanKehadiranPage } from './pages/LaporanKehadiranPage'
+import { LaporanKegiatanPage } from './pages/LaporanKegiatanPage'
+import { LaporanPengajianPage } from './pages/LaporanPengajianPage'
 import { JamaahFaceEnrollPage } from './pages/JamaahFaceEnrollPage'
 import { JamaahFormPage } from './pages/JamaahFormPage'
 import { JamaahListPage } from './pages/JamaahListPage'
+import { KeluargaFormPage } from './pages/KeluargaFormPage'
+import { KeluargaListPage } from './pages/KeluargaListPage'
 import { KegiatanFormPage } from './pages/KegiatanFormPage'
 import { KegiatanPage } from './pages/KegiatanPage'
 import { MasterAdmDesaKelurahanFormPage } from './pages/MasterAdmDesaKelurahanFormPage'
@@ -95,6 +103,9 @@ export const APP_SHELL_ROUTES: AppRouteDef[] = [
   { path: 'jamaah/new', permission: 'jamaah.create', element: <JamaahFormPage /> },
   { path: 'jamaah/:id/edit', permission: 'jamaah.update', element: <JamaahFormPage /> },
   { path: 'jamaah/:id/face', permission: 'jamaah.enroll_face', element: <JamaahFaceEnrollPage /> },
+  { path: 'keluarga', permission: 'keluarga.view', element: <KeluargaListPage /> },
+  { path: 'keluarga/new', permission: 'keluarga.create', element: <KeluargaFormPage /> },
+  { path: 'keluarga/:id/edit', permission: 'keluarga.update', element: <KeluargaFormPage /> },
   { path: 'pengajian', permission: 'pengajian.view', element: <PengajianPage /> },
   { path: 'pengajian/new', permission: 'pengajian.create', element: <PengajianFormPage /> },
   { path: 'pengajian/:id/edit', permission: 'pengajian.update', element: <PengajianFormPage /> },
@@ -102,6 +113,10 @@ export const APP_SHELL_ROUTES: AppRouteDef[] = [
   { path: 'kegiatan/new', permission: 'kegiatan.create', element: <KegiatanFormPage /> },
   { path: 'kegiatan/:id/edit', permission: 'kegiatan.update', element: <KegiatanFormPage /> },
   { path: 'absensi', permission: 'absensi.view', element: <AbsensiPage /> },
+  { path: 'laporan/kehadiran', permission: 'laporan_kehadiran.view', element: <LaporanKehadiranPage /> },
+  { path: 'laporan/jamaah', permission: 'laporan_jamaah.view', element: <LaporanJamaahPage /> },
+  { path: 'laporan/pengajian', permission: 'laporan_pengajian.view', element: <LaporanPengajianPage /> },
+  { path: 'laporan/kegiatan', permission: 'laporan_kegiatan.view', element: <LaporanKegiatanPage /> },
   { path: 'profil', element: <ProfilePage /> },
   ...masterCrud('master/pusat', 'pusat', MasterPusatPage, MasterPusatFormPage),
   ...masterCrud('master/daerah', 'daerah', MasterDaerahPage, MasterDaerahFormPage),
@@ -141,6 +156,16 @@ export const APP_SHELL_ROUTES: AppRouteDef[] = [
   { path: 'master/matriks', permission: 'matriks.view', element: <MasterMatriksPage /> },
   ...masterCrud('master/users', 'users', MasterUsersPage, MasterUsersFormPage),
   { path: 'aplikasi/konfig', permission: 'konfig.view', element: <AplikasiKonfigPage /> },
+  {
+    path: 'aplikasi/konfig-dokumen',
+    permission: 'konfig_dokumen.view',
+    element: <AplikasiKonfigDokumenPage />,
+  },
+  {
+    path: 'aplikasi/konfig-dokumen/:lookupId/edit',
+    permission: 'konfig_dokumen.view',
+    element: <AplikasiKonfigDokumenFormPage />,
+  },
 ]
 
 export function renderAppRoutes(defs: AppRouteDef[]): ReactElement[] {

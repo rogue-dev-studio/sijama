@@ -2,12 +2,12 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-01 16:57:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:29:10
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { admNegaraService, admProvinsiService } from '../api/services'
 import type { AdmProvinsi } from '../api/types'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
 
 async function loadNegaraOptions() {
   const result = await admNegaraService.list({ per_page: 100 })
@@ -19,6 +19,31 @@ const parentFilter = {
   paramKey: 'negara_id',
   loadOptions: loadNegaraOptions,
 }
+
+const columns: GatedColumn<AdmProvinsi>[] = [
+  {
+    key: 'kode',
+    label: 'Kode',
+    cell: (item) => item.kode,
+    exportValue: (item) => item.kode,
+  },
+  {
+    key: 'nama',
+    label: 'Nama',
+    cell: (item) => item.nama,
+    exportValue: (item) => item.nama,
+  },
+  {
+    key: 'is_active',
+    label: 'Status',
+    cell: (item) => (
+      <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+        {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+      </span>
+    ),
+    exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+  },
+]
 
 export function MasterAdmProvinsiPage() {
   return (
@@ -35,8 +60,7 @@ export function MasterAdmProvinsiPage() {
       list={admProvinsiService.list}
       remove={admProvinsiService.remove}
       parentFilter={parentFilter}
-      renderLeadingHeaders={() => <th>Kode</th>}
-      renderLeadingCells={(item) => <td>{item.kode}</td>}
+      columns={columns}
     />
   )
 }

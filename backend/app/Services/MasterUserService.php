@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Http\Resources\UserResource;
 use App\Models\Jamaah;
 use App\Models\User;
+use App\Support\LoginRememberOptions;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use App\Support\UserProfileFromJamaah;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -20,10 +22,19 @@ class MasterUserService
         ?int $dapukanId = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
         $builder = User::query()
-            ->with(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok'])
-            ->orderBy('name');
+            ->with(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok']);
+
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['name', 'username', 'is_active'],
+            'name',
+        );
 
         if ($query) {
             $builder->where(function ($q) use ($query) {
@@ -63,6 +74,8 @@ class MasterUserService
             'desa_id' => $synced['desa_id'],
             'kelompok_id' => $synced['kelompok_id'],
             'is_active' => $data['is_active'] ?? true,
+            'login_remember_minutes' => LoginRememberOptions::DEFAULT_MINUTES,
+            'login_remember_until_logout' => false,
         ]);
 
         return new UserResource($user->load(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok']));

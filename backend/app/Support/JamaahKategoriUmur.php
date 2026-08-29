@@ -126,7 +126,7 @@ final class JamaahKategoriUmur
     {
         return match ($kode) {
             'pra_nikah' => '21–59 tahun · belum menikah',
-            'dewasa' => '21–59 tahun · sudah menikah',
+            'dewasa' => '21–59 tahun · sudah menikah / cerai',
             'lansia' => self::LANSIA_MIN_AGE.'+ tahun',
             default => self::youthRangeLabel($kode),
         };
@@ -138,6 +138,10 @@ final class JamaahKategoriUmur
 
         if ($min === null) {
             return '—';
+        }
+
+        if ($min === $max) {
+            return "{$min} tahun";
         }
 
         return "{$min}–{$max} tahun";

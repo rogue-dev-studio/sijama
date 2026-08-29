@@ -25,6 +25,9 @@ class Lokasi extends Model
         'alamat',
         'lat',
         'lng',
+        'maps_place_id',
+        'maps_place_name',
+        'maps_url',
         'deskripsi',
         'is_active',
     ];

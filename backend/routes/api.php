@@ -19,9 +19,12 @@ use App\Http\Controllers\Api\HakAksesController;
 use App\Http\Controllers\Api\JamaahController;
 use App\Http\Controllers\Api\KategoriKegiatanController;
 use App\Http\Controllers\Api\KategoriUmurController;
+use App\Http\Controllers\Api\KeluargaController;
 use App\Http\Controllers\Api\KelompokController;
 use App\Http\Controllers\Api\KegiatanController;
+use App\Http\Controllers\Api\KonfigDokumenKController;
 use App\Http\Controllers\Api\KonfigSystemKController;
+use App\Http\Controllers\Api\LaporanController;
 use App\Http\Controllers\Api\LokasiController;
 use App\Http\Controllers\Api\LookupMController;
 use App\Http\Controllers\Api\LookupOptionsController;
@@ -31,21 +34,31 @@ use App\Http\Controllers\Api\MatriksController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\PemateriController;
 use App\Http\Controllers\Api\PengajianController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PusatController;
 use App\Http\Controllers\Api\SubKelompokController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [PasswordResetController::class, 'store'])->middleware('throttle:6,1');
+Route::post('/reset-password', [PasswordResetController::class, 'update'])->middleware('throttle:10,1');
 Route::get('/public/konfig', [KonfigSystemKController::class, 'publicShow']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'maintenance.access'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::get('/profile/wilayah-options', [ProfileController::class, 'wilayahOptions']);
+    Route::get('/profile/wilayah-from-nik', [ProfileController::class, 'wilayahFromNik']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::put('/profile/login-session', [ProfileController::class, 'updateLoginSession']);
+    Route::patch('/profile/login-session', [ProfileController::class, 'updateLoginSession']);
+    Route::post('/profile/photo', [ProfileController::class, 'uploadPhoto']);
+    Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto']);
     Route::get('/lookups/options', LookupOptionsController::class);
 
     if (config('app.debug')) {
@@ -63,6 +76,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('jamaah/{jamaah}', [JamaahController::class, 'destroy'])->middleware('permission:jamaah.delete');
     Route::post('jamaah/{jamaah}/face', [JamaahController::class, 'enrollFace'])->middleware('permission:jamaah.enroll_face');
     Route::delete('jamaah/{jamaah}/face', [JamaahController::class, 'resetFace'])->middleware('permission:jamaah.enroll_face');
+
+    Route::get('keluarga/jamaah-options', [KeluargaController::class, 'jamaahOptions'])->middleware('permission:keluarga.view');
+    Route::get('keluarga', [KeluargaController::class, 'index'])->middleware('permission:keluarga.view');
+    Route::post('keluarga', [KeluargaController::class, 'store'])->middleware('permission:keluarga.create');
+    Route::get('keluarga/{keluarga}', [KeluargaController::class, 'show'])->middleware('permission:keluarga.view');
+    Route::put('keluarga/{keluarga}', [KeluargaController::class, 'update'])->middleware('permission:keluarga.update');
+    Route::patch('keluarga/{keluarga}', [KeluargaController::class, 'update'])->middleware('permission:keluarga.update');
+    Route::delete('keluarga/{keluarga}', [KeluargaController::class, 'destroy'])->middleware('permission:keluarga.delete');
 
     Route::get('pengajian', [PengajianController::class, 'index'])->middleware('permission:pengajian.view');
     Route::post('pengajian', [PengajianController::class, 'store'])->middleware('permission:pengajian.create');
@@ -87,9 +108,17 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:dashboard.view');
-    Route::get('/dashboard/absensi-overview', [DashboardController::class, 'absensiOverview'])->middleware('permission:dashboard.view');
+    Route::get('/dashboard/absensi-overview', [DashboardController::class, 'absensiOverview'])
+        ->middleware('permission:dashboard.absensi_overview.view');
     Route::get('/kategori-umur', [KategoriUmurController::class, 'index'])->middleware('permission:kategori_umur.view');
     Route::get('/calendar', [CalendarController::class, 'index'])->middleware('permission:kalender.view');
+
+    Route::prefix('laporan')->group(function () {
+        Route::get('kehadiran', [LaporanController::class, 'kehadiran'])->middleware('permission:laporan_kehadiran.view');
+        Route::get('jamaah', [LaporanController::class, 'jamaah'])->middleware('permission:laporan_jamaah.view');
+        Route::get('pengajian', [LaporanController::class, 'pengajian'])->middleware('permission:laporan_pengajian.view');
+        Route::get('kegiatan', [LaporanController::class, 'kegiatan'])->middleware('permission:laporan_kegiatan.view');
+    });
 
     Route::prefix('master')->group(function () {
         Route::get('dapukan', [DapukanController::class, 'index'])->middleware('permission:dapukan.view');
@@ -167,6 +196,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('lokasi', [LokasiController::class, 'index'])->middleware('permission:lokasi.view');
         Route::post('lokasi/resolve-location', [LokasiController::class, 'resolveLocation'])
+            ->middleware('permission:lokasi.view');
+        Route::post('lokasi/resolve-coords', [LokasiController::class, 'resolveCoords'])
             ->middleware('permission:lokasi.view');
         Route::get('lokasi/search-places', [LokasiController::class, 'searchPlaces'])
             ->middleware('permission:lokasi.view');
@@ -255,5 +286,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('konfig', [KonfigSystemKController::class, 'update'])->middleware('permission:konfig.update');
         Route::post('konfig/assets/{asset}', [KonfigSystemKController::class, 'uploadAsset'])->middleware('permission:konfig.update');
         Route::delete('konfig/assets/{asset}', [KonfigSystemKController::class, 'deleteAsset'])->middleware('permission:konfig.update');
+
+        Route::get('konfig-dokumen', [KonfigDokumenKController::class, 'index'])->middleware('permission:konfig_dokumen.view');
+        Route::get('konfig-dokumen/{lookupId}', [KonfigDokumenKController::class, 'show'])->middleware('permission:konfig_dokumen.view')->whereNumber('lookupId');
+        Route::put('konfig-dokumen', [KonfigDokumenKController::class, 'update'])->middleware('permission:konfig_dokumen.update');
+        Route::patch('konfig-dokumen', [KonfigDokumenKController::class, 'update'])->middleware('permission:konfig_dokumen.update');
+        Route::post('konfig-dokumen/{lookupId}/assets/{asset}', [KonfigDokumenKController::class, 'uploadAsset'])
+            ->middleware('permission:konfig_dokumen.update')
+            ->whereNumber('lookupId')
+            ->where('asset', 'logo-kiri|logo-kanan');
+        Route::delete('konfig-dokumen/{lookupId}/assets/{asset}', [KonfigDokumenKController::class, 'deleteAsset'])
+            ->middleware('permission:konfig_dokumen.update')
+            ->whereNumber('lookupId')
+            ->where('asset', 'logo-kiri|logo-kanan');
     });
 });

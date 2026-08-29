@@ -17,7 +17,6 @@ import {
 import { aplikasiKonfigService } from '../api/services'
 import type { AppPublicSettings } from '../api/types'
 import { buildBrowserTabTitle } from '../lib/appBrand'
-import { applyAppTheme } from '../lib/appTheme'
 import { resolveKonfigAssetUrl } from '../lib/konfigAsset'
 
 const FALLBACK_SETTINGS: AppPublicSettings = {
@@ -51,13 +50,24 @@ const FALLBACK_SETTINGS: AppPublicSettings = {
   theme_color: null,
   maintenance_mode: false,
   maintenance_message: 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
+  maintenance_login_allowed: false,
+  path_maintenance_background: null,
+  maintenance_background_style: 'cover',
+  maintenance_background_repeat_size: '28px',
+  password_reset_phone_enabled: false,
+  password_reset_email_enabled: true,
+  telegram_enabled: false,
+  n8n_enabled: false,
+  dokumen: {
+    items: {},
+  },
 }
 
 interface AppSettingsContextValue {
   settings: AppPublicSettings
   loading: boolean
   applySettings: (next: AppPublicSettings) => void
-  refreshSettings: () => Promise<void>
+  refreshSettings: () => Promise<AppPublicSettings>
 }
 
 const AppSettingsContext = createContext<AppSettingsContextValue | null>(null)
@@ -87,7 +97,6 @@ function applyDocumentMeta(settings: AppPublicSettings) {
 
   applyDocumentLink('icon', settings.path_favicon)
   applyDocumentLink('apple-touch-icon', settings.path_logoheader)
-  applyAppTheme(settings)
 }
 
 export function AppSettingsProvider({ children }: { children: ReactNode }) {
@@ -102,6 +111,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
   const refreshSettings = useCallback(async () => {
     const next = await aplikasiKonfigService.publicSettings()
     applySettings(next)
+    return next
   }, [applySettings])
 
   useEffect(() => {

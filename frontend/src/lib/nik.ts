@@ -11,6 +11,18 @@ export type NikBirthInfo = {
 }
 
 /**
+ * Digit 1–6 NIK = kode Kemendagri kecamatan (XX.XX.XX).
+ */
+export function parseKecamatanKodeFromNik(nik: string): string | null {
+  const digits = nik.replace(/\D/g, '')
+  if (digits.length < 6) return null
+  const six = digits.slice(0, 6)
+  if (six.startsWith('00')) return null
+
+  return `${six.slice(0, 2)}.${six.slice(2, 4)}.${six.slice(4, 6)}`
+}
+
+/**
  * Parse tanggal lahir (dan gender) dari NIK 16 digit.
  * Digit 7–12 = DDMMYY; hari +40 menandai perempuan.
  */

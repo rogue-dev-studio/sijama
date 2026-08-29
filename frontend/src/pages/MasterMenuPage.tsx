@@ -2,14 +2,14 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:45:00
+ * @Last Modified time: 2026-08-27 17:16:38
  */
 
 import { useEffect, useState } from 'react'
 import { masterMenuService } from '../api/services'
 import type { Menu } from '../api/types'
 import { MenuIcon } from '../components/MenuIcon'
-import { SimpleMasterListPage } from '../components/SimpleMasterListPage'
+import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
 
 export function MasterMenuPage() {
   const [allMenus, setAllMenus] = useState<Menu[]>([])
@@ -28,6 +28,62 @@ export function MasterMenuPage() {
       active = false
     }
   }, [])
+
+  const columns: GatedColumn<Menu>[] = [
+    {
+      key: 'slug',
+      label: 'Slug',
+      cell: (item) => item.slug,
+      exportValue: (item) => item.slug,
+    },
+    {
+      key: 'nama',
+      label: 'Nama',
+      cell: (item) => item.nama,
+      exportValue: (item) => item.nama,
+    },
+    {
+      key: 'path',
+      label: 'Path',
+      cell: (item) => item.path || '—',
+      exportValue: (item) => item.path || '—',
+    },
+    {
+      key: 'icon',
+      label: 'Icon',
+      sortable: false,
+      cell: (item) => (
+        <span className="menu-icon-cell" title={item.icon || undefined}>
+          <MenuIcon name={item.icon} size={16} />
+          <span>{item.icon || '—'}</span>
+        </span>
+      ),
+      exportValue: (item) => item.icon || '—',
+    },
+    {
+      key: 'parent_id',
+      label: 'Parent',
+      sortable: false,
+      cell: (item) =>
+        item.parent_id
+          ? allMenus.find((parent) => parent.id === item.parent_id)?.nama || item.parent_id
+          : '—',
+      exportValue: (item) =>
+        item.parent_id
+          ? allMenus.find((parent) => parent.id === item.parent_id)?.nama || String(item.parent_id)
+          : '—',
+    },
+    {
+      key: 'is_active',
+      label: 'Status',
+      cell: (item) => (
+        <span className={`badge ${item.is_active !== false ? 'badge--ok' : 'badge--muted'}`}>
+          {item.is_active !== false ? 'Aktif' : 'Nonaktif'}
+        </span>
+      ),
+      exportValue: (item) => (item.is_active !== false ? 'Aktif' : 'Nonaktif'),
+    },
+  ]
 
   return (
     <SimpleMasterListPage<Menu>
@@ -48,31 +104,8 @@ export function MasterMenuPage() {
         }
       }}
       searchPlaceholder="Cari slug atau nama menu…"
-      renderLeadingHeaders={() => <th>Slug</th>}
-      renderLeadingCells={(item) => <td>{item.slug}</td>}
-      renderExtraHeaders={() => (
-        <>
-          <th>Icon</th>
-          <th>Path</th>
-          <th>Parent</th>
-        </>
-      )}
-      renderExtraCells={(item) => (
-        <>
-          <td>
-            <span className="menu-icon-cell" title={item.icon || undefined}>
-              <MenuIcon name={item.icon} size={16} />
-              <span>{item.icon || '—'}</span>
-            </span>
-          </td>
-          <td>{item.path || '—'}</td>
-          <td>
-            {item.parent_id
-              ? allMenus.find((parent) => parent.id === item.parent_id)?.nama || item.parent_id
-              : '—'}
-          </td>
-        </>
-      )}
+      defaultSortBy="urutan"
+      columns={columns}
     />
   )
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Resources\HakAksesResource;
 use App\Models\HakAkses;
 use App\Support\PaginationHelper;
+use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -15,8 +16,17 @@ class HakAksesService
         ?int $fiturId = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = HakAkses::query()->with('fitur')->orderBy('slug')->orderBy('nama');
+        $builder = HakAkses::query()->with('fitur');
+        SortHelper::apply(
+            $builder,
+            $sortBy,
+            $sortDir,
+            ['slug', 'nama', 'aksi'],
+            'slug',
+        );
 
         if ($fiturId !== null) {
             $builder->where('fitur_id', $fiturId);

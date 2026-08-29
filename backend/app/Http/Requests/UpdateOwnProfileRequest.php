@@ -9,6 +9,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\JamaahContactRules;
 use App\Support\LookupRules;
 use App\Support\LookupTypes;
 use Illuminate\Foundation\Http\FormRequest;
@@ -20,8 +21,15 @@ class UpdateOwnProfileRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        JamaahContactRules::prepareEmptyContacts($this);
+    }
+
     public function rules(): array
     {
+        $jamaahId = $this->user()?->jamaah_id ? (int) $this->user()->jamaah_id : null;
+
         return [
             'nama' => ['sometimes', 'required', 'string', 'max:255'],
             'gender' => ['sometimes', 'required', 'string', 'max:20', LookupRules::activeValue(LookupTypes::JENIS_KELAMIN)],
@@ -31,10 +39,10 @@ class UpdateOwnProfileRequest extends FormRequest
             'golongan_darah' => ['sometimes', 'nullable', 'string', 'max:20', LookupRules::activeValue(LookupTypes::GOLONGAN_DARAH)],
             'status_pernikahan' => ['sometimes', 'nullable', 'string', 'max:32', LookupRules::activeValue(LookupTypes::STATUS_PERNIKAHAN)],
             'alamat' => ['nullable', 'string'],
-            'rt' => ['sometimes', 'required', 'string', 'max:10'],
-            'rw' => ['sometimes', 'required', 'string', 'max:10'],
-            'no_hp' => ['sometimes', 'required', 'string', 'max:20'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'rt' => ['sometimes', 'nullable', 'string', 'max:10'],
+            'rw' => ['sometimes', 'nullable', 'string', 'max:10'],
+            'no_hp' => ['sometimes', ...JamaahContactRules::noHp($jamaahId)],
+            'email' => JamaahContactRules::email($jamaahId),
             'adm_desa_kelurahan_id' => ['sometimes', 'nullable', 'integer', 'exists:adm_desa_kelurahan,id'],
             'kode_pos' => ['sometimes', 'nullable', 'string', 'regex:/^\d{5}$/'],
         ];

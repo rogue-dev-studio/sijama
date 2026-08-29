@@ -8,7 +8,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAppSettings } from './AppSettingsContext'
 import { useAuth } from './AuthContext'
-import { MaintenancePage } from '../pages/MaintenancePage'
+import { isSuperAdminUser } from '../lib/isSuperAdmin'
 
 export function ProtectedRoute() {
   const { user, loading } = useAuth()
@@ -23,9 +23,8 @@ export function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
 
-  const isSuperAdmin = user.dapukan?.slug === 'superadmin'
-  if (settings.maintenance_mode && !isSuperAdmin) {
-    return <MaintenancePage />
+  if (settings.maintenance_mode && !isSuperAdminUser(user)) {
+    return <Navigate to="/maintenance" replace />
   }
 
   return <Outlet />

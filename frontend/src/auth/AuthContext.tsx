@@ -17,6 +17,8 @@ import {
 import { ApiError, clearToken, getToken, setToken } from '../api/client'
 import { authService } from '../api/services'
 import type { AuthPayload, MenuNode, User } from '../api/types'
+import { isSuperAdminUser } from '../lib/isSuperAdmin'
+import { markTrustedAdminDevice } from '../lib/trustedAdminDevice'
 import { useAppSettings } from './AppSettingsContext'
 
 interface AuthContextValue {
@@ -24,7 +26,7 @@ interface AuthContextValue {
   permissions: string[]
   menus: MenuNode[]
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string, rememberMe?: boolean) => Promise<void>
   logout: () => Promise<void>
   refresh: () => Promise<void>
   can: (permission: string) => boolean
@@ -44,6 +46,9 @@ function applyAuthPayload(
   setMenus(payload.menus)
   if (payload.app_settings && applySettings) {
     applySettings(payload.app_settings)
+  }
+  if (isSuperAdminUser(payload.user)) {
+    markTrustedAdminDevice(payload.user.username)
   }
 }
 
@@ -91,9 +96,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [applySettings])
 
   const login = useCallback(
-    async (username: string, password: string) => {
-      const result = await authService.login(username, password)
-      setToken(result.token)
+    async (username: string, password: string, rememberMe = true) => {
+      const result = await authService.login({
+        username,
+        password,
+        remember_me: rememberMe,
+      })
+      setToken(result.token, rememberMe)
       applyAuthPayload(result, setUser, setPermissions, setMenus, applySettings)
     },
     [applySettings],
@@ -119,11 +128,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [applySettings])
 
   const can = useCallback(
-    (permission: string) => {
-      if (user?.dapukan?.slug === 'superadmin') return true
-      return permissions.includes(permission)
-    },
-    [permissions, user],
+    (permission: string) => permissions.includes(permission),
+    [permissions],
   )
 
   const value = useMemo(

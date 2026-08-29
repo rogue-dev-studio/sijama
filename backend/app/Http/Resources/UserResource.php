@@ -20,6 +20,10 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'is_active' => $this->is_active,
             'jamaah_id' => $this->jamaah_id,
+            'foto_path' => $this->when(
+                $this->relationLoaded('jamaah') && $this->jamaah,
+                fn () => $this->jamaah->foto_path,
+            ),
             'jamaah' => $this->whenLoaded('jamaah', fn () => $this->jamaah ? [
                 'id' => $this->jamaah->id,
                 'nama' => $this->jamaah->nama,

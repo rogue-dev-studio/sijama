@@ -16,18 +16,27 @@ use App\Http\Resources\KonfigSystemKResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\KonfigAssetService;
 use App\Services\KonfigSystemKService;
+use App\Services\TrustedAdminDeviceService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class KonfigSystemKController extends Controller
 {
     public function __construct(
         private readonly KonfigSystemKService $konfigSystemKService,
         private readonly KonfigAssetService $konfigAssetService,
+        private readonly TrustedAdminDeviceService $trustedAdminDeviceService,
     ) {}
 
-    public function publicShow(): JsonResponse
+    public function publicShow(Request $request): JsonResponse
     {
-        return ApiResponse::success($this->konfigSystemKService->publicSettings());
+        $settings = $this->konfigSystemKService->publicSettings();
+        $settings['maintenance_login_allowed'] = $this->trustedAdminDeviceService->isAllowed(
+            $request,
+            $request->header('X-Device-Key'),
+        );
+
+        return ApiResponse::success($settings);
     }
 
     public function show(): JsonResponse

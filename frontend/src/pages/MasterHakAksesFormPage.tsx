@@ -10,6 +10,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { masterFiturService, masterHakAksesService } from '../api/services'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { useToast } from '../components/ToastProvider'
 import type { Fitur, HakAkses, HakAksesInput } from '../api/types'
 
 const aksiOptions: HakAkses['aksi'][] = ['view', 'create', 'update', 'delete', 'execute']
@@ -25,6 +26,7 @@ export function MasterHakAksesFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { notifySaved } = useToast()
   const [form, setForm] = useState<HakAksesInput>(emptyForm)
   const [fiturs, setFiturs] = useState<Fitur[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,6 +80,7 @@ export function MasterHakAksesFormPage() {
       } else {
         await masterHakAksesService.create(form)
       }
+      notifySaved('hak akses', isEdit ? 'update' : 'create')
       navigate('/master/hak-akses')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan hak akses')
