@@ -29,11 +29,22 @@ export function resolveKonfigAssetUrl(path?: string | null): string | null {
   }
 
   if (value.startsWith('/storage/')) {
-    // Same-origin via Vite/nginx proxy — fetch & canvas export need this (CORS).
-    if (typeof window !== 'undefined') {
-      return value
+    const apiUrl = `${API_BASE}${value}`
+
+    if (typeof window === 'undefined') {
+      return apiUrl
     }
-    return `${API_BASE}${value}`
+
+    try {
+      const apiOrigin = new URL(API_BASE).origin
+      if (apiOrigin === window.location.origin) {
+        return value
+      }
+    } catch {
+      return apiUrl
+    }
+
+    return apiUrl
   }
 
   return value
@@ -45,7 +56,12 @@ export async function fetchAssetAsDataUrl(pathOrUrl?: string | null): Promise<st
   if (url.startsWith('data:')) return url
 
   try {
-    const response = await fetch(url, { credentials: 'same-origin' })
+    const sameOrigin =
+      typeof window !== 'undefined' && url.startsWith(window.location.origin)
+    const response = await fetch(url, {
+      credentials: sameOrigin ? 'same-origin' : 'omit',
+      mode: 'cors',
+    })
     if (!response.ok) return null
     const blob = await response.blob()
     if (!blob.type.startsWith('image/') && !blob.type.includes('svg')) {
