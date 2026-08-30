@@ -73,9 +73,14 @@ Set `FRONTEND_URL` di backend = URL frontend Render.
 **Free tier (tanpa Shell):**
 
 1. Render Dashboard → **sijama-api** → **Environment**
-2. Tambah env: `SEED_ON_DEPLOY` = `true`
-3. **Manual Deploy** → buka **Logs**, tunggu baris `Seed finished`
-4. **Hapus** `SEED_ON_DEPLOY` (atau set `false`) agar deploy berikutnya tidak seed ulang
+2. Tambah env:
+   - `SEED_ON_DEPLOY` = `true`
+   - `BOOTSTRAP_ADMIN_USERNAME` = `admin` (atau username pilihan)
+   - `BOOTSTRAP_ADMIN_EMAIL` = email admin production
+   - `BOOTSTRAP_ADMIN_PASSWORD` = password kuat (min. 8 karakter)
+   - `BOOTSTRAP_ADMIN_NAME` = opsional (default: Super Admin SIJAMA)
+3. **Manual Deploy** → buka **Logs**, tunggu baris `Seed finished` dan `Production admin ... siap`
+4. **Hapus** `SEED_ON_DEPLOY` dan `BOOTSTRAP_ADMIN_*` agar deploy berikutnya tidak seed / reset admin
 
 Entrypoint menjalankan `scripts/seed-aiven-only.sh` (RBAC, konfig, wilayah, lookup, event, hari libur — tanpa akun demo lokal).
 

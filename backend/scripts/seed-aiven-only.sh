@@ -12,6 +12,7 @@ php artisan db:seed --class=LookupMSeeder --force
 php artisan db:seed --class=KonfigDokumenSeeder --force
 php artisan db:seed --class=MasterEventSeeder --force
 php artisan db:seed --class=HariLiburSeeder --force
+php artisan db:seed --class=ProductionAdminSeeder --force
 
 php artisan storage:link --force || true
 

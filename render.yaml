@@ -54,6 +54,14 @@ services:
       # Set to "true" once in Render Dashboard → redeploy → unset (free tier has no Shell).
       - key: SEED_ON_DEPLOY
         sync: false
+      - key: BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        sync: false
 
   - type: web
     name: sijama-web
