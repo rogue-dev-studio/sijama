@@ -1,0 +1,18 @@
+#!/bin/sh
+# Seed saja (skip migrate) — DB schema sudah fresh dari migrate terakhir.
+set -e
+
+echo "== seeders (production-safe) =="
+php artisan db:seed --class=RbacSeeder --force
+php artisan db:seed --class=KonfigSystemSeeder --force
+php artisan db:seed --class=WilayahAdministrasiSeeder --force
+php artisan db:seed --class=KodePosSeeder --force
+php artisan db:seed --class=WilayahSeeder --force
+php artisan db:seed --class=LookupMSeeder --force
+php artisan db:seed --class=KonfigDokumenSeeder --force
+php artisan db:seed --class=MasterEventSeeder --force
+php artisan db:seed --class=HariLiburSeeder --force
+
+php artisan storage:link --force || true
+
+echo "Done."
