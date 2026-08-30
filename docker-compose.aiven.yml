@@ -4,7 +4,7 @@ services:
     profiles: ["local-db"]
 
   backend:
-    depends_on: []
+    depends_on: !override {}
     environment:
       DB_CONNECTION: pgsql
       DB_HOST: ${DB_HOST}
@@ -15,7 +15,7 @@ services:
       DB_SSLMODE: require
 
   scheduler:
-    depends_on:
+    depends_on: !override
       backend:
         condition: service_started
     environment:
