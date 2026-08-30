@@ -11,7 +11,7 @@ const LEGACY_DEFAULT_PATHS = new Set(['/logo.svg', '/favicon.svg'])
 
 /**
  * Resolve path aset konfig ke URL yang bisa dimuat browser.
- * Path `/storage/...` memakai same-origin (Vite/Nginx proxy) agar preview & cetak andal.
+ * Path `/storage/...` dilayani backend API (Vite/Nginx proxy hanya di dev/Docker lokal).
  */
 export function resolveKonfigAssetUrl(path?: string | null): string | null {
   const value = path?.trim()
@@ -29,9 +29,6 @@ export function resolveKonfigAssetUrl(path?: string | null): string | null {
   }
 
   if (value.startsWith('/storage/')) {
-    if (typeof window !== 'undefined' && window.location?.origin) {
-      return `${window.location.origin}${value}`
-    }
     return `${API_BASE}${value}`
   }
 
