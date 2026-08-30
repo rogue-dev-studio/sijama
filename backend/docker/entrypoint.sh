@@ -49,6 +49,17 @@ fi
 php artisan migrate --force
 php artisan storage:link --force || true
 
+# Render free tier: no Shell — set SEED_ON_DEPLOY=true once in Dashboard, redeploy, then unset.
+if [ "${SEED_ON_DEPLOY:-false}" = "true" ]; then
+  echo "SEED_ON_DEPLOY=true — running production seed..."
+  if [ -f scripts/seed-aiven-only.sh ]; then
+    bash scripts/seed-aiven-only.sh
+  else
+    echo "scripts/seed-aiven-only.sh not found; seed skipped."
+  fi
+  echo "Seed finished. Remove SEED_ON_DEPLOY from env vars to avoid re-seeding on next deploy."
+fi
+
 LISTEN_PORT="${PORT:-80}"
 if [ "${LISTEN_PORT}" != "80" ]; then
   sed -i "s/Listen 80/Listen ${LISTEN_PORT}/" /etc/apache2/ports.conf

@@ -51,6 +51,9 @@ services:
           type: web
           name: sijama-web
           envVarKey: RENDER_EXTERNAL_URL
+      # Set to "true" once in Render Dashboard → redeploy → unset (free tier has no Shell).
+      - key: SEED_ON_DEPLOY
+        sync: false
 
   - type: web
     name: sijama-web

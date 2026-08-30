@@ -68,20 +68,24 @@ Set `FRONTEND_URL` di backend = URL frontend Render.
 ## Setelah deploy
 
 1. Cek health: `https://<sijama-api>.onrender.com/up`
-2. Seed RBAC (wajib sekali setelah deploy besar / jika matriks akses kosong), via **Render Shell** di service **sijama-api**:
+2. Seed master data (wajib sekali setelah deploy besar / matriks akses kosong).
+
+**Free tier (tanpa Shell):**
+
+1. Render Dashboard → **sijama-api** → **Environment**
+2. Tambah env: `SEED_ON_DEPLOY` = `true`
+3. **Manual Deploy** → buka **Logs**, tunggu baris `Seed finished`
+4. **Hapus** `SEED_ON_DEPLOY` (atau set `false`) agar deploy berikutnya tidak seed ulang
+
+Entrypoint menjalankan `scripts/seed-aiven-only.sh` (RBAC, konfig, wilayah, lookup, event, hari libur — tanpa akun demo lokal).
+
+**Paid Shell (alternatif):**
 
 ```bash
-php artisan db:seed --class=RbacSeeder --force
+bash scripts/seed-aiven-only.sh
 ```
 
 > **Jangan** pakai `php artisan db:seed --force` saja — `DatabaseSeeder` sengaja di-skip di production.
-
-Opsional (konfig default):
-
-```bash
-php artisan db:seed --class=KonfigSystemSeeder --force
-php artisan db:seed --class=KonfigDokumenSeeder --force
-```
 
 Verifikasi (PostgreSQL): `hak_akses` dan grant Super Admin harus ~545 baris. Setelah seed, **logout/login** agar permission session ter-refresh.
 
