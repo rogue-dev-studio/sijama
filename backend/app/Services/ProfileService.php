@@ -32,6 +32,7 @@ class ProfileService
     public function __construct(
         private readonly LookupOptionsService $lookupOptionsService,
         private readonly ProfilePhotoService $profilePhotoService,
+        private readonly ProfileSignatureService $profileSignatureService,
     ) {}
 
     public function show(User $user, ?PersonalAccessToken $currentAccessToken = null): array
@@ -241,7 +242,7 @@ class ProfileService
     {
         if (! $user->jamaah_id) {
             throw ValidationException::withMessages([
-                'jamaah' => ['Akun belum ditautkan ke data jamaah.'],
+                'jamaah' => ['Akun belum terhubung ke data jamaah.'],
             ]);
         }
 
@@ -299,11 +300,25 @@ class ProfileService
         return $this->show($user->fresh());
     }
 
+    public function uploadSignature(User $user, UploadedFile $file): array
+    {
+        $this->profileSignatureService->upload($user, $file);
+
+        return $this->show($user->fresh(['jamaah.dapukan', 'dapukan']));
+    }
+
+    public function deleteSignature(User $user): array
+    {
+        $this->profileSignatureService->remove($user);
+
+        return $this->show($user->fresh(['jamaah.dapukan', 'dapukan']));
+    }
+
     private function resolveLinkedJamaah(User $user): Jamaah
     {
         if (! $user->jamaah_id) {
             throw ValidationException::withMessages([
-                'jamaah' => ['Akun belum ditautkan ke data jamaah.'],
+                'jamaah' => ['Akun belum terhubung ke data jamaah.'],
             ]);
         }
 

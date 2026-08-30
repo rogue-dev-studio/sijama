@@ -215,6 +215,7 @@ export function KehadiranPage() {
               getPayload={() => ({
                 title: activeSession ? `Kehadiran — ${activeSession.title}` : 'Kehadiran',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: attendances.map((item, index) => [
                   index + 1,
                   ...visibleColumns.map((column) => column.exportValue(item)),

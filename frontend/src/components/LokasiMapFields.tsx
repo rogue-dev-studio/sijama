@@ -26,6 +26,7 @@ import {
   roundCoord,
 } from '../lib/googleMaps'
 import { LokasiMapPicker } from './LokasiMapPicker'
+import { ShareSocialActions } from './ShareSocialActions'
 
 export type LokasiMapsApplyPayload = {
   lat: number
@@ -385,9 +386,9 @@ export function LokasiMapFields({
       <div className="lokasi-map__intro">
         <h2 id="lokasi-map-heading">Titik peta & share Google Maps</h2>
         <p>
-          Cari nama tempat di peta, klik penanda, atau tempel tautan/iframe embed Google Maps. Sebelum
-          diterapkan, Anda diminta konfirmasi; negara hingga desa dan tautan share (dengan nama tempat)
-          akan diisi otomatis bila dikenali.
+          Cari nama tempat di peta, klik penanda, atau tempel tautan atau iframe embed Google Maps.
+          Sebelum diterapkan, sistem meminta konfirmasi. Negara hingga desa dan tautan share (dengan
+          nama tempat) diisi otomatis bila dikenali.
         </p>
       </div>
 
@@ -520,6 +521,12 @@ export function LokasiMapFields({
             <button type="button" className="btn btn--primary btn--small" onClick={() => void handleCopyShare()}>
               Salin tautan share
             </button>
+            <ShareSocialActions
+              title={shareLabel || 'Lokasi'}
+              body={shareLabel ? `Lokasi: ${shareLabel}` : 'Lokasi kegiatan'}
+              url={shareUrl}
+              size="small"
+            />
           </>
         )}
       </div>

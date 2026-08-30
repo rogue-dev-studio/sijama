@@ -5,17 +5,20 @@
  * @Last Modified time: 2026-08-27 17:16:38
  */
 
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import type { Paginated, PaginationMeta } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
+import { ListFilterBar } from './ListFilterBar'
+import { buildExportColumnKeys, buildExportHeaders } from '../lib/dokumenExport'
 import { ExportPrintActions } from './ExportPrintActions'
 import { PermissionLink } from './PermissionLink'
 import { Pagination, rowNumber } from './Pagination'
 import { SearchableSelect } from './SearchableSelect'
 import { SortableTh, bindSortableTh } from './SortableTh'
 import { useToast } from './ToastProvider'
+import { useConfirm } from './ConfirmDialogProvider'
 import type { ExportTablePayload } from '../lib/tableExport'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
 import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
@@ -142,6 +145,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
 }: SimpleMasterListPageProps<T>) {
   const { can } = useAuth()
   const { notifyDeleted } = useToast()
+  const { confirm } = useConfirm()
   const [items, setItems] = useState<T[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [query, setQuery] = useState('')
@@ -257,7 +261,12 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
 
   async function handleDelete(item: T) {
     const label = itemLabel?.(item) ?? item.nama
-    if (!window.confirm(`Hapus ${entityLabel} "${label}"?`)) return
+    const ok = await confirm({
+      title: 'Konfirmasi hapus',
+      message: `Hapus ${entityLabel} "${label}"? Tindakan ini tidak bisa dibatalkan.`,
+      confirmLabel: 'Ya, hapus',
+    })
+    if (!ok) return
     setError(null)
     try {
       await remove(item.id)
@@ -268,8 +277,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     }
   }
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -294,10 +302,112 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   const createEnabled =
     createAccess.enabled && (!requireParentOptionsForCreate || parentOptions.length > 0)
 
+  const { primaryFilters, secondaryContent, secondaryActive } = useMemo(() => {
+    const nodes: ReactNode[] = []
+
+    if (parentFilter) {
+      nodes.push(
+        <div className="field" key="parent">
+          <label htmlFor="filter_parent">{parentFilter.label}</label>
+          <SearchableSelect
+            id="filter_parent"
+            value={parentId ? String(parentId) : ''}
+            onChange={(next) => {
+              setParentId(Number(next) || 0)
+              setPage(1)
+            }}
+            placeholder={parentFilter.allLabel || 'Semua'}
+            options={[
+              { value: '', label: parentFilter.allLabel || 'Semua' },
+              ...parentOptions.map((item) => ({
+                value: String(item.id),
+                label: item.nama,
+              })),
+            ]}
+          />
+        </div>,
+      )
+    }
+
+    if (selectFilter) {
+      nodes.push(
+        <div className="field" key="select">
+          <label htmlFor="filter_select">{selectFilter.label}</label>
+          <SearchableSelect
+            id="filter_select"
+            value={selectValue}
+            onChange={(next) => {
+              setSelectValue(next)
+              setPage(1)
+            }}
+            placeholder={selectFilter.allLabel || 'Semua'}
+            options={[
+              { value: '', label: selectFilter.allLabel || 'Semua' },
+              ...selectFilter.options,
+            ]}
+          />
+        </div>,
+      )
+    }
+
+    if (showStatusFilter) {
+      nodes.push(
+        <div className="field" key="status">
+          <label htmlFor="filter_status">Status</label>
+          <SearchableSelect
+            id="filter_status"
+            value={isActiveFilter}
+            onChange={(next) => {
+              setIsActiveFilter(next as '' | '1' | '0')
+              setPage(1)
+            }}
+            placeholder="Semua"
+            options={[
+              { value: '', label: 'Semua' },
+              { value: '1', label: 'Aktif' },
+              { value: '0', label: 'Nonaktif' },
+            ]}
+          />
+        </div>,
+      )
+    }
+
+    const extra = renderExtraFilters?.({ setPage })
+    const primary = nodes.slice(0, 3)
+    const overflow = nodes.slice(3)
+    const secondaryParts = [...overflow]
+    if (extra) {
+      secondaryParts.push(extra)
+    }
+
+    return {
+      primaryFilters: primary,
+      secondaryContent:
+        secondaryParts.length > 0 ? (
+          <>
+            {overflow}
+            {extra}
+          </>
+        ) : undefined,
+      secondaryActive: overflow.length > 0 || hasExtraFilters,
+    }
+  }, [
+    parentFilter,
+    parentId,
+    parentOptions,
+    selectFilter,
+    selectValue,
+    showStatusFilter,
+    isActiveFilter,
+    renderExtraFilters,
+    hasExtraFilters,
+  ])
+
   function defaultGatedExportPayload(): ExportTablePayload {
     return {
       title,
-      headers: ['No', ...visibleColumns.map((column) => column.label)],
+      headers: buildExportHeaders(visibleColumns),
+      columnKeys: buildExportColumnKeys(visibleColumns),
       rows: items.map((item, index) => [
         rowNumber(meta, index),
         ...visibleColumns.map((column) => column.exportValue(item)),
@@ -306,9 +416,16 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   }
 
   function defaultLegacyExportPayload(): ExportTablePayload {
+    const legacyColumns = showStatusColumn
+      ? [
+          { key: 'nama', label: 'Nama' },
+          { key: 'is_active', label: 'Status' },
+        ]
+      : [{ key: 'nama', label: 'Nama' }]
     return {
       title,
-      headers: showStatusColumn ? ['No', 'Nama', 'Status'] : ['No', 'Nama'],
+      headers: buildExportHeaders(legacyColumns),
+      columnKeys: buildExportColumnKeys(legacyColumns),
       rows: items.map((item, index) => {
         const no = String(rowNumber(meta, index))
         const nama = itemLabel?.(item) ?? item.nama
@@ -379,85 +496,20 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder={searchPlaceholder}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label={`Cari ${entityLabel}`}
-          />
-        </form>
-        <div className="filter-bar__fields">
-          {parentFilter && (
-            <div className="field">
-              <label htmlFor="filter_parent">{parentFilter.label}</label>
-              <SearchableSelect
-                id="filter_parent"
-                value={parentId ? String(parentId) : ''}
-                onChange={(next) => {
-                  setParentId(Number(next) || 0)
-                  setPage(1)
-                }}
-                placeholder={parentFilter.allLabel || 'Semua'}
-                options={[
-                  { value: '', label: parentFilter.allLabel || 'Semua' },
-                  ...parentOptions.map((item) => ({
-                    value: String(item.id),
-                    label: item.nama,
-                  })),
-                ]}
-              />
-            </div>
-          )}
-          {selectFilter && (
-            <div className="field">
-              <label htmlFor="filter_select">{selectFilter.label}</label>
-              <SearchableSelect
-                id="filter_select"
-                value={selectValue}
-                onChange={(next) => {
-                  setSelectValue(next)
-                  setPage(1)
-                }}
-                placeholder={selectFilter.allLabel || 'Semua'}
-                options={[
-                  { value: '', label: selectFilter.allLabel || 'Semua' },
-                  ...selectFilter.options,
-                ]}
-              />
-            </div>
-          )}
-          {renderExtraFilters?.({ setPage })}
-          {showStatusFilter && (
-            <div className="field">
-              <label htmlFor="filter_status">Status</label>
-              <SearchableSelect
-                id="filter_status"
-                value={isActiveFilter}
-                onChange={(next) => {
-                  setIsActiveFilter(next as '' | '1' | '0')
-                  setPage(1)
-                }}
-                placeholder="Semua"
-                options={[
-                  { value: '', label: 'Semua' },
-                  { value: '1', label: 'Aktif' },
-                  { value: '0', label: 'Nonaktif' },
-                ]}
-              />
-            </div>
-          )}
-        </div>
-        {hasActiveFilters && (
-          <div className="filter-bar__actions">
-            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-              Hapus filter
-            </button>
-          </div>
-        )}
-      </div>
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: searchPlaceholder,
+          ariaLabel: `Cari ${entityLabel}`,
+        }}
+        primaryFilters={primaryFilters}
+        secondaryContent={secondaryContent}
+        secondaryActive={secondaryActive}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+      />
 
       {loading && <div className="loading-state">Memuat {entityLabel}…</div>}
 

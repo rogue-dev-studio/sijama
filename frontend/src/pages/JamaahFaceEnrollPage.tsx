@@ -11,6 +11,7 @@ import {
 } from '../components/CameraPermissionPanel'
 import { FaceScanStage } from '../components/FaceScanStage'
 import { useToast } from '../components/ToastProvider'
+import { useConfirm } from '../components/ConfirmDialogProvider'
 import {
   type CameraAccessState,
   DEFAULT_CAMERA_CONSTRAINTS,
@@ -63,6 +64,7 @@ export function JamaahFaceEnrollPage() {
   const { id } = useParams()
   const jamaahId = Number(id)
   const { notifySuccess } = useToast()
+  const { confirm } = useConfirm()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const progressRef = useRef(0)
@@ -540,9 +542,11 @@ export function JamaahFaceEnrollPage() {
 
   async function handleResetFace() {
     if (!jamaah?.face_enrolled) return
-    const confirmed = window.confirm(
-      `Reset data wajah untuk ${jamaah.nama}? Jamaah ini tidak bisa absen lewat kamera sampai didaftarkan ulang.`,
-    )
+    const confirmed = await confirm({
+      title: 'Reset data wajah',
+      message: `Reset data wajah untuk ${jamaah.nama}? Jamaah ini tidak bisa absen lewat kamera sampai didaftarkan ulang.`,
+      confirmLabel: 'Ya, reset',
+    })
     if (!confirmed) return
 
     setResetting(true)

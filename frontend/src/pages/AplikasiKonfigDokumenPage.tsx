@@ -5,11 +5,12 @@
  * @Last Modified time: 2026-08-27 17:16:38
  */
 
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { aplikasiKonfigDokumenService } from '../api/services'
 import type { KonfigDokumen, PaginationMeta } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { PermissionLink } from '../components/PermissionLink'
 import { Pagination, rowNumber } from '../components/Pagination'
@@ -20,7 +21,7 @@ import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
 
 const PREFIX = 'konfig_dokumen'
 
-function mediaLabel(item: KonfigDokumen): string {
+function kopMediaLabel(item: KonfigDokumen): string {
   const parts: string[] = []
   if (item.apply_pdf) parts.push('PDF')
   if (item.apply_excel) parts.push('Excel')
@@ -61,10 +62,10 @@ const COLUMNS: ColumnDef[] = [
   },
   {
     key: 'media',
-    label: 'Media',
+    label: 'Kop di media',
     sortable: false,
-    cell: (item) => mediaLabel(item),
-    exportValue: (item) => mediaLabel(item),
+    cell: (item) => kopMediaLabel(item),
+    exportValue: (item) => kopMediaLabel(item),
   },
   {
     key: 'status',
@@ -120,8 +121,7 @@ export function AplikasiKonfigDokumenPage() {
     void load()
   }, [load])
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -138,6 +138,7 @@ export function AplikasiKonfigDokumenPage() {
   }
 
   const sortBind = bindSortableTh(sort, handleSort)
+  const hasActiveFilters = search !== ''
 
   return (
     <>
@@ -158,6 +159,7 @@ export function AplikasiKonfigDokumenPage() {
               getPayload={() => ({
                 title: 'Konfigurasi Dokumen',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: items.map((item, index) => [
                   rowNumber(meta, index),
                   ...visibleColumns.map((column) => column.exportValue(item)),
@@ -179,25 +181,18 @@ export function AplikasiKonfigDokumenPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari nama / value cetakan…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari konfigurasi dokumen"
-          />
-          <button type="submit" className="btn btn--secondary">
-            Cari
-          </button>
-        </form>
-        <div className="filter-bar__actions">
-          <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-            Reset
-          </button>
-        </div>
-      </div>
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari nama / value cetakan…',
+          ariaLabel: 'Cari konfigurasi dokumen',
+        }}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+        resetLabel="Reset"
+      />
 
       {loading ? (
         <div className="loading-state">Memuat konfigurasi dokumen…</div>

@@ -13,6 +13,17 @@ import type { LookupMInput } from '../api/types'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
 import { LOOKUP_TYPE, LOOKUP_TYPE_OPTIONS } from '../lib/lookupTypes'
+import {
+  defaultLookupKonfigDokumenMeta,
+  lookupKonfigDokumenMetaHint,
+  parseLookupKonfigDokumenMeta,
+  serializeLookupKonfigDokumenMeta,
+} from '../lib/lookupKonfigDokumen'
+import {
+  DOKUMEN_PAPER_ORIENTATIONS,
+  DOKUMEN_PAPER_SIZES,
+} from '../lib/dokumenStyle'
+import type { DokumenPaperOrientation, DokumenPaperSize } from '../api/types'
 
 const emptyForm: LookupMInput = {
   lookup_type: '',
@@ -38,6 +49,7 @@ export function MasterLookupFormPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [paperMeta, setPaperMeta] = useState(defaultLookupKonfigDokumenMeta())
 
   useEffect(() => {
     let active = true
@@ -56,6 +68,11 @@ export function MasterLookupFormPage() {
             additional_data: item.additional_data || '',
             is_active: item.is_active,
           })
+          if (item.lookup_type.trim() === LOOKUP_TYPE.KONFIG_DOKUMEN) {
+            setPaperMeta(parseLookupKonfigDokumenMeta(item.additional_data))
+          } else {
+            setPaperMeta(defaultLookupKonfigDokumenMeta())
+          }
         }
       } catch (err) {
         if (active) {
@@ -84,13 +101,17 @@ export function MasterLookupFormPage() {
       return
     }
 
+    const isKonfigDokumenType = resolvedType === LOOKUP_TYPE.KONFIG_DOKUMEN
+
     const payload: LookupMInput = {
       lookup_type: resolvedType,
       lookup_name: form.lookup_name?.trim() || null,
       lookup_value: form.lookup_value?.trim() || null,
       lookup_urutan: form.lookup_urutan,
       lookup_kode: form.lookup_kode?.trim() || null,
-      additional_data: form.additional_data?.trim() || null,
+      additional_data: isKonfigDokumenType
+        ? serializeLookupKonfigDokumenMeta(paperMeta)
+        : form.additional_data?.trim() || null,
       is_active: form.is_active,
     }
 
@@ -213,13 +234,72 @@ export function MasterLookupFormPage() {
             />
           </div>
           <div className="field" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="additional_data">Additional data</label>
-            <textarea
-              id="additional_data"
-              rows={4}
-              value={form.additional_data || ''}
-              onChange={(event) => setForm({ ...form, additional_data: event.target.value })}
-            />
+            {isKonfigDokumen ? (
+              <>
+                <p className="form-section-title">Ukuran kertas default</p>
+                <p className="field-hint">{lookupKonfigDokumenMetaHint()}</p>
+                <div className="dokumen-format-bar dokumen-format-bar--paper">
+                  <div className="dokumen-format-bar__row">
+                    <select
+                      id="lookup-paper-size"
+                      className="dokumen-format-bar__paper"
+                      value={paperMeta.paper_size}
+                      onChange={(event) =>
+                        setPaperMeta((prev) => ({
+                          ...prev,
+                          paper_size: event.target.value as DokumenPaperSize,
+                        }))
+                      }
+                    >
+                      {DOKUMEN_PAPER_SIZES.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="dokumen-format-bar__group"
+                      role="group"
+                      aria-label="Orientasi kertas lookup"
+                    >
+                      {DOKUMEN_PAPER_ORIENTATIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={`dokumen-format-bar__btn dokumen-format-bar__btn--text${
+                            paperMeta.paper_orientation === option.value ? ' is-active' : ''
+                          }`}
+                          aria-pressed={paperMeta.paper_orientation === option.value}
+                          title={option.label}
+                          onClick={() =>
+                            setPaperMeta((prev) => ({
+                              ...prev,
+                              paper_orientation: option.value as DokumenPaperOrientation,
+                            }))
+                          }
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="field-hint">
+                  Default ini dipakai saat konfig dokumen cetakan dibuat pertama kali. Override per
+                  cetakan tetap bisa di menu Konfigurasi Dokumen.
+                </p>
+              </>
+            ) : (
+              <>
+                <label htmlFor="additional_data">Additional data</label>
+                <textarea
+                  id="additional_data"
+                  rows={4}
+                  value={form.additional_data || ''}
+                  onChange={(event) => setForm({ ...form, additional_data: event.target.value })}
+                />
+              </>
+            )}
           </div>
         </div>
         <div className="form-actions">

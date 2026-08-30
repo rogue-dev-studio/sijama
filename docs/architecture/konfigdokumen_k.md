@@ -42,4 +42,4 @@ Satu baris `konfigdokumen_k` ↔ satu `lookup_id`. Soft-delete via `is_deleted`.
 
 ## Seed
 
-`KonfigDokumenSeeder` membuat lookup + config default untuk laporan_*, jamaah, pengajian, kegiatan, kehadiran, kategori_umur, master_users, matriks, master_list.
+`KonfigDokumenSeeder` membuat lookup + config default untuk laporan_*, jamaah, keluarga, pengajian, kegiatan, kehadiran, kategori_umur, master_users, matriks, master_list.

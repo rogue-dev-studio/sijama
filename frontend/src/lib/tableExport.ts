@@ -6,12 +6,25 @@
  */
 
 import { fetchAssetAsDataUrl, resolveKonfigAssetUrl } from './konfigAsset'
-import type { DokumenHeaderStyle } from '../api/types'
+import type { DokumenHeaderStyle, DokumenPaperOrientation, DokumenPaperSize } from '../api/types'
 import {
   normalizeDokumenLayout,
   resolveLayoutLogos,
   type DokumenLayoutMode,
 } from './dokumenLayout'
+import { normalizeDokumenHeaderStyle, resolveDokumenPaper, resolveFontFamilyCss, resolvePaperPageCss, resolveTextDecoration } from './dokumenStyle'
+import { buildSignMetaHtml, buildSignMetaLines } from './dokumenSignBlock'
+import { formatGeneratedByLine, formatPrintDateMeta } from './dokumenPrintMeta'
+import { buildXlsxBytesAsync } from './xlsxExport'
+
+export type ExportPrintUserInfo = {
+  name?: string | null
+  phone?: string | null
+  signatureUrl?: string | null
+  showSignature?: boolean
+  showName?: boolean
+  showPhone?: boolean
+}
 
 export type ExportDokumenBrand = {
   header?: string | null
@@ -22,42 +35,36 @@ export type ExportDokumenBrand = {
   path_logo_kanan?: string | null
   layout_mode?: DokumenLayoutMode | string | null
   header_style?: Partial<DokumenHeaderStyle> | null
+  paper_size?: DokumenPaperSize
+  paper_orientation?: DokumenPaperOrientation
+  show_print_date?: boolean
+  print_date_label?: string | null
+  show_print_row_count?: boolean
+  show_generated_by?: boolean
+  app_nama?: string | null
+  show_user_signature?: boolean
+  show_user_name?: boolean
+  show_user_phone?: boolean
 }
 
 export type ExportTablePayload = {
   title: string
   headers: string[]
+  columnKeys?: string[]
   rows: Array<Array<string | number | null | undefined>>
   dokumen?: ExportDokumenBrand | null
+  printUser?: ExportPrintUserInfo | null
 }
 
 export type ExportMedia = 'pdf' | 'excel' | 'csv'
 
-const DEFAULT_PRINT_STYLE: DokumenHeaderStyle = {
-  header_font_size: 17,
-  header_font_weight: '650',
-  header_align: 'center',
-  header_detail_font_size: 14,
-  header_detail_font_weight: '400',
-  header_detail_color: '#444444',
-  logo_max_height: 64,
-  footer_font_size: 13,
-}
-
-function normalizePrintStyle(raw?: Partial<DokumenHeaderStyle> | null): DokumenHeaderStyle {
-  return {
-    ...DEFAULT_PRINT_STYLE,
-    ...(raw || {}),
-    header_align:
-      raw?.header_align === 'left' || raw?.header_align === 'right' || raw?.header_align === 'center'
-        ? raw.header_align
-        : DEFAULT_PRINT_STYLE.header_align,
-  }
+export function cellTextForExport(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  return String(value)
 }
 
 function cellText(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return ''
-  return String(value)
+  return cellTextForExport(value)
 }
 
 function escapeCsvCell(value: string): string {
@@ -67,16 +74,7 @@ function escapeCsvCell(value: string): string {
   return value
 }
 
-function escapeXml(value: string): string {
-  return value
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
-function brandLines(dokumen?: ExportDokumenBrand | null): {
+export function brandLinesForExport(dokumen?: ExportDokumenBrand | null): {
   headerLines: string[]
   footerLines: string[]
 } {
@@ -87,11 +85,30 @@ function brandLines(dokumen?: ExportDokumenBrand | null): {
   const headerLines = [dokumen.header, dokumen.header_detail]
     .map((value) => (value || '').trim())
     .filter(Boolean)
+
+  if (dokumen.show_generated_by === false) {
+    return { headerLines, footerLines: [] }
+  }
+
   const footerLines = [dokumen.footer, dokumen.footer_detail]
-    .map((value) => (value || '').trim())
+    .map((value, index) => {
+      const trimmed = (value || '').trim()
+      if (!trimmed) return ''
+      if (index === 0) {
+        return formatGeneratedByLine(trimmed, dokumen.app_nama)
+      }
+      return trimmed
+    })
     .filter(Boolean)
 
   return { headerLines, footerLines }
+}
+
+function brandLines(dokumen?: ExportDokumenBrand | null): {
+  headerLines: string[]
+  footerLines: string[]
+} {
+  return brandLinesForExport(dokumen)
 }
 
 export function buildCsvContent(payload: ExportTablePayload): string {
@@ -144,247 +161,66 @@ export function downloadCsv(filenameBase: string, payload: ExportTablePayload): 
   )
 }
 
-function sheetNameFromTitle(title: string): string {
-  const cleaned = title.replace(/[\\/*?:\[\]]/g, ' ').replace(/\s+/g, ' ').trim()
-  return (cleaned || 'Sheet1').slice(0, 31)
-}
-
-function inlineStrCell(value: string): string {
-  return `<c t="inlineStr"><is><t>${escapeXml(value)}</t></is></c>`
-}
-
-function buildSheetRows(payload: ExportTablePayload): string {
-  const { headerLines, footerLines } = brandLines(payload.dokumen)
-  const colCount = Math.max(payload.headers.length, 1)
-  const rowsXml: string[] = []
-  let rowIndex = 1
-
-  const pushMergedTextRow = (text: string) => {
-    const cells = [inlineStrCell(text), ...Array.from({ length: colCount - 1 }, () => '<c/>')]
-    rowsXml.push(`<row r="${rowIndex}">${cells.join('')}</row>`)
-    rowIndex += 1
-  }
-
-  for (const line of headerLines) {
-    pushMergedTextRow(line)
-  }
-  if (headerLines.length > 0) {
-    rowsXml.push(`<row r="${rowIndex}"/>`)
-    rowIndex += 1
-  }
-
-  rowsXml.push(
-    `<row r="${rowIndex}">${payload.headers.map((header) => inlineStrCell(header)).join('')}</row>`,
-  )
-  rowIndex += 1
-
-  for (const row of payload.rows) {
-    const cells = payload.headers.map((_, index) => inlineStrCell(cellText(row[index])))
-    rowsXml.push(`<row r="${rowIndex}">${cells.join('')}</row>`)
-    rowIndex += 1
-  }
-
-  if (footerLines.length > 0) {
-    rowsXml.push(`<row r="${rowIndex}"/>`)
-    rowIndex += 1
-    for (const line of footerLines) {
-      pushMergedTextRow(line)
-    }
-  }
-
-  return rowsXml.join('')
-}
-
-/** CRC32 + ZIP store (tanpa kompresi) untuk OOXML .xlsx minimal. */
-const CRC_TABLE = (() => {
-  const table = new Uint32Array(256)
-  for (let i = 0; i < 256; i += 1) {
-    let crc = i
-    for (let j = 0; j < 8; j += 1) {
-      crc = crc & 1 ? (0xedb88320 ^ (crc >>> 1)) : crc >>> 1
-    }
-    table[i] = crc >>> 0
-  }
-  return table
-})()
-
-function crc32(data: Uint8Array): number {
-  let crc = 0xffffffff
-  for (let i = 0; i < data.length; i += 1) {
-    crc = CRC_TABLE[(crc ^ data[i]) & 0xff] ^ (crc >>> 8)
-  }
-  return (crc ^ 0xffffffff) >>> 0
-}
-
-function u16(value: number): Uint8Array {
-  const out = new Uint8Array(2)
-  out[0] = value & 0xff
-  out[1] = (value >>> 8) & 0xff
-  return out
-}
-
-function u32(value: number): Uint8Array {
-  const out = new Uint8Array(4)
-  out[0] = value & 0xff
-  out[1] = (value >>> 8) & 0xff
-  out[2] = (value >>> 16) & 0xff
-  out[3] = (value >>> 24) & 0xff
-  return out
-}
-
-function concatBytes(parts: Uint8Array[]): Uint8Array {
-  const total = parts.reduce((sum, part) => sum + part.length, 0)
-  const out = new Uint8Array(total)
-  let offset = 0
-  for (const part of parts) {
-    out.set(part, offset)
-    offset += part.length
-  }
-  return out
-}
-
-function encodeUtf8(text: string): Uint8Array {
-  return new TextEncoder().encode(text)
-}
-
-type ZipEntry = { name: string; data: Uint8Array }
-
-function buildZip(entries: ZipEntry[]): Uint8Array {
-  const localParts: Uint8Array[] = []
-  const centralParts: Uint8Array[] = []
-  let offset = 0
-
-  for (const entry of entries) {
-    const nameBytes = encodeUtf8(entry.name)
-    const data = entry.data
-    const crc = crc32(data)
-    const localHeader = concatBytes([
-      u32(0x04034b50),
-      u16(20),
-      u16(0),
-      u16(0),
-      u16(0),
-      u16(0),
-      u32(crc),
-      u32(data.length),
-      u32(data.length),
-      u16(nameBytes.length),
-      u16(0),
-      nameBytes,
-    ])
-    localParts.push(localHeader, data)
-
-    centralParts.push(
-      concatBytes([
-        u32(0x02014b50),
-        u16(20),
-        u16(20),
-        u16(0),
-        u16(0),
-        u16(0),
-        u16(0),
-        u32(crc),
-        u32(data.length),
-        u32(data.length),
-        u16(nameBytes.length),
-        u16(0),
-        u16(0),
-        u16(0),
-        u16(0),
-        u32(0),
-        u32(offset),
-        nameBytes,
-      ]),
-    )
-    offset += localHeader.length + data.length
-  }
-
-  const centralDirectory = concatBytes(centralParts)
-  const end = concatBytes([
-    u32(0x06054b50),
-    u16(0),
-    u16(0),
-    u16(entries.length),
-    u16(entries.length),
-    u32(centralDirectory.length),
-    u32(offset),
-    u16(0),
-  ])
-
-  return concatBytes([...localParts, centralDirectory, end])
-}
-
-export function buildXlsxBytes(payload: ExportTablePayload): Uint8Array {
-  const sheetName = escapeXml(sheetNameFromTitle(payload.title))
-  const sheetRows = buildSheetRows(payload)
-  const colCount = Math.max(payload.headers.length, 1)
-  const cols = Array.from({ length: colCount }, (_, index) => {
-    const col = index + 1
-    return `<col min="${col}" max="${col}" width="18" customWidth="1"/>`
-  }).join('')
-
-  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-  <Default Extension="xml" ContentType="application/xml"/>
-  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-</Types>`
-
-  const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-</Relationships>`
-
-  const workbook = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-  <sheets>
-    <sheet name="${sheetName}" sheetId="1" r:id="rId1"/>
-  </sheets>
-</workbook>`
-
-  const workbookRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-</Relationships>`
-
-  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <cols>${cols}</cols>
-  <sheetData>${sheetRows}</sheetData>
-</worksheet>`
-
-  return buildZip([
-    { name: '[Content_Types].xml', data: encodeUtf8(contentTypes) },
-    { name: '_rels/.rels', data: encodeUtf8(rootRels) },
-    { name: 'xl/workbook.xml', data: encodeUtf8(workbook) },
-    { name: 'xl/_rels/workbook.xml.rels', data: encodeUtf8(workbookRels) },
-    { name: 'xl/worksheets/sheet1.xml', data: encodeUtf8(sheet) },
-  ])
+export async function buildExcelBlob(payload: ExportTablePayload): Promise<Blob> {
+  const bytes = await buildXlsxBytesAsync(payload)
+  const copy = new Uint8Array(bytes.byteLength)
+  copy.set(bytes)
+  return new Blob([copy], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  })
 }
 
 /** Unduh workbook .xlsx (Excel / LibreOffice / Google Sheets). */
-export function downloadExcel(filenameBase: string, payload: ExportTablePayload): void {
-  const bytes = buildXlsxBytes(payload)
-  const copy = new Uint8Array(bytes.byteLength)
-  copy.set(bytes)
-  downloadBlob(
-    `${filenameBase}.xlsx`,
-    new Blob([copy], {
+export async function downloadExcel(filenameBase: string, payload: ExportTablePayload): Promise<void> {
+  downloadBlob(`${filenameBase}.xlsx`, await buildExcelBlob(payload))
+}
+
+export async function buildExportFile(
+  media: ExportMedia,
+  filenameBase: string,
+  payload: ExportTablePayload,
+): Promise<File> {
+  if (media === 'csv') {
+    return new File([buildCsvContent(payload)], `${filenameBase}.csv`, {
+      type: 'text/csv',
+    })
+  }
+  if (media === 'excel') {
+    return new File([await buildExcelBlob(payload)], `${filenameBase}.xlsx`, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    }),
-  )
+    })
+  }
+  const { buildPdfBlob } = await import('./pdfExport')
+  return new File([await buildPdfBlob(payload)], `${filenameBase}.pdf`, {
+    type: 'application/pdf',
+  })
 }
 
 /** @deprecated gunakan downloadExcel */
-export function downloadExcelCsv(filenameBase: string, payload: ExportTablePayload): void {
-  downloadExcel(filenameBase, payload)
+export async function downloadExcelCsv(filenameBase: string, payload: ExportTablePayload): Promise<void> {
+  await downloadExcel(filenameBase, payload)
 }
 
 function buildPrintHtml(payload: ExportTablePayload): string {
   const dokumen = payload.dokumen
   const { headerLines, footerLines } = brandLines(dokumen)
-  const style = normalizePrintStyle(dokumen?.header_style)
+  const style = normalizeDokumenHeaderStyle(dokumen?.header_style)
+  const paper = resolveDokumenPaper(
+    dokumen
+      ? { paper_size: dokumen.paper_size, paper_orientation: dokumen.paper_orientation }
+      : null,
+  )
+  const pageSize = resolvePaperPageCss(paper)
+  const headerDecoration = resolveTextDecoration(style.header_underline, style.header_strikethrough)
+  const detailDecoration = resolveTextDecoration(
+    style.header_detail_underline,
+    style.header_detail_strikethrough,
+  )
+  const footerDecoration = resolveTextDecoration(style.footer_underline, style.footer_strikethrough)
+  const headerFont = resolveFontFamilyCss(style.header_font_family)
+  const detailFont = resolveFontFamilyCss(style.header_detail_font_family)
+  const footerFont = resolveFontFamilyCss(style.footer_font_family)
+  const bodyFont = resolveFontFamilyCss(style.body_font_family)
   const layout = normalizeDokumenLayout(dokumen?.layout_mode)
   const logos = resolveLayoutLogos(layout, dokumen?.path_logo_kiri, dokumen?.path_logo_kanan)
   const logoKiri = resolveKonfigAssetUrl(logos.left)
@@ -466,30 +302,88 @@ function buildPrintHtml(payload: ExportTablePayload): string {
 </footer>`
       : ''
 
+  const showPrintDate = dokumen?.show_print_date !== false
+  const showPrintRowCount = dokumen?.show_print_row_count !== false
+  const metaText =
+    showPrintDate || showPrintRowCount
+      ? formatPrintDateMeta({
+          label: dokumen?.print_date_label,
+          rowCount: payload.rows.length,
+          showDate: showPrintDate,
+          showRowCount: showPrintRowCount,
+        })
+      : null
+  const metaHtml = metaText ? `<p class="meta">${escapeHtml(metaText)}</p>` : ''
+
+  const printUser = payload.printUser
+  const signatureInnerHtml =
+    printUser?.showSignature && printUser.signatureUrl
+      ? `<div class="doc-sign"><img src="${escapeHtml(printUser.signatureUrl)}" alt="" /></div>`
+      : ''
+  const signMetaHtml = buildSignMetaHtml(
+    buildSignMetaLines({
+      showName: Boolean(printUser?.showName),
+      showPhone: Boolean(printUser?.showPhone),
+      name: printUser?.name?.trim() || null,
+      phone: printUser?.phone?.trim() || null,
+      layout: style.sign_meta_layout,
+      order: style.sign_meta_order,
+    }),
+    style.sign_meta_layout,
+    escapeHtml,
+  )
+  const printUserHtml =
+    signatureInnerHtml || signMetaHtml
+      ? `<section class="doc-sign-block doc-sign-block--position-${style.sign_block_position}">
+  <div class="doc-sign-block__inner doc-sign-block__inner--align-${style.sign_content_align}">
+  ${signatureInnerHtml}
+  ${signMetaHtml}
+  </div>
+</section>`
+      : ''
+
+  const bodyTitleHtml = hasBrand
+    ? ''
+    : payload.title.trim()
+      ? `<h1>${escapeHtml(payload.title)}</h1>`
+      : ''
+
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(payload.title)}</title>
   <style>
-    body { font-family: system-ui, sans-serif; color: #111; margin: 1.5rem; }
-    h1 { font-size: 1.25rem; margin: 0 0 0.35rem; }
-    p.meta { color: #555; font-size: 0.85rem; margin: 0 0 1rem; }
-    .doc-brand { margin: 0 0 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #ddd; }
+    @page { size: ${pageSize}; margin: 12mm; }
+    body { font-family: ${bodyFont}; color: ${style.body_color}; margin: 1.5rem; }
+    h1 { font-family: ${bodyFont}; font-size: ${Math.round(style.body_font_size * 1.35)}px; font-weight: ${style.body_font_weight}; color: ${style.body_color}; margin: 0 0 0.35rem; }
+    p.meta { color: #555; font-size: ${style.body_font_size}px; margin: 0 0 1rem; }
+    .doc-brand { margin: 0 0 1rem; padding-bottom: 0.75rem; border-bottom: ${style.brand_border_width}px solid ${style.brand_border_color}; }
     .doc-brand__row { display: flex; align-items: center; gap: 0.75rem; }
-    .doc-brand__logo { width: 88px; flex: 0 0 88px; text-align: center; }
+    .doc-brand__logo { width: ${style.logo_max_width}px; flex: 0 0 ${style.logo_max_width}px; text-align: center; }
     .doc-brand__logo img,
-    .doc-brand__logos-top img { max-height: ${style.logo_max_height}px; max-width: 100%; object-fit: contain; }
+    .doc-brand__logos-top img { max-height: ${style.logo_max_height}px; max-width: ${style.logo_max_width}px; object-fit: contain; }
     .doc-brand__logos-top { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-    .doc-brand__text { flex: 1 1 auto; text-align: ${style.header_align}; }
+    .doc-brand__text { flex: 1 1 auto; }
     .doc-brand--plain .doc-brand__text { width: 100%; }
-    .doc-brand__title { font-size: ${style.header_font_size}px; font-weight: ${style.header_font_weight}; margin: 0 0 0.2rem; }
-    .doc-brand__detail { margin: 0; color: ${style.header_detail_color}; font-size: ${style.header_detail_font_size}px; font-weight: ${style.header_detail_font_weight}; white-space: pre-line; }
-    .doc-brand--footer { margin: 1.25rem 0 0; padding-top: 0.75rem; padding-bottom: 0; border-bottom: 0; border-top: 1px solid #ddd; color: #555; font-size: ${style.footer_font_size}px; }
+    .doc-brand__title { font-family: ${headerFont}; font-size: ${style.header_font_size}px; font-weight: ${style.header_font_weight}; color: ${style.header_color}; text-align: ${style.header_align}; text-transform: ${style.header_text_transform}; letter-spacing: ${style.header_letter_spacing}px; font-style: ${style.header_font_style}; text-decoration: ${headerDecoration}; line-height: ${style.header_line_height}; margin: 0 0 0.2rem; }
+    .doc-brand__detail { font-family: ${detailFont}; margin: 0; color: ${style.header_detail_color}; font-size: ${style.header_detail_font_size}px; font-weight: ${style.header_detail_font_weight}; text-align: ${style.header_detail_align}; text-transform: ${style.header_detail_text_transform}; letter-spacing: ${style.header_detail_letter_spacing}px; font-style: ${style.header_detail_font_style}; text-decoration: ${detailDecoration}; line-height: ${style.header_detail_line_height}; white-space: pre-line; }
+    .doc-brand--footer { font-family: ${footerFont}; margin: 1.25rem 0 0; padding-top: 0.75rem; padding-bottom: 0; border-bottom: 0; border-top: 1px solid #ddd; color: #555; font-size: ${style.footer_font_size}px; font-weight: ${style.footer_font_weight}; text-transform: ${style.footer_text_transform}; letter-spacing: ${style.footer_letter_spacing}px; font-style: ${style.footer_font_style}; text-decoration: ${footerDecoration}; line-height: ${style.footer_line_height}; }
     .doc-brand--footer p { margin: 0.15rem 0; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { border: 1px solid #ccc; padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
+    table { width: 100%; border-collapse: collapse; font-family: ${bodyFont}; font-size: ${style.body_font_size}px; font-weight: ${style.body_font_weight}; font-style: ${style.body_font_style}; color: ${style.body_color}; line-height: ${style.body_line_height}; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.5rem; text-align: ${style.body_align}; vertical-align: top; }
     th { background: #f3f3f3; }
+    .doc-sign-block { margin: 1.25rem 0 0; width: 100%; display: flex; }
+    .doc-sign-block--position-left { justify-content: flex-start; }
+    .doc-sign-block--position-center { justify-content: center; }
+    .doc-sign-block--position-right { justify-content: flex-end; }
+    .doc-sign-block__inner { max-width: 100%; display: flex; flex-direction: column; gap: 0.2rem; }
+    .doc-sign-block__inner--align-left { text-align: left; align-items: flex-start; }
+    .doc-sign-block__inner--align-center { text-align: center; align-items: center; }
+    .doc-sign-block__inner--align-right { text-align: right; align-items: flex-end; }
+    .doc-sign img { max-height: 72px; max-width: 180px; object-fit: contain; }
+    .doc-sign-block__meta { margin: 0; font-size: 0.85rem; color: #444; }
+    .doc-sign-block__meta--inline { margin-top: 0.15rem; }
     @media print {
       body { margin: 0; }
     }
@@ -497,12 +391,13 @@ function buildPrintHtml(payload: ExportTablePayload): string {
 </head>
 <body>
   ${brandHeaderHtml}
-  <h1>${escapeHtml(payload.title)}</h1>
-  <p class="meta">Dicetak ${escapeHtml(new Date().toLocaleString('id-ID'))} · ${payload.rows.length} baris</p>
+  ${bodyTitleHtml}
+  ${metaHtml}
   <table>
     <thead><tr>${headerCells}</tr></thead>
     <tbody>${bodyRows}</tbody>
   </table>
+  ${printUserHtml}
   ${brandFooterHtml}
 </body>
 </html>`
@@ -525,7 +420,21 @@ export async function printTable(payload: ExportTablePayload): Promise<void> {
       }
     : null
 
-  const html = buildPrintHtml({ ...payload, dokumen })
+  const signatureUrl =
+    payload.printUser?.showSignature && payload.printUser.signatureUrl
+      ? await fetchAssetAsDataUrl(payload.printUser.signatureUrl)
+      : null
+
+  const html = buildPrintHtml({
+    ...payload,
+    dokumen,
+    printUser: payload.printUser
+      ? {
+          ...payload.printUser,
+          signatureUrl: signatureUrl ?? payload.printUser.signatureUrl ?? null,
+        }
+      : null,
+  })
   const frame = document.createElement('iframe')
   frame.setAttribute('aria-hidden', 'true')
   frame.style.position = 'fixed'

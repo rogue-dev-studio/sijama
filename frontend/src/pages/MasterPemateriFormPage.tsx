@@ -110,7 +110,7 @@ export function MasterPemateriFormPage() {
     <>
       <header className="page-header">
         <h1>{isEdit ? 'Edit pemateri' : 'Tambah pemateri'}</h1>
-        <p>Pilih jamaah sebagai pemateri; nama dan kontak diambil otomatis.</p>
+        <p>Pilih jamaah sebagai pemateri. Nama dan kontak diisi otomatis.</p>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}

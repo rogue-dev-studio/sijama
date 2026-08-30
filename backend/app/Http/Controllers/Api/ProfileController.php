@@ -14,6 +14,7 @@ use App\Http\Requests\UpdateOwnLoginSessionRequest;
 use App\Http\Requests\UpdateOwnPasswordRequest;
 use App\Http\Requests\UpdateOwnProfileRequest;
 use App\Http\Requests\UploadProfilePhotoRequest;
+use App\Http\Requests\UploadProfileSignatureRequest;
 use App\Http\Responses\ApiResponse;
 use App\Services\ProfileService;
 use Illuminate\Http\JsonResponse;
@@ -93,5 +94,22 @@ class ProfileController extends Controller
         $result = $this->profileService->deletePhoto($request->user());
 
         return ApiResponse::success($result, 'Foto profil berhasil dihapus');
+    }
+
+    public function uploadSignature(UploadProfileSignatureRequest $request): JsonResponse
+    {
+        $result = $this->profileService->uploadSignature(
+            $request->user(),
+            $request->file('file'),
+        );
+
+        return ApiResponse::success($result, 'Tanda tangan berhasil diunggah');
+    }
+
+    public function deleteSignature(Request $request): JsonResponse
+    {
+        $result = $this->profileService->deleteSignature($request->user());
+
+        return ApiResponse::success($result, 'Tanda tangan berhasil dihapus');
     }
 }

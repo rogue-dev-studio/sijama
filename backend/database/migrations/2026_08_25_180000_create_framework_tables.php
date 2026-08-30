@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:59:30
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:59:30
+ * @Last Modified time: 2026-08-30 17:40:00
  */
 
 use Illuminate\Database\Migrations\Migration;
@@ -19,11 +19,14 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('username', 64)->unique();
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('is_active')->default(true);
+            $table->unsignedInteger('login_remember_minutes')->nullable();
+            $table->boolean('login_remember_until_logout')->default(false);
             $table->rememberToken();
+            $table->string('path_tanda_tangan')->nullable();
             $table->timestamps();
         });
 
@@ -95,6 +98,8 @@ return new class extends Migration
             $table->text('abilities')->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamp('expires_at')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
             $table->timestamps();
         });
     }

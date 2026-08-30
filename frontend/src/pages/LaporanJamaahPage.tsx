@@ -5,11 +5,12 @@
  * @Last Modified time: 2026-08-27 17:16:38
  */
 
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { laporanService, masterKelompokService } from '../api/services'
 import type { Jamaah, Kelompok, PaginationMeta } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { Pagination, rowNumber } from '../components/Pagination'
 import { SearchableSelect } from '../components/SearchableSelect'
@@ -139,8 +140,7 @@ export function LaporanJamaahPage() {
     })()
   }, [])
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -161,6 +161,12 @@ export function LaporanJamaahPage() {
   }
 
   const sortBind = bindSortableTh(sort, handleSort)
+  const hasActiveFilters =
+    search !== '' ||
+    statusFilter !== '' ||
+    faceFilter !== '' ||
+    kelompokFilter > 0 ||
+    kategoriUmurFilter !== ''
 
   return (
     <>
@@ -179,6 +185,7 @@ export function LaporanJamaahPage() {
               getPayload={() => ({
                 title: 'Laporan Jamaah',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: items.map((item, index) => [
                   rowNumber(meta, index),
                   ...visibleColumns.map((column) => column.exportValue(item)),
@@ -191,21 +198,16 @@ export function LaporanJamaahPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari nama / NIK…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari jamaah"
-          />
-          <button type="submit" className="btn btn--secondary">
-            Cari
-          </button>
-        </form>
-        <div className="filter-bar__fields">
-          <div className="field">
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari nama / NIK…',
+          ariaLabel: 'Cari jamaah',
+        }}
+        primaryFilters={[
+          <div className="field" key="status">
             <label htmlFor="lap-jamaah-status">Status</label>
             <SearchableSelect
               id="lap-jamaah-status"
@@ -220,8 +222,8 @@ export function LaporanJamaahPage() {
                 { value: 'nonaktif', label: 'Nonaktif' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="face">
             <label htmlFor="lap-jamaah-face">Wajah</label>
             <SearchableSelect
               id="lap-jamaah-face"
@@ -236,8 +238,8 @@ export function LaporanJamaahPage() {
                 { value: 'pending', label: 'Belum' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="kelompok">
             <label htmlFor="lap-jamaah-kelompok">Kelompok</label>
             <SearchableSelect
               id="lap-jamaah-kelompok"
@@ -251,7 +253,9 @@ export function LaporanJamaahPage() {
                 ...kelompokList.map((item) => ({ value: String(item.id), label: item.nama })),
               ]}
             />
-          </div>
+          </div>,
+        ]}
+        secondaryContent={
           <div className="field">
             <label htmlFor="lap-jamaah-umur">Kategori umur</label>
             <SearchableSelect
@@ -267,13 +271,12 @@ export function LaporanJamaahPage() {
               ]}
             />
           </div>
-        </div>
-        <div className="filter-bar__actions">
-          <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-            Reset
-          </button>
-        </div>
-      </div>
+        }
+        secondaryActive={kategoriUmurFilter !== ''}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+        resetLabel="Reset"
+      />
 
       {loading ? (
         <div className="loading-state">Memuat laporan…</div>

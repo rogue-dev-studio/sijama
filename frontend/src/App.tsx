@@ -13,6 +13,7 @@ import { MaintenancePublicGate } from './auth/MaintenancePublicGate'
 import { MaintenanceRoute } from './auth/MaintenanceRoute'
 import { ProtectedRoute } from './auth/ProtectedRoute'
 import { ToastProvider } from './components/ToastProvider'
+import { ConfirmDialogProvider } from './components/ConfirmDialogProvider'
 import { APP_SHELL_ROUTES, renderAppRoutes } from './appRoutes'
 import { AppShell } from './layout/AppShell'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
@@ -24,7 +25,8 @@ export default function App() {
     <AppSettingsProvider>
       <ColorSchemeProvider>
         <AuthProvider>
-          <ToastProvider>
+          <ConfirmDialogProvider>
+            <ToastProvider>
             <Routes>
               <Route path="/maintenance" element={<MaintenanceRoute />} />
               <Route
@@ -56,7 +58,8 @@ export default function App() {
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </ToastProvider>
+            </ToastProvider>
+          </ConfirmDialogProvider>
         </AuthProvider>
       </ColorSchemeProvider>
     </AppSettingsProvider>

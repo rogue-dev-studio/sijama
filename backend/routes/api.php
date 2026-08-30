@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\PengajianController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PusatController;
+use App\Http\Controllers\Api\ShareExportController;
 use App\Http\Controllers\Api\SubKelompokController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,6 +60,9 @@ Route::middleware(['auth:sanctum', 'maintenance.access'])->group(function () {
     Route::patch('/profile/login-session', [ProfileController::class, 'updateLoginSession']);
     Route::post('/profile/photo', [ProfileController::class, 'uploadPhoto']);
     Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto']);
+    Route::post('/profile/signature', [ProfileController::class, 'uploadSignature']);
+    Route::delete('/profile/signature', [ProfileController::class, 'deleteSignature']);
+    Route::post('/share/exports', [ShareExportController::class, 'store']);
     Route::get('/lookups/options', LookupOptionsController::class);
 
     if (config('app.debug')) {

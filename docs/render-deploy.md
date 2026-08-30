@@ -68,13 +68,24 @@ Set `FRONTEND_URL` di backend = URL frontend Render.
 ## Setelah deploy
 
 1. Cek health: `https://<sijama-api>.onrender.com/up`
-2. Seed (sekali, via Render Shell di service backend):
+2. Seed RBAC (wajib sekali setelah deploy besar / jika matriks akses kosong), via **Render Shell** di service **sijama-api**:
 
 ```bash
-php artisan db:seed --force
+php artisan db:seed --class=RbacSeeder --force
 ```
 
-Login seed: `admin@sijama.local` / `password` — **ganti password di production.**
+> **Jangan** pakai `php artisan db:seed --force` saja — `DatabaseSeeder` sengaja di-skip di production.
+
+Opsional (konfig default):
+
+```bash
+php artisan db:seed --class=KonfigSystemSeeder --force
+php artisan db:seed --class=KonfigDokumenSeeder --force
+```
+
+Verifikasi (PostgreSQL): `hak_akses` dan grant Super Admin harus ~545 baris. Setelah seed, **logout/login** agar permission session ter-refresh.
+
+Login seed lokal: `admin@sijama.local` / `password` — **ganti password di production.**
 
 3. Buka frontend → login → tes modul utama.
 

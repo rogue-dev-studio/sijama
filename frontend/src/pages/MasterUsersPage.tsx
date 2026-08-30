@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { masterDapukanService, masterUserService } from '../api/services'
 import { useAuth } from '../auth/AuthContext'
@@ -6,12 +6,14 @@ import { Pagination, rowNumber } from '../components/Pagination'
 import { SortableTh, bindSortableTh } from '../components/SortableTh'
 import type { Dapukan, MasterUser, PaginationMeta } from '../api/types'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
 import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { PermissionLink } from '../components/PermissionLink'
 import { useToast } from '../components/ToastProvider'
+import { useConfirm } from '../components/ConfirmDialogProvider'
 
 function formatScope(item: MasterUser) {
   const parts = [
@@ -87,6 +89,7 @@ const PREFIX = 'users'
 export function MasterUsersPage() {
   const { can } = useAuth()
   const { notifySuccess } = useToast()
+  const { confirm } = useConfirm()
   const [items, setItems] = useState<MasterUser[]>([])
   const [dapukanList, setDapukanList] = useState<Dapukan[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
@@ -144,7 +147,12 @@ export function MasterUsersPage() {
   }, [])
 
   async function handleDeactivate(item: MasterUser) {
-    if (!window.confirm(`Nonaktifkan pengguna "${item.name}"?`)) return
+    const ok = await confirm({
+      title: 'Nonaktifkan pengguna',
+      message: `Nonaktifkan pengguna "${item.name}"? Akun tidak bisa login sampai diaktifkan kembali.`,
+      confirmLabel: 'Ya, nonaktifkan',
+    })
+    if (!ok) return
     setError(null)
     try {
       await masterUserService.deactivate(item.id)
@@ -155,8 +163,7 @@ export function MasterUsersPage() {
     }
   }
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -184,7 +191,7 @@ export function MasterUsersPage() {
         <div className="page-header__row">
           <div>
             <h1>Master Pengguna</h1>
-            <p>Akun login ditautkan ke jamaah; dapukan & cakupan dari master jamaah.</p>
+            <p>Setiap akun login terhubung ke satu jamaah. Dapukan dan cakupan mengikuti data jamaah.</p>
           </div>
           <div className="page-header__actions">
             <ExportPrintActions
@@ -195,6 +202,7 @@ export function MasterUsersPage() {
               getPayload={() => ({
                 title: 'Master Pengguna',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: items.map((item, index) => [
                   rowNumber(meta, index),
                   ...visibleColumns.map((column) => column.exportValue(item)),
@@ -216,18 +224,16 @@ export function MasterUsersPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari nama atau username…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari pengguna"
-          />
-        </form>
-        <div className="filter-bar__fields">
-          <div className="field">
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari nama atau username…',
+          ariaLabel: 'Cari pengguna',
+        }}
+        primaryFilters={[
+          <div className="field" key="status">
             <label htmlFor="filter_status">Status</label>
             <SearchableSelect
               id="filter_status"
@@ -243,8 +249,8 @@ export function MasterUsersPage() {
                 { value: '0', label: 'Nonaktif' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="dapukan">
             <label htmlFor="filter_dapukan">Dapukan</label>
             <SearchableSelect
               id="filter_dapukan"
@@ -259,16 +265,11 @@ export function MasterUsersPage() {
                 ...dapukanList.map((item) => ({ value: String(item.id), label: item.nama })),
               ]}
             />
-          </div>
-        </div>
-        {hasActiveFilters && (
-          <div className="filter-bar__actions">
-            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-              Hapus filter
-            </button>
-          </div>
-        )}
-      </div>
+          </div>,
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+      />
 
       {loading && <div className="loading-state">Memuat pengguna…</div>}
 

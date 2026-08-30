@@ -107,7 +107,7 @@ class MasterUserService
             $attributes = array_merge($attributes, $synced);
         } elseif (array_key_exists('jamaah_id', $data) && $data['jamaah_id'] === null) {
             throw ValidationException::withMessages([
-                'jamaah_id' => ['Pengguna wajib ditautkan ke master jamaah.'],
+                'jamaah_id' => ['Pengguna wajib terhubung ke data jamaah.'],
             ]);
         }
 
@@ -165,7 +165,7 @@ class MasterUserService
         $jamaahId = $data['jamaah_id'] ?? null;
         if (! $jamaahId) {
             throw ValidationException::withMessages([
-                'jamaah_id' => ['Pengguna wajib ditautkan ke master jamaah.'],
+                'jamaah_id' => ['Pengguna wajib terhubung ke data jamaah.'],
             ]);
         }
 

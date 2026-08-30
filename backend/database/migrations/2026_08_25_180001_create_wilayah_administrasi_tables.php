@@ -73,7 +73,6 @@ return new class extends Migration
             $table->string('kode', 10);
             $table->foreignId('desa_kelurahan_id')->nullable()->constrained('adm_desa_kelurahan')->nullOnDelete();
             $table->foreignId('kecamatan_id')->nullable()->constrained('adm_kecamatan')->nullOnDelete();
-            $table->string('nama_wilayah')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->unique(['kode', 'desa_kelurahan_id']);

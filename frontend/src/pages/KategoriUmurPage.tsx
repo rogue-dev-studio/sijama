@@ -4,11 +4,12 @@
  * @Last Modified by: rogue-dev-studio
  * @Last Modified time: 2026-08-27 17:16:38
  */
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { kategoriUmurService } from '../api/services'
 import type { KategoriUmurRingkasanRow, PaginationMeta } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { Pagination, rowNumber } from '../components/Pagination'
 import { SearchableSelect } from '../components/SearchableSelect'
@@ -182,8 +183,7 @@ export function KategoriUmurPage() {
     return filteredRows.slice(start, start + meta.per_page)
   }, [filteredRows, meta.current_page, meta.per_page])
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -229,6 +229,7 @@ export function KategoriUmurPage() {
               getPayload={() => ({
                 title: 'Kategori Umur',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: filteredRows.map((row, index) => [
                   index + 1,
                   ...visibleColumns.map((column) => column.exportValue(row)),
@@ -241,18 +242,16 @@ export function KategoriUmurPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari kategori atau grup…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari kategori umur"
-          />
-        </form>
-        <div className="filter-bar__fields">
-          <div className="field">
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari kategori atau grup…',
+          ariaLabel: 'Cari kategori umur',
+        }}
+        primaryFilters={[
+          <div className="field" key="grup">
             <label htmlFor="filter_grup">Grup</label>
             <SearchableSelect
               id="filter_grup"
@@ -261,16 +260,11 @@ export function KategoriUmurPage() {
               placeholder="Semua grup"
               options={grupOptions}
             />
-          </div>
-        </div>
-        {hasActiveFilters && (
-          <div className="filter-bar__actions">
-            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-              Hapus filter
-            </button>
-          </div>
-        )}
-      </div>
+          </div>,
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+      />
 
       {loading && <div className="loading-state">Memuat kategori umur…</div>}
 

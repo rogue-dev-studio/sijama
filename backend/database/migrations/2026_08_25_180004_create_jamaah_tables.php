@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-25 17:59:30
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-25 17:59:30
+ * @Last Modified time: 2026-08-30 17:40:00
  */
 
 use Illuminate\Database\Migrations\Migration;
@@ -16,14 +16,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('pekerjaan', function (Blueprint $table) {
-            $table->id();
-            $table->string('nama', 100);
-            $table->text('deskripsi')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
         Schema::create('jamaah', function (Blueprint $table) {
             $table->id();
             $table->foreignId('kelompok_id')->nullable()->constrained('kelompok')->restrictOnDelete();
@@ -37,14 +29,15 @@ return new class extends Migration
             $table->date('tanggal_lahir')->nullable();
             $table->string('kategori_umur', 32)->nullable()->index();
             $table->string('pekerjaan', 100)->nullable();
-            $table->foreignId('pekerjaan_id')->nullable()->constrained('pekerjaan')->nullOnDelete();
+            $table->unsignedInteger('pekerjaan_id')->nullable();
             $table->string('pendidikan', 50)->nullable();
+            $table->string('golongan_darah', 20)->nullable();
             $table->string('status_pernikahan', 32)->nullable()->index();
             $table->text('alamat')->nullable();
             $table->string('rt')->nullable();
             $table->string('rw')->nullable();
             $table->string('kode_pos', 10)->nullable()->index();
-            $table->string('no_hp');
+            $table->string('no_hp')->nullable();
             $table->string('email')->nullable();
             $table->string('status')->default('aktif')->index();
             $table->string('foto_path')->nullable();
@@ -60,9 +53,19 @@ return new class extends Migration
             DB::statement(
                 'CREATE UNIQUE INDEX jamaah_nik_active_unique ON jamaah (nik) WHERE deleted_at IS NULL AND nik IS NOT NULL'
             );
+            DB::statement(
+                'CREATE UNIQUE INDEX jamaah_no_hp_active_unique ON jamaah (no_hp) '
+                ."WHERE deleted_at IS NULL AND no_hp IS NOT NULL AND no_hp <> ''"
+            );
+            DB::statement(
+                'CREATE UNIQUE INDEX jamaah_email_active_unique ON jamaah (email) '
+                ."WHERE deleted_at IS NULL AND email IS NOT NULL AND email <> ''"
+            );
         } else {
             Schema::table('jamaah', function (Blueprint $table) {
                 $table->unique('nik');
+                $table->unique('no_hp');
+                $table->unique('email');
             });
         }
 
@@ -104,10 +107,11 @@ return new class extends Migration
         Schema::dropIfExists('jamaah_dapukan');
 
         if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::statement('DROP INDEX IF EXISTS jamaah_email_active_unique');
+            DB::statement('DROP INDEX IF EXISTS jamaah_no_hp_active_unique');
             DB::statement('DROP INDEX IF EXISTS jamaah_nik_active_unique');
         }
 
         Schema::dropIfExists('jamaah');
-        Schema::dropIfExists('pekerjaan');
     }
 };

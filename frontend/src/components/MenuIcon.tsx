@@ -250,6 +250,18 @@ const ICONS: Record<string, IconDef> = {
       'M14.12 14.12a3 3 0 0 1-4.24-4.24',
     ],
   },
+  search: {
+    paths: ['M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z', 'M21 21l-4.35-4.35'],
+  },
+  'rotate-ccw': {
+    paths: ['M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8', 'M3 3v5h5'],
+  },
+  'list-filter': {
+    paths: ['M3 6h18', 'M7 12h10', 'M10 18h4'],
+  },
+  'chevron-up': {
+    paths: ['M18 15l-6-6-6 6'],
+  },
 }
 
 export const MENU_ICON_NAMES = Object.keys(ICONS).filter((name) => name !== 'circle').sort()

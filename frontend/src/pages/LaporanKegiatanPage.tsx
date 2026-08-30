@@ -5,11 +5,12 @@
  * @Last Modified time: 2026-08-27 17:16:38
  */
 
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { laporanService } from '../api/services'
 import type { Kegiatan, PaginationMeta } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { Pagination, rowNumber } from '../components/Pagination'
 import { SearchableSelect } from '../components/SearchableSelect'
@@ -117,8 +118,7 @@ export function LaporanKegiatanPage() {
     void load()
   }, [load])
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -138,6 +138,8 @@ export function LaporanKegiatanPage() {
   }
 
   const sortBind = bindSortableTh(sort, handleSort)
+  const hasActiveFilters =
+    search !== '' || statusFilter !== '' || dateFrom !== '' || dateTo !== ''
 
   const title = [
     'Laporan Kegiatan',
@@ -163,6 +165,7 @@ export function LaporanKegiatanPage() {
               getPayload={() => ({
                 title,
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: items.map((item, index) => [
                   rowNumber(meta, index),
                   ...visibleColumns.map((column) => column.exportValue(item)),
@@ -175,21 +178,16 @@ export function LaporanKegiatanPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari judul kegiatan…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari kegiatan"
-          />
-          <button type="submit" className="btn btn--secondary">
-            Cari
-          </button>
-        </form>
-        <div className="filter-bar__fields">
-          <div className="field">
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari judul kegiatan…',
+          ariaLabel: 'Cari kegiatan',
+        }}
+        primaryFilters={[
+          <div className="field" key="status">
             <label htmlFor="lap-kegiatan-status">Status</label>
             <SearchableSelect
               id="lap-kegiatan-status"
@@ -205,8 +203,8 @@ export function LaporanKegiatanPage() {
                 { value: 'cancelled', label: 'Dibatalkan' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="from">
             <label htmlFor="lap-kegiatan-from">Dari</label>
             <input
               id="lap-kegiatan-from"
@@ -217,8 +215,8 @@ export function LaporanKegiatanPage() {
                 setPage(1)
               }}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="to">
             <label htmlFor="lap-kegiatan-to">Sampai</label>
             <input
               id="lap-kegiatan-to"
@@ -229,14 +227,12 @@ export function LaporanKegiatanPage() {
                 setPage(1)
               }}
             />
-          </div>
-        </div>
-        <div className="filter-bar__actions">
-          <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-            Reset
-          </button>
-        </div>
-      </div>
+          </div>,
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+        resetLabel="Reset"
+      />
 
       {loading ? (
         <div className="loading-state">Memuat laporan…</div>

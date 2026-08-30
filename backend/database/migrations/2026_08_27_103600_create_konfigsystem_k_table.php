@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-27 10:36:26
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-27 10:36:26
+ * @Last Modified time: 2026-08-30 17:40:00
  */
 
 use Illuminate\Database\Migrations\Migration;
@@ -38,11 +38,54 @@ return new class extends Migration
             $table->string('smtp_encryption', 20)->nullable();
             $table->string('mail_from_address', 200)->nullable();
             $table->string('mail_from_name', 200)->nullable();
+            $table->string('mail_reply_to', 200)->nullable();
+            $table->boolean('password_reset_email_enabled')->default(true);
+            $table->boolean('password_reset_phone_enabled')->default(false);
+            $table->string('sms_driver', 30)->nullable();
+            $table->string('sms_country_code', 8)->nullable();
+            $table->text('fonnte_token')->nullable();
+            $table->string('fonnte_endpoint', 500)->nullable();
+            $table->boolean('telegram_enabled')->default(false);
+            $table->text('telegram_bot_token')->nullable();
+            $table->string('telegram_bot_username', 100)->nullable();
+            $table->string('telegram_default_chat_id', 64)->nullable();
+            $table->boolean('n8n_enabled')->default(false);
+            $table->string('n8n_base_url', 500)->nullable();
+            $table->string('n8n_webhook_url', 500)->nullable();
+            $table->text('n8n_api_key')->nullable();
             $table->text('header')->nullable();
             $table->text('footer')->nullable();
+            $table->string('website', 500)->nullable();
+            $table->string('footer_link', 500)->nullable();
+            $table->string('footer_detail', 500)->nullable();
+            $table->string('footer_detail_link', 500)->nullable();
             $table->text('header_detail')->nullable();
             $table->string('path_logoheader', 500)->nullable();
-            $table->string('dash_logo', 500)->nullable();
+            $table->string('app_nama', 200)->nullable();
+            $table->string('nama_instansi', 200)->nullable();
+            $table->text('alamat')->nullable();
+            $table->string('telepon', 50)->nullable();
+            $table->string('email_kontak', 200)->nullable();
+            $table->string('timezone', 64)->nullable();
+            $table->string('locale', 20)->nullable();
+            $table->string('path_favicon', 500)->nullable();
+            $table->string('path_logofooter', 500)->nullable();
+            $table->string('path_background', 500)->nullable();
+            $table->string('background_style', 20)->default('cover');
+            $table->string('background_repeat_size', 20)->default('28px');
+            $table->string('color_bg', 7)->nullable();
+            $table->string('color_surface', 7)->nullable();
+            $table->string('color_ink', 7)->nullable();
+            $table->string('color_accent', 7)->nullable();
+            $table->string('color_accent_soft', 7)->nullable();
+            $table->string('color_muted', 7)->nullable();
+            $table->string('color_border', 7)->nullable();
+            $table->string('theme_color', 7)->nullable();
+            $table->boolean('maintenance_mode')->default(false);
+            $table->text('maintenance_message')->nullable();
+            $table->string('path_maintenance_background', 500)->nullable();
+            $table->string('maintenance_background_style', 20)->default('cover');
+            $table->string('maintenance_background_repeat_size', 20)->default('28px');
         });
 
         if (Schema::getConnection()->getDriverName() === 'pgsql') {

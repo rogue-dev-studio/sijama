@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { kegiatanService } from '../api/services'
 import { Pagination, rowNumber } from '../components/Pagination'
@@ -6,12 +6,14 @@ import { SortableTh, bindSortableTh } from '../components/SortableTh'
 import type { Kegiatan, PaginationMeta } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
 import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { PermissionLink } from '../components/PermissionLink'
 import { useToast } from '../components/ToastProvider'
+import { useConfirm } from '../components/ConfirmDialogProvider'
 
 type ColumnDef = {
   key: string
@@ -64,6 +66,7 @@ const PREFIX = 'kegiatan'
 export function KegiatanPage() {
   const { can } = useAuth()
   const { notifyDeleted } = useToast()
+  const { confirm } = useConfirm()
   const [items, setItems] = useState<Kegiatan[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [query, setQuery] = useState('')
@@ -111,7 +114,11 @@ export function KegiatanPage() {
   }, [load])
 
   async function handleDelete(id: number) {
-    if (!window.confirm('Hapus kegiatan ini?')) return
+    const ok = await confirm({
+      title: 'Konfirmasi hapus',
+      message: 'Hapus kegiatan ini? Tindakan ini tidak bisa dibatalkan.',
+    })
+    if (!ok) return
     try {
       await kegiatanService.remove(id)
       notifyDeleted('kegiatan')
@@ -121,8 +128,7 @@ export function KegiatanPage() {
     }
   }
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -168,6 +174,7 @@ export function KegiatanPage() {
               getPayload={() => ({
                 title: 'Daftar Kegiatan',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: items.map((item, index) => [
                   rowNumber(meta, index),
                   ...visibleColumns.map((column) => column.exportValue(item)),
@@ -189,18 +196,16 @@ export function KegiatanPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari judul atau jenis…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari kegiatan"
-          />
-        </form>
-        <div className="filter-bar__fields">
-          <div className="field">
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari judul atau jenis…',
+          ariaLabel: 'Cari kegiatan',
+        }}
+        primaryFilters={[
+          <div className="field" key="status">
             <label htmlFor="filter_status">Status</label>
             <SearchableSelect
               id="filter_status"
@@ -215,8 +220,8 @@ export function KegiatanPage() {
                 { value: 'cancelled', label: 'Dibatalkan' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="date-from">
             <label htmlFor="filter_date_from">Dari tanggal</label>
             <input
               id="filter_date_from"
@@ -227,8 +232,8 @@ export function KegiatanPage() {
                 setPage(1)
               }}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="date-to">
             <label htmlFor="filter_date_to">Sampai tanggal</label>
             <input
               id="filter_date_to"
@@ -239,16 +244,11 @@ export function KegiatanPage() {
                 setPage(1)
               }}
             />
-          </div>
-        </div>
-        {hasActiveFilters && (
-          <div className="filter-bar__actions">
-            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-              Hapus filter
-            </button>
-          </div>
-        )}
-      </div>
+          </div>,
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+      />
 
       {loading && <div className="loading-state">Memuat kegiatan…</div>}
 

@@ -174,6 +174,14 @@ export const profileService = {
   deletePhoto() {
     return apiRequest<ProfileResult>('/profile/photo', { method: 'DELETE' })
   },
+  uploadSignature(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiUploadRequest<ProfileResult>('/profile/signature', formData)
+  },
+  deleteSignature() {
+    return apiRequest<ProfileResult>('/profile/signature', { method: 'DELETE' })
+  },
 }
 
 export const masterPusatService = {

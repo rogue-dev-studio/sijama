@@ -48,10 +48,25 @@ return new class extends Migration
                 $table->index('lookup_type', 'idx_lookup_type_text');
             });
         }
+
+        if (Schema::hasTable('jamaah') && Schema::hasColumn('jamaah', 'pekerjaan_id')) {
+            Schema::table('jamaah', function (Blueprint $table) {
+                $table->foreign('pekerjaan_id')
+                    ->references('lookup_id')
+                    ->on('lookup_m')
+                    ->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
+        if (Schema::hasTable('jamaah') && Schema::hasColumn('jamaah', 'pekerjaan_id')) {
+            Schema::table('jamaah', function (Blueprint $table) {
+                $table->dropForeign(['pekerjaan_id']);
+            });
+        }
+
         if (Schema::getConnection()->getDriverName() === 'pgsql') {
             DB::statement('DROP INDEX IF EXISTS idx_lookup_type_text');
         } else {

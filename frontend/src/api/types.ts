@@ -258,6 +258,8 @@ export interface User {
   is_active: boolean
   jamaah_id?: number | null
   foto_path?: string | null
+  path_tanda_tangan?: string | null
+  no_hp?: string | null
   dapukan?: { id: number; slug: string; nama: string; tingkat: DapukanTingkat }
   dapukan_list?: Array<{ id: number; slug: string; nama: string; tingkat: DapukanTingkat }>
   scope?: UserScope
@@ -265,15 +267,81 @@ export interface User {
   updated_at?: string
 }
 
+export type DokumenTextTransform = 'none' | 'uppercase' | 'lowercase' | 'capitalize'
+export type DokumenFontStyle = 'normal' | 'italic'
+export type DokumenTextAlign = 'left' | 'center' | 'right' | 'justify'
+
+export type DokumenSignAlign = 'left' | 'center' | 'right'
+
+export type DokumenSignMetaLayout = 'inline' | 'stack'
+
+export type DokumenSignMetaOrder = 'name_first' | 'phone_first'
+export type DokumenFontFamilyKey =
+  | 'system-ui'
+  | 'arial'
+  | 'calibri'
+  | 'times-new-roman'
+  | 'georgia'
+  | 'courier-new'
+  | 'tahoma'
+  | 'verdana'
+  | 'segoe-ui'
+
+export type DokumenPaperSize = 'a4' | 'letter' | 'legal' | 'a5' | 'folio'
+export type DokumenPaperOrientation = 'portrait' | 'landscape'
+
+export type DokumenPaperConfig = {
+  paper_size: DokumenPaperSize
+  paper_orientation: DokumenPaperOrientation
+}
+
 export interface DokumenHeaderStyle {
+  header_font_family: DokumenFontFamilyKey
   header_font_size: number
   header_font_weight: string
-  header_align: 'left' | 'center' | 'right'
+  header_align: DokumenTextAlign
+  header_color: string
+  header_text_transform: DokumenTextTransform
+  header_letter_spacing: number
+  header_font_style: DokumenFontStyle
+  header_underline: boolean
+  header_strikethrough: boolean
+  header_line_height: number
+  header_detail_font_family: DokumenFontFamilyKey
   header_detail_font_size: number
   header_detail_font_weight: string
   header_detail_color: string
+  header_detail_align: DokumenTextAlign
+  header_detail_text_transform: DokumenTextTransform
+  header_detail_letter_spacing: number
+  header_detail_font_style: DokumenFontStyle
+  header_detail_underline: boolean
+  header_detail_strikethrough: boolean
+  header_detail_line_height: number
   logo_max_height: number
+  logo_max_width: number
+  brand_border_width: number
+  brand_border_color: string
+  footer_font_family: DokumenFontFamilyKey
   footer_font_size: number
+  footer_font_weight: string
+  footer_text_transform: DokumenTextTransform
+  footer_letter_spacing: number
+  footer_font_style: DokumenFontStyle
+  footer_underline: boolean
+  footer_strikethrough: boolean
+  footer_line_height: number
+  body_font_family: DokumenFontFamilyKey
+  body_font_size: number
+  body_font_weight: string
+  body_color: string
+  body_font_style: DokumenFontStyle
+  body_line_height: number
+  body_align: DokumenTextAlign
+  sign_block_position: DokumenSignAlign
+  sign_content_align: DokumenSignAlign
+  sign_meta_layout: DokumenSignMetaLayout
+  sign_meta_order: DokumenSignMetaOrder
 }
 
 export type DokumenLayoutMode =
@@ -299,9 +367,26 @@ export interface AppDokumenSettings {
   path_logo_kanan?: string | null
   layout_mode?: DokumenLayoutMode
   header_style?: DokumenHeaderStyle
+  paper_size?: DokumenPaperSize
+  paper_orientation?: DokumenPaperOrientation
   apply_pdf: boolean
   apply_excel: boolean
   apply_csv: boolean
+  show_print_date?: boolean
+  print_date_label?: string | null
+  show_print_row_count?: boolean
+  show_generated_by?: boolean
+  column_visibility?:
+    | {
+        pdf?: Record<string, boolean> | null
+        excel?: Record<string, boolean> | null
+        csv?: Record<string, boolean> | null
+      }
+    | Record<string, boolean>
+    | null
+  show_user_signature?: boolean
+  show_user_name?: boolean
+  show_user_phone?: boolean
   is_configured?: boolean
   is_active?: boolean
 }
@@ -863,9 +948,26 @@ export interface KonfigDokumen {
   path_logo_kanan?: string | null
   layout_mode?: DokumenLayoutMode
   header_style?: DokumenHeaderStyle
+  paper_size?: DokumenPaperSize
+  paper_orientation?: DokumenPaperOrientation
   apply_pdf: boolean
   apply_excel: boolean
   apply_csv: boolean
+  show_print_date?: boolean
+  print_date_label?: string | null
+  show_print_row_count?: boolean
+  show_generated_by?: boolean
+  column_visibility?:
+    | {
+        pdf?: Record<string, boolean> | null
+        excel?: Record<string, boolean> | null
+        csv?: Record<string, boolean> | null
+      }
+    | Record<string, boolean>
+    | null
+  show_user_signature?: boolean
+  show_user_name?: boolean
+  show_user_phone?: boolean
   additional_data?: string | null
   is_active: boolean
   is_deleted?: boolean
@@ -1218,9 +1320,26 @@ export type KonfigDokumenInput = {
   footer_detail?: string | null
   layout_mode?: DokumenLayoutMode
   header_style?: Partial<DokumenHeaderStyle> | null
+  paper_size?: DokumenPaperSize
+  paper_orientation?: DokumenPaperOrientation
   apply_pdf?: boolean
   apply_excel?: boolean
   apply_csv?: boolean
+  show_print_date?: boolean
+  print_date_label?: string | null
+  show_print_row_count?: boolean
+  show_generated_by?: boolean
+  column_visibility?:
+    | {
+        pdf?: Record<string, boolean> | null
+        excel?: Record<string, boolean> | null
+        csv?: Record<string, boolean> | null
+      }
+    | Record<string, boolean>
+    | null
+  show_user_signature?: boolean
+  show_user_name?: boolean
+  show_user_phone?: boolean
   additional_data?: string | null
   is_active?: boolean
 }

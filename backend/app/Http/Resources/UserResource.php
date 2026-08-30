@@ -24,6 +24,11 @@ class UserResource extends JsonResource
                 $this->relationLoaded('jamaah') && $this->jamaah,
                 fn () => $this->jamaah->foto_path,
             ),
+            'path_tanda_tangan' => $this->path_tanda_tangan,
+            'no_hp' => $this->when(
+                $this->relationLoaded('jamaah') && $this->jamaah,
+                fn () => $this->jamaah->no_hp,
+            ),
             'jamaah' => $this->whenLoaded('jamaah', fn () => $this->jamaah ? [
                 'id' => $this->jamaah->id,
                 'nama' => $this->jamaah->nama,

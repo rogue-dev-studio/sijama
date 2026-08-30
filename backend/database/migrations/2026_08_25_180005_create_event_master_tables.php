@@ -27,6 +27,9 @@ return new class extends Migration
             $table->text('alamat')->nullable();
             $table->decimal('lat', 10, 7)->nullable();
             $table->decimal('lng', 10, 7)->nullable();
+            $table->string('maps_place_id', 120)->nullable();
+            $table->string('maps_place_name', 255)->nullable();
+            $table->text('maps_url')->nullable();
             $table->text('deskripsi')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

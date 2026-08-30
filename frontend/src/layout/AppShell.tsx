@@ -1,4 +1,5 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAppSettings } from '../auth/AppSettingsContext'
 import { buildAppShellBrand } from '../lib/appBrand'
@@ -11,7 +12,6 @@ import { UserMenu } from '../components/UserMenu'
 
 const BOTTOM_PATHS = ['/', '/jamaah', '/pengajian', '/kegiatan', '/absensi']
 const SIDEBAR_COLLAPSED_KEY = 'sijama.sidebar.collapsed'
-const COLLAPSED_VISIBLE_COUNT = 5
 
 function readSidebarCollapsed(): boolean {
   try {
@@ -104,118 +104,243 @@ function NavBranch({
   )
 }
 
-function splitCollapsedMenu(leaves: MenuNode[]) {
-  const byPath = new Map(leaves.map((item) => [item.path!, item]))
-  const primary = BOTTOM_PATHS.map((path) => byPath.get(path)).filter(Boolean) as MenuNode[]
-  const primaryIds = new Set(primary.map((item) => item.id))
-  const rest = leaves.filter((item) => !primaryIds.has(item.id))
-  const ordered = [...primary, ...rest]
-  const visible = ordered.slice(0, COLLAPSED_VISIBLE_COUNT)
-  const overflow = ordered.slice(COLLAPSED_VISIBLE_COUNT)
-  return { visible, overflow }
+function pathIsActive(path: string, pathname: string): boolean {
+  return path === pathname || (path !== '/' && pathname.startsWith(`${path}/`))
+}
+
+function collectDescendantLinks(
+  nodes: MenuNode[],
+  depth = 0,
+): Array<{ node: MenuNode; depth: number }> {
+  const items: Array<{ node: MenuNode; depth: number }> = []
+  for (const node of nodes) {
+    if (node.path) items.push({ node, depth })
+    const children = node.children ?? []
+    if (children.length > 0) {
+      const nextDepth = node.path ? depth + 1 : depth
+      items.push(...collectDescendantLinks(children, nextDepth))
+    }
+  }
+  return items
+}
+
+function nodeIsActive(node: MenuNode, pathname: string): boolean {
+  if (node.path && pathIsActive(node.path, pathname)) return true
+  return collectDescendantLinks(node.children ?? []).some((item) =>
+    pathIsActive(item.node.path!, pathname),
+  )
+}
+
+function computeFlyoutPosition(trigger: HTMLElement): CSSProperties {
+  const rect = trigger.getBoundingClientRect()
+  const menuWidth = 220
+  const gutter = 8
+  let left = rect.right + gutter
+  if (left + menuWidth > window.innerWidth - gutter) {
+    left = Math.max(gutter, rect.left - menuWidth - gutter)
+  }
+  return {
+    position: 'fixed',
+    top: Math.min(rect.top, window.innerHeight - 320),
+    left,
+    minWidth: `${menuWidth}px`,
+    maxHeight: 'min(70vh, 24rem)',
+    zIndex: 200,
+  }
+}
+
+function CollapsedNavFlyout({
+  node,
+  items,
+  open,
+  menuId,
+  onToggle,
+  onClose,
+  onNavigate,
+}: {
+  node: MenuNode
+  items: Array<{ node: MenuNode; depth: number }>
+  open: boolean
+  menuId: string
+  onToggle: () => void
+  onClose: () => void
+  onNavigate?: () => void
+}) {
+  const location = useLocation()
+  const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [menuStyle, setMenuStyle] = useState<CSSProperties>({})
+  const isActive = nodeIsActive(node, location.pathname)
+
+  useEffect(() => {
+    if (!open) return
+    const trigger = triggerRef.current
+    if (trigger) setMenuStyle(computeFlyoutPosition(trigger))
+
+    function handlePointer(event: MouseEvent) {
+      const target = event.target as Node
+      if (rootRef.current?.contains(target)) return
+      if (document.getElementById(menuId)?.contains(target)) return
+      onClose()
+    }
+
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose()
+    }
+
+    function handleLayout() {
+      const nextTrigger = triggerRef.current
+      if (nextTrigger) setMenuStyle(computeFlyoutPosition(nextTrigger))
+    }
+
+    document.addEventListener('click', handlePointer)
+    document.addEventListener('keydown', handleKey)
+    window.addEventListener('resize', handleLayout)
+    window.addEventListener('scroll', handleLayout, true)
+    return () => {
+      document.removeEventListener('click', handlePointer)
+      document.removeEventListener('keydown', handleKey)
+      window.removeEventListener('resize', handleLayout)
+      window.removeEventListener('scroll', handleLayout, true)
+    }
+  }, [open, menuId, onClose])
+
+  const dropdown =
+    open && items.length > 0
+      ? createPortal(
+          <div
+            className="sidebar-more__dropdown sidebar-more__dropdown--portal"
+            role="menu"
+            id={menuId}
+            aria-label={node.nama}
+            style={menuStyle}
+          >
+            <p className="sidebar-more__dropdown-head">{node.nama}</p>
+            {items.map(({ node: item, depth }) => (
+              <NavLink
+                key={item.id}
+                to={item.path!}
+                end={item.path === '/'}
+                role="menuitem"
+                className={({ isActive }) =>
+                  `sidebar-more__item sidebar-more__item--depth-${Math.min(depth, 2)}${
+                    isActive ? ' sidebar-more__item--active' : ''
+                  }`
+                }
+                onClick={() => {
+                  onClose()
+                  onNavigate?.()
+                }}
+              >
+                <MenuIcon name={item.icon} size={14} />
+                <span>{item.nama}</span>
+              </NavLink>
+            ))}
+          </div>,
+          document.body,
+        )
+      : null
+
+  return (
+    <div className="sidebar-more" ref={rootRef}>
+      <button
+        ref={triggerRef}
+        type="button"
+        className={`nav-link nav-link--icon-only sidebar-more__trigger${
+          isActive || open ? ' nav-link--active' : ''
+        }`}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-controls={menuId}
+        aria-label={node.nama}
+        title={node.nama}
+        onClick={(event) => {
+          event.stopPropagation()
+          onToggle()
+        }}
+      >
+        <MenuIcon name={node.icon} className="nav-icon" />
+        <span className="nav-link__label">{node.nama}</span>
+      </button>
+      {dropdown}
+    </div>
+  )
+}
+
+function CollapsedNavItem({
+  node,
+  open,
+  onOpen,
+  onClose,
+  onNavigate,
+}: {
+  node: MenuNode
+  open: boolean
+  onOpen: () => void
+  onClose: () => void
+  onNavigate?: () => void
+}) {
+  const menuId = useId()
+  const childLinks = useMemo(() => collectDescendantLinks(node.children ?? []), [node.children])
+  const hasFlyout = childLinks.length > 0
+  const isDirectLink = Boolean(node.path) && !hasFlyout
+
+  if (isDirectLink && node.path) {
+    return (
+      <NavLink
+        to={node.path}
+        end={node.path === '/'}
+        title={node.nama}
+        aria-label={node.nama}
+        className={({ isActive }) =>
+          `nav-link nav-link--icon-only${isActive ? ' nav-link--active' : ''}`
+        }
+        onClick={onNavigate}
+      >
+        <MenuIcon name={node.icon} className="nav-icon" />
+        <span className="nav-link__label">{node.nama}</span>
+      </NavLink>
+    )
+  }
+
+  if (!hasFlyout) return null
+
+  const items = node.path
+    ? [{ node, depth: 0 }, ...childLinks]
+    : childLinks
+
+  return (
+    <CollapsedNavFlyout
+      node={node}
+      items={items}
+      open={open}
+      menuId={menuId}
+      onToggle={() => (open ? onClose() : onOpen())}
+      onClose={onClose}
+      onNavigate={onNavigate}
+    />
+  )
 }
 
 function CollapsedNavMenu({ onNavigate }: { onNavigate?: () => void }) {
   const { menus } = useAuth()
-  const location = useLocation()
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const menuId = useId()
-
-  const leaves = useMemo(
-    () => flattenMenuLinks(menus).filter((item) => item.path),
-    [menus],
-  )
-  const { visible, overflow } = useMemo(() => splitCollapsedMenu(leaves), [leaves])
-
-  const overflowActive = overflow.some(
-    (item) =>
-      item.path === location.pathname ||
-      (item.path !== '/' && location.pathname.startsWith(`${item.path}/`)),
-  )
-
-  useEffect(() => {
-    if (!open) return
-
-    function handlePointer(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-
-    function handleKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('mousedown', handlePointer)
-    document.addEventListener('keydown', handleKey)
-    return () => {
-      document.removeEventListener('mousedown', handlePointer)
-      document.removeEventListener('keydown', handleKey)
-    }
-  }, [open])
+  const [openId, setOpenId] = useState<number | null>(null)
 
   return (
     <>
-      {visible.map((item) => (
-        <NavLink
-          key={item.id}
-          to={item.path!}
-          end={item.path === '/'}
-          title={item.nama}
-          aria-label={item.nama}
-          className={({ isActive }) =>
-            `nav-link nav-link--icon-only${isActive ? ' nav-link--active' : ''}`
-          }
-          onClick={onNavigate}
-        >
-          <MenuIcon name={item.icon} className="nav-icon" />
-          <span className="nav-link__label">{item.nama}</span>
-        </NavLink>
+      {menus.map((node) => (
+        <CollapsedNavItem
+          key={node.id}
+          node={node}
+          open={openId === node.id}
+          onOpen={() => setOpenId(node.id)}
+          onClose={() => setOpenId(null)}
+          onNavigate={() => {
+            setOpenId(null)
+            onNavigate?.()
+          }}
+        />
       ))}
-
-      {overflow.length > 0 && (
-        <div className="sidebar-more" ref={rootRef}>
-          <button
-            type="button"
-            className={`nav-link nav-link--icon-only sidebar-more__trigger${
-              overflowActive || open ? ' nav-link--active' : ''
-            }`}
-            aria-expanded={open}
-            aria-haspopup="menu"
-            aria-controls={menuId}
-            aria-label="Menu lainnya"
-            title="Lainnya"
-            onClick={() => setOpen((value) => !value)}
-          >
-            <MenuIcon name="more-horizontal" className="nav-icon" />
-            <span className="nav-link__label">Lainnya</span>
-          </button>
-
-          {open && (
-            <div className="sidebar-more__dropdown" role="menu" id={menuId}>
-              {overflow.map((item) => (
-                <NavLink
-                  key={item.id}
-                  to={item.path!}
-                  end={item.path === '/'}
-                  role="menuitem"
-                  className={({ isActive }) =>
-                    `sidebar-more__item${isActive ? ' sidebar-more__item--active' : ''}`
-                  }
-                  onClick={() => {
-                    setOpen(false)
-                    onNavigate?.()
-                  }}
-                >
-                  <MenuIcon name={item.icon} size={14} />
-                  <span>{item.nama}</span>
-                </NavLink>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </>
   )
 }
@@ -359,9 +484,6 @@ export function AppShell() {
               <button type="button" className="btn btn--ghost btn--sm" onClick={() => setMoreOpen(false)}>
                 Tutup
               </button>
-            </div>
-            <div className="app-shell__user app-shell__user--sheet">
-              <UserMenu onNavigate={() => setMoreOpen(false)} />
             </div>
             <NavMenu onNavigate={() => setMoreOpen(false)} />
           </div>

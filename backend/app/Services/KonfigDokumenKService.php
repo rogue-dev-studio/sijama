@@ -14,6 +14,7 @@ use App\Models\KonfigDokumenK;
 use App\Models\LookupM;
 use App\Support\DocumentKonfig;
 use App\Support\DocumentHeaderStyle;
+use App\Support\LookupKonfigDokumenMeta;
 use App\Support\LookupTypes;
 use App\Support\PaginationHelper;
 use App\Support\SortHelper;
@@ -215,13 +216,23 @@ class KonfigDokumenKService
             return $model;
         }
 
+        $lookupPaper = LookupKonfigDokumenMeta::parse($lookup->additional_data);
+
         return KonfigDokumenK::query()->create([
             'lookup_id' => $lookup->lookup_id,
             'layout_mode' => DocumentHeaderStyle::LAYOUT_KOP_GANDA,
             'header_style' => DocumentHeaderStyle::defaults(),
+            'paper_size' => $lookupPaper['paper_size'],
+            'paper_orientation' => $lookupPaper['paper_orientation'],
             'apply_pdf' => true,
             'apply_excel' => true,
             'apply_csv' => false,
+            'show_print_date' => true,
+            'show_print_row_count' => true,
+            'show_generated_by' => true,
+            'show_user_signature' => false,
+            'show_user_name' => false,
+            'show_user_phone' => false,
             'created_date' => now(),
             'created_by' => Auth::id(),
             'modified_count' => 0,
@@ -263,7 +274,24 @@ class KonfigDokumenKService
         }
 
         if (array_key_exists('header_style', $data)) {
-            $data['header_style'] = DocumentHeaderStyle::normalize($data['header_style']);
+            $style = is_array($data['header_style']) ? $data['header_style'] : [];
+            unset($style['paper_size'], $style['paper_orientation']);
+            $data['header_style'] = DocumentHeaderStyle::normalize($style);
+        }
+
+        if (array_key_exists('paper_size', $data)) {
+            $data['paper_size'] = LookupKonfigDokumenMeta::normalizePaperSize($data['paper_size']);
+        }
+
+        if (array_key_exists('paper_orientation', $data)) {
+            $data['paper_orientation'] = LookupKonfigDokumenMeta::normalizePaperOrientation(
+                $data['paper_orientation'],
+            );
+        }
+
+        if (array_key_exists('print_date_label', $data)) {
+            $label = is_string($data['print_date_label']) ? trim($data['print_date_label']) : '';
+            $data['print_date_label'] = $label !== '' ? $label : null;
         }
 
         return $data;

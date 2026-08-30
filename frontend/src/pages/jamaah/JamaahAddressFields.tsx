@@ -184,7 +184,7 @@ export function JamaahAddressFields({
             placeholder="mis. 12345"
           />
           <p className="field-hint">
-            Terisi otomatis dari master kode pos desa/kelurahan bila tersedia; bisa diubah manual.
+            Terisi otomatis dari master kode pos desa/kelurahan jika ada. Bisa diubah manual.
           </p>
         </div>
       </div>

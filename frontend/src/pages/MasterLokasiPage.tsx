@@ -8,6 +8,7 @@
 import { masterLokasiService } from '../api/services'
 import type { Lokasi, LokasiJenis } from '../api/types'
 import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
+import { ShareSocialActions } from '../components/ShareSocialActions'
 import { useToast } from '../components/ToastProvider'
 import { buildGoogleMapsShareUrl, copyText, isValidCoords } from '../lib/googleMaps'
 
@@ -98,6 +99,16 @@ export function MasterLokasiPage() {
             >
               Salin
             </button>
+            <ShareSocialActions
+              title={item.nama}
+              body={`Lokasi: ${item.nama}`}
+              url={buildGoogleMapsShareUrl(item.lat as number, item.lng as number, {
+                name: item.maps_place_name || item.nama,
+                placeId: item.maps_place_id,
+                mapsUrl: item.maps_url,
+              })}
+              size="small"
+            />
           </div>
         ) : (
           '—'

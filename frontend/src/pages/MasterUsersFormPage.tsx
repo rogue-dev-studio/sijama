@@ -138,7 +138,7 @@ export function MasterUsersFormPage() {
     <>
       <header className="page-header">
         <h1>{isEdit ? 'Edit pengguna' : 'Tambah pengguna'}</h1>
-        <p>Akun login ditautkan ke jamaah; dapukan dan cakupan wilayah mengikuti master jamaah.</p>
+        <p>Akun login terhubung ke jamaah. Dapukan dan cakupan wilayah mengikuti data jamaah.</p>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}

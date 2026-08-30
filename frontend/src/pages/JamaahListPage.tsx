@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { jamaahService, masterKelompokService } from '../api/services'
 import { useAuth } from '../auth/AuthContext'
@@ -12,6 +12,8 @@ import { SearchableSelect } from '../components/SearchableSelect'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { PermissionLink } from '../components/PermissionLink'
 import { useToast } from '../components/ToastProvider'
+import { useConfirm } from '../components/ConfirmDialogProvider'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
 
 type JamaahColumnKey =
@@ -107,6 +109,7 @@ const JAMAHA_COLUMNS: JamaahColumnDef[] = [
 export function JamaahListPage() {
   const { can } = useAuth()
   const { notifyDeleted } = useToast()
+  const { confirm } = useConfirm()
   const [items, setItems] = useState<Jamaah[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [kelompokList, setKelompokList] = useState<Kelompok[]>([])
@@ -172,8 +175,7 @@ export function JamaahListPage() {
     void loadKelompok()
   }, [])
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query)
     setPage(1)
   }
@@ -214,7 +216,11 @@ export function JamaahListPage() {
     kategoriUmurFilter !== ''
 
   async function handleDelete(id: number, nama: string) {
-    if (!window.confirm(`Hapus jamaah "${nama}"?`)) return
+    const ok = await confirm({
+      title: 'Konfirmasi hapus',
+      message: `Hapus jamaah "${nama}"? Tindakan ini tidak bisa dibatalkan.`,
+    })
+    if (!ok) return
     try {
       await jamaahService.remove(id)
       notifyDeleted('jamaah')
@@ -241,6 +247,7 @@ export function JamaahListPage() {
               getPayload={() => ({
                 title: 'Daftar Jamaah',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: items.map((item, index) => [
                   rowNumber(meta, index),
                   ...visibleColumns.map((column) => column.exportValue(item)),
@@ -262,18 +269,16 @@ export function JamaahListPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari nama, NIK, email, atau HP…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari jamaah"
-          />
-        </form>
-        <div className="filter-bar__fields">
-          <div className="field">
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari nama, NIK, email, atau HP…',
+          ariaLabel: 'Cari jamaah',
+        }}
+        primaryFilters={[
+          <div className="field" key="status">
             <label htmlFor="filter_status">Status</label>
             <SearchableSelect
               id="filter_status"
@@ -286,8 +291,8 @@ export function JamaahListPage() {
                 { value: 'nonaktif', label: 'Nonaktif' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="face">
             <label htmlFor="filter_face">Wajah</label>
             <SearchableSelect
               id="filter_face"
@@ -300,8 +305,8 @@ export function JamaahListPage() {
                 { value: 'pending', label: 'Belum' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="kelompok">
             <label htmlFor="filter_kelompok">Kelompok</label>
             <SearchableSelect
               id="filter_kelompok"
@@ -313,7 +318,9 @@ export function JamaahListPage() {
                 ...kelompokList.map((item) => ({ value: String(item.id), label: item.nama })),
               ]}
             />
-          </div>
+          </div>,
+        ]}
+        secondaryContent={
           <div className="field">
             <label htmlFor="filter_kategori_umur">Kategori umur</label>
             <SearchableSelect
@@ -330,15 +337,11 @@ export function JamaahListPage() {
               ]}
             />
           </div>
-        </div>
-        {hasActiveFilters && (
-          <div className="filter-bar__actions">
-            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-              Hapus filter
-            </button>
-          </div>
-        )}
-      </div>
+        }
+        secondaryActive={kategoriUmurFilter !== ''}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+      />
 
       {loading && <div className="loading-state">Memuat jamaah…</div>}
 

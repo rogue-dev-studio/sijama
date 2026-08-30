@@ -33,6 +33,7 @@ class User extends Authenticatable
         'is_active',
         'login_remember_minutes',
         'login_remember_until_logout',
+        'path_tanda_tangan',
     ];
 
     protected $hidden = [

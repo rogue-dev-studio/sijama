@@ -12,6 +12,7 @@ import { useAuth } from '../auth/AuthContext'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { useConfirm } from '../components/ConfirmDialogProvider'
 import { listExportAccess } from '../lib/listUiAccess'
 
 const ACTION_COLUMNS: Array<{ key: HakAkses['aksi']; label: string }> = [
@@ -288,6 +289,7 @@ function SwitchToggle({
 export function MasterMatriksPage() {
   const { can, user, refresh } = useAuth()
   const { notifySuccess } = useToast()
+  const { confirm } = useConfirm()
   const exportAccess = listExportAccess(can, 'matriks')
   const canUpdate = can('matriks.update')
   const tabsId = useId()
@@ -374,8 +376,16 @@ export function MasterMatriksPage() {
     [selectedIds, baselineIds],
   )
 
-  function handleDapukanChange(id: number) {
-    if (dirty && !window.confirm('Perubahan belum disimpan. Ganti dapukan?')) return
+  async function handleDapukanChange(id: number) {
+    if (dirty) {
+      const ok = await confirm({
+        title: 'Perubahan belum disimpan',
+        message: 'Perubahan belum disimpan. Ganti dapukan?',
+        tone: 'default',
+        confirmLabel: 'Ya, ganti',
+      })
+      if (!ok) return
+    }
     setSelectedDapukanId(id)
     setError(null)
     setQuery('')
@@ -487,6 +497,7 @@ export function MasterMatriksPage() {
                   ? `Matriks Hak Akses — ${selectedDapukan.nama}`
                   : 'Matriks Hak Akses',
                 headers: ['Modul', 'Fitur', 'Hak akses', 'Slug', 'Aksi', 'Aktif'],
+                columnKeys: ['modul', 'fitur', 'hak_akses', 'slug', 'aksi', 'aktif'],
                 rows: hakAksesList.map((item) => [
                   moduleLabel(moduleKeyFromHak(item), item),
                   item.fitur?.nama || '—',
@@ -511,7 +522,7 @@ export function MasterMatriksPage() {
 
       {!loading && dapukanList.length > 0 && (
         <>
-          <div className="filter-bar">
+          <div className="filter-bar filter-bar--legacy">
             <div className="filter-bar__fields">
               <div className="field">
                 <label htmlFor="matriks_dapukan">Dapukan</label>

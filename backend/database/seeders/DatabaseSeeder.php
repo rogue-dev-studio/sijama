@@ -14,8 +14,12 @@ use Illuminate\Support\Facades\Hash;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Local/demo seed: master data + akun uji. Tidak mengisi dummy jamaah/NIK.
+     * Local/dev seed: master data + akun login demo saja.
+     * Tidak mengisi dummy transaksional (jamaah, keluarga, pengajian, kegiatan, kehadiran).
+     * Data dummy opsional: php artisan db:seed --class=DemoDataSeeder
      * Do not run against shared/staging/production environments.
+     *
+     * Urutan: RBAC → konfig sistem → wilayah → lookup master → konfig dokumen → event master → akun demo.
      */
     public function run(): void
     {
@@ -27,11 +31,11 @@ class DatabaseSeeder extends Seeder
 
         $this->call(RbacSeeder::class);
         $this->call(KonfigSystemSeeder::class);
-        $this->call(KonfigDokumenSeeder::class);
         $this->call(WilayahAdministrasiSeeder::class);
         $this->call(KodePosSeeder::class);
         $this->call(WilayahSeeder::class);
         $this->call(LookupMSeeder::class);
+        $this->call(KonfigDokumenSeeder::class);
         $this->call(MasterEventSeeder::class);
         $this->call(HariLiburSeeder::class);
 

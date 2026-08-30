@@ -5,7 +5,7 @@
  * @Last Modified time: 2026-08-29 17:35:00
  */
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import { jamaahService, keluargaService } from '../api/services'
 import { useAuth } from '../auth/AuthContext'
@@ -18,6 +18,8 @@ import { SearchableSelect } from '../components/SearchableSelect'
 import { ExportPrintActions } from '../components/ExportPrintActions'
 import { PermissionLink } from '../components/PermissionLink'
 import { useToast } from '../components/ToastProvider'
+import { useConfirm } from '../components/ConfirmDialogProvider'
+import { ListFilterBar } from '../components/ListFilterBar'
 import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
 
 type KeluargaColumnKey = 'kepala' | 'no_kk' | 'anggota' | 'alamat' | 'kelompok' | 'status'
@@ -109,6 +111,7 @@ const KELUARGA_COLUMNS: KeluargaColumnDef[] = [
 export function KeluargaListPage() {
   const { can } = useAuth()
   const { notifyDeleted } = useToast()
+  const { confirm } = useConfirm()
   const [items, setItems] = useState<Keluarga[]>([])
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [kelompokList, setKelompokList] = useState<Kelompok[]>([])
@@ -168,8 +171,7 @@ export function KeluargaListPage() {
     }
   }, [])
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault()
+  function submitSearch() {
     setSearch(query.trim())
     setPage(1)
   }
@@ -198,7 +200,11 @@ export function KeluargaListPage() {
   const hasActiveFilters = search !== '' || statusFilter !== '' || kelompokFilter > 0
 
   async function handleDelete(id: number, nama: string) {
-    if (!window.confirm(`Hapus keluarga "${nama}"? Anggota jamaah tidak ikut dihapus.`)) return
+    const ok = await confirm({
+      title: 'Konfirmasi hapus',
+      message: `Hapus keluarga "${nama}"? Anggota jamaah tidak ikut dihapus.`,
+    })
+    if (!ok) return
     setDeletingId(id)
     try {
       await keluargaService.remove(id)
@@ -228,6 +234,7 @@ export function KeluargaListPage() {
               getPayload={() => ({
                 title: 'Daftar Keluarga',
                 headers: ['No', ...visibleColumns.map((column) => column.label)],
+                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
                 rows: items.map((item, index) => [
                   rowNumber(meta, index),
                   ...visibleColumns.map((column) => column.exportValue(item)),
@@ -249,18 +256,16 @@ export function KeluargaListPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="filter-bar">
-        <form className="filter-bar__search" onSubmit={handleSearchSubmit}>
-          <input
-            type="search"
-            placeholder="Cari no. KK, alamat, atau nama kepala…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="Cari keluarga"
-          />
-        </form>
-        <div className="filter-bar__fields">
-          <div className="field">
+      <ListFilterBar
+        search={{
+          value: query,
+          onChange: setQuery,
+          onSubmit: submitSearch,
+          placeholder: 'Cari no. KK, alamat, atau nama kepala…',
+          ariaLabel: 'Cari keluarga',
+        }}
+        primaryFilters={[
+          <div className="field" key="status">
             <label htmlFor="filter_status">Status</label>
             <SearchableSelect
               id="filter_status"
@@ -273,8 +278,8 @@ export function KeluargaListPage() {
                 { value: 'nonaktif', label: 'Nonaktif' },
               ]}
             />
-          </div>
-          <div className="field">
+          </div>,
+          <div className="field" key="kelompok">
             <label htmlFor="filter_kelompok">Kelompok</label>
             <SearchableSelect
               id="filter_kelompok"
@@ -286,16 +291,11 @@ export function KeluargaListPage() {
                 ...kelompokList.map((item) => ({ value: String(item.id), label: item.nama })),
               ]}
             />
-          </div>
-        </div>
-        {hasActiveFilters && (
-          <div className="filter-bar__actions">
-            <button type="button" className="btn btn--secondary" onClick={clearFilters}>
-              Hapus filter
-            </button>
-          </div>
-        )}
-      </div>
+          </div>,
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+      />
 
       {loading && <div className="loading-state">Memuat data keluarga…</div>}
 

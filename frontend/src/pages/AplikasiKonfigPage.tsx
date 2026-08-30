@@ -664,12 +664,12 @@ export function AplikasiKonfigPage() {
               </div>
             </div>
 
-            <h3 className="form-section-title" style={{ marginTop: '1.5rem' }}>
+            <h3 className="form-section-title form-section-title--after-block">
               SMS / Reset via nomor HP
             </h3>
-            <p className="field-hint" style={{ marginBottom: '1rem' }}>
+            <p className="field-hint field-hint--block">
               Saat dinonaktifkan, lupa password hanya menerima email. Driver{' '}
-              <code>log</code> menulis OTP ke log backend (dev); <code>fonnte</code> kirim
+              <code>log</code> menulis OTP ke log backend (dev). Driver <code>fonnte</code> mengirim
               lewat gateway Fonnte.
             </p>
             <div className="form-grid form-grid--2">
@@ -734,7 +734,7 @@ export function AplikasiKonfigPage() {
             hidden={tab !== 'integrasi' || !can('konfig.integrasi.view')}
           >
             <h3 className="form-section-title form-section-title--first">Telegram Bot</h3>
-            <p className="field-hint" style={{ marginBottom: '1rem' }}>
+            <p className="field-hint field-hint--block">
               Token dari @BotFather. Chat ID dipakai untuk notifikasi default (opsional).
             </p>
             <div className="form-grid form-grid--2">
@@ -780,10 +780,10 @@ export function AplikasiKonfigPage() {
               </div>
             </div>
 
-            <h3 className="form-section-title" style={{ marginTop: '1.5rem' }}>
+            <h3 className="form-section-title form-section-title--after-block">
               n8n
             </h3>
-            <p className="field-hint" style={{ marginBottom: '1rem' }}>
+            <p className="field-hint field-hint--block">
               Base URL instance n8n dan webhook workflow. API key opsional untuk autentikasi.
             </p>
             <div className="form-grid form-grid--2">

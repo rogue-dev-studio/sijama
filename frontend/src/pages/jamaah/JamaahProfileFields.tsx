@@ -211,7 +211,7 @@ export function JamaahProfileFields({
           <p className="field-hint">
             {dapukanError
               ? 'Daftar dapukan tidak dapat dimuat.'
-              : 'Hanya admin yang dapat menetapkan dapukan; opsi mengikuti tingkatan akun Anda.'}
+              : 'Hanya admin yang dapat menetapkan dapukan. Pilihan mengikuti tingkatan akun Anda.'}
           </p>
         ) : (
           <div className="checkbox-grid" role="group" aria-labelledby="dapukan_ids_label">

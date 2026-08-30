@@ -20,6 +20,7 @@ import { SearchableSelect } from '../components/SearchableSelect'
 import { LoginSessionFields } from '../components/LoginSessionFields'
 import { PasswordInput } from '../components/PasswordInput'
 import { ProfilePhotoUpload } from '../components/ProfilePhotoUpload'
+import { ProfileSignatureUpload } from '../components/ProfileSignatureUpload'
 import { useToast } from '../components/ToastProvider'
 import { describeLoginSessionExpiry, parseLoginRememberMinutesInput } from '../lib/loginSession'
 import { kodePosFromDesa } from '../lib/kodePosFromDesa'
@@ -319,6 +320,17 @@ export function ProfilePage() {
     setError(message)
   }
 
+  async function handleProfileSignatureUpdated(result: ProfileResult) {
+    setProfile(result)
+    setError(null)
+    notifySuccess('Tanda tangan berhasil diperbarui')
+    await refresh()
+  }
+
+  function handleProfileSignatureError(message: string) {
+    setError(message)
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!form || !profile?.can_edit_jamaah) return
@@ -442,7 +454,7 @@ export function ProfilePage() {
     <>
       <header className="page-header">
         <h1>Profil saya</h1>
-        <p>Akun login dan data jamaah yang tertaut. Ubah data diri lalu simpan.</p>
+        <p>Kelola akun login dan data jamaah yang terhubung. Simpan setelah selesai mengubah.</p>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}
@@ -485,6 +497,12 @@ export function ProfilePage() {
               onError={handleProfilePhotoError}
             />
           )}
+          <ProfileSignatureUpload
+            signaturePath={user.path_tanda_tangan}
+            disabled={submitting || passwordSubmitting || sessionSubmitting}
+            onUpdated={(result) => void handleProfileSignatureUpdated(result)}
+            onError={handleProfileSignatureError}
+          />
           <dl className="profile-dl">
             <div>
               <dt>Nama tampilan</dt>
@@ -509,7 +527,7 @@ export function ProfilePage() {
           </dl>
           {!jamaah && (
             <div className="alert alert--info">
-              Akun ini belum ditautkan ke master jamaah, sehingga profil jamaah tidak dapat diubah.
+              Akun belum terhubung ke data jamaah. Profil jamaah tidak bisa diubah.
             </div>
           )}
         </div>
@@ -841,7 +859,7 @@ export function ProfilePage() {
                     maxLength={5}
                   />
                   <p className="field-hint">
-                    Terisi otomatis dari master kode pos desa/kelurahan bila tersedia; bisa diubah
+                    Terisi otomatis dari master kode pos desa/kelurahan jika ada. Bisa diubah
                     manual.
                   </p>
                 </div>
@@ -953,9 +971,9 @@ export function ProfilePage() {
           >
             <h2 className="profile-card__title">Sesi login</h2>
             <p className="field-hint">
-              Atur berapa lama login tetap aktif saat &quot;Ingat saya&quot; dicentang. User baru
-              bawaan {profile.login_session.default_minutes} menit (1 hari). Field kosong berarti
-              belum diatur (misalnya setelah login tanpa Ingat saya).
+              Atur lama login tetap aktif saat &quot;Ingat saya&quot; dicentang. Bawaan user baru{' '}
+              {profile.login_session.default_minutes} menit (1 hari). Kosongkan jika belum diatur,
+              misalnya setelah login tanpa Ingat saya.
             </p>
 
             {sessionError && <div className="alert alert--error">{sessionError}</div>}
