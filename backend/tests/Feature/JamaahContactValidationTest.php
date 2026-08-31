@@ -9,7 +9,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Daerah;
+use App\Models\Desa;
 use App\Models\Jamaah;
+use App\Models\Kelompok;
+use App\Models\Pusat;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\CreatesAuthorizedUser;
 use Tests\Support\SeedsLookupM;
@@ -21,10 +26,51 @@ class JamaahContactValidationTest extends TestCase
     use RefreshDatabase;
     use SeedsLookupM;
 
+    private function makeKelompok(): Kelompok
+    {
+        $pusat = Pusat::query()->create([
+            'kode' => 'P-TEST',
+            'nama' => 'Pusat Test',
+            'is_active' => true,
+        ]);
+        $daerah = Daerah::query()->create([
+            'pusat_id' => $pusat->id,
+            'kode' => 'D-TEST',
+            'nama' => 'Daerah Test',
+            'is_active' => true,
+        ]);
+        $desa = Desa::query()->create([
+            'daerah_id' => $daerah->id,
+            'kode' => 'DES-TEST',
+            'nama' => 'Desa Test',
+            'is_active' => true,
+        ]);
+
+        return Kelompok::query()->create([
+            'desa_id' => $desa->id,
+            'kode' => 'KEL-TEST',
+            'nama' => 'Kelompok Test',
+            'is_active' => true,
+        ]);
+    }
+
+    private function assignKelompokScope(User $user, Kelompok $kelompok): void
+    {
+        $kelompok->loadMissing('desa.daerah');
+        $user->update([
+            'kelompok_id' => $kelompok->id,
+            'desa_id' => $kelompok->desa_id,
+            'daerah_id' => $kelompok->desa->daerah_id,
+            'pusat_id' => $kelompok->desa->daerah->pusat_id,
+        ]);
+    }
+
     public function test_jamaah_can_be_created_without_phone_and_email(): void
     {
         $this->seedLookupM();
+        $kelompok = $this->makeKelompok();
         $user = $this->createAuthorizedUser(permissionSlugs: ['jamaah.create']);
+        $this->assignKelompokScope($user, $kelompok);
 
         $response = $this->actingAs($user, 'sanctum')->postJson('/api/jamaah', [
             'nama' => 'Tanpa Kontak',
