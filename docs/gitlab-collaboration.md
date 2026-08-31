@@ -95,6 +95,21 @@ git branch -d feat/nama-fitur
 
 Settings → **Repository → Protected branches**.
 
+## 8. Approval & merge (sudah dikonfigurasi)
+
+| Setting | Nilai |
+|---------|--------|
+| Pipeline must succeed | ✅ Wajib sebelum merge |
+| All threads resolved | ✅ |
+| Rule `Owner approval (main)` | 1 approval dari **Owner** pada protected branch |
+| Author self-approval | ❌ |
+
+**Owner** (`rogue-dev-studio`) bisa **approve** MR dan **merge** ke `main`.
+
+Kontributor **Developer**: push branch + buka MR; tunggu Owner approve + pipeline hijau.
+
+Ubah di: **Settings → Merge requests** / **Merge request approvals**.
+
 ## Troubleshooting
 
 | Masalah | Solusi |

@@ -79,6 +79,8 @@ git push -u origin feat/nama-fitur
 
 Detail MR & protected `main`: [gitlab-collaboration.md](gitlab-collaboration.md).
 
+> **Kolaborasi hanya via GitLab** (MR + CI). GitHub = mirror kode; jangan push kontribusi ke GitHub `main`.
+
 ## Uji sebelum push (sama dengan CI)
 
 ```powershell
