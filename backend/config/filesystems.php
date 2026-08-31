@@ -67,6 +67,9 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            // R2 tidak mendukung per-object ACL; hindari GetObjectAcl saat copy/delete.
+            'visibility' => 'private',
+            'retain_visibility' => false,
             'throw' => false,
         ],
 

@@ -113,7 +113,7 @@ Upload (foto, tanda tangan, logo) disimpan di **R2 bucket**, bukan disk Render.
 
 1. Bucket `sijama-uploads`
 2. **Public Development URL** → Enable → catat `https://pub-xxxxx.r2.dev`
-3. **R2 API Token** → Object Read & Write → bucket ini saja
+3. **R2 API Token** (bukan Account API Token) → Object Read & Write → bucket ini saja → catat Access Key ID + Secret
 4. **S3 API endpoint** dari bucket Settings
 
 ### Render (`sijama-api` → Environment)
@@ -130,6 +130,8 @@ AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
 
 `AWS_ENDPOINT` tanpa `/sijama-uploads` di akhir. Secret hanya di Render, tidak di git.
+
+R2 **tidak mendukung ACL per-file** — aplikasi upload **private** ke bucket dan serve lewat `/storage` API. Jangan set visibility `public` di Flysystem.
 
 ### CORS (jika gambar tidak tampil)
 
@@ -159,4 +161,5 @@ Browser memuat gambar lewat **`/storage/...` same-origin** di frontend (Render r
 | 502 / service tidak start | Cek log Render; pastikan `DB_*` + `APP_KEY` benar |
 | Gambar logo/foto tidak tampil (Network: blocked) | URL harus **`/storage/konfig/...`** di domain **web** (bukan `pub-...r2.dev` atau `sijama-api` cross-origin). Redeploy `sijama-web` agar rewrite proxy aktif. Hard refresh |
 | Gambar 404 di `/storage/...` | File tidak ada di R2 atau path DB sudah lama — upload ulang di Konfigurasi |
+| Upload/preview gambar **500** | R2 tidak support ACL `public` — redeploy API setelah fix terbaru. Pastikan token = **R2 API Token** (S3 credentials), bukan Account API Token |
 | DB connection timeout | Aiven → allowed IP: Render egress IP atau `0.0.0.0/0` sementara untuk uji |

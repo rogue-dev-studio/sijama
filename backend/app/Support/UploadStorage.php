@@ -27,24 +27,20 @@ class UploadStorage
 
     public static function storeUploadedAs(UploadedFile $file, string $directory, string $filename): string
     {
-        $options = ['disk' => self::diskName()];
-        if (self::diskName() === 's3') {
-            $options['visibility'] = 'public';
-        }
-
-        $relative = $file->storeAs($directory, $filename, $options);
+        $relative = $file->storeAs($directory, $filename, self::storeOptions());
 
         return self::publicPath($relative);
     }
 
     public static function storeUploadedAsPath(UploadedFile $file, string $directory, string $filename): string
     {
-        $options = ['disk' => self::diskName()];
-        if (self::diskName() === 's3') {
-            $options['visibility'] = 'public';
-        }
+        return $file->storeAs($directory, $filename, self::storeOptions());
+    }
 
-        return $file->storeAs($directory, $filename, $options);
+    /** @return array{disk: string} */
+    private static function storeOptions(): array
+    {
+        return ['disk' => self::diskName()];
     }
 
     public static function publicPath(string $relative): string

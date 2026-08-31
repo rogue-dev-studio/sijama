@@ -9,6 +9,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\MediaMimeType;
 use App\Support\UploadStorage;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -44,16 +45,21 @@ class PublicMediaController extends Controller
 
         $disk = UploadStorage::disk();
 
-        if (! $disk->exists($path)) {
+        try {
+            if (! $disk->exists($path)) {
+                abort(404);
+            }
+
+            $stream = $disk->readStream($path);
+        } catch (\Throwable) {
             abort(404);
         }
-
-        $mime = $disk->mimeType($path) ?: 'application/octet-stream';
-        $stream = $disk->readStream($path);
 
         if ($stream === false) {
             abort(404);
         }
+
+        $mime = MediaMimeType::forPath($path, $disk);
 
         return response()->stream(function () use ($stream): void {
             fpassthrough($stream);
