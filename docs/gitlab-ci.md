@@ -55,8 +55,27 @@ GitLab project → **Deploy → Container Registry** (otomatis aktif setelah pus
 | `PRODUCTION_APP_URL` | `https://app.domain-kamu.com` | No | Yes |
 | `DEPLOY_HOST` | IP/hostname VPS | No | Yes |
 | `DEPLOY_USER` | `ubuntu` / `root` | No | Yes |
-| `SSH_PRIVATE_KEY` | Private key deploy | Yes | Yes |
+| `SSH_PRIVATE_KEY` | Private key deploy (lihat **SSH key** di bawah) | Yes | Yes |
 | `SSH_KNOWN_HOSTS` | Output `ssh-keyscan -H VPS_IP` | No | Yes |
+
+### SSH key untuk deploy
+
+1. Buat key **tanpa passphrase** (di mesin lokal):
+
+```bash
+ssh-keygen -t ed25519 -N '' -f sijama_deploy -C 'gitlab-ci-sijama'
+```
+
+2. Pasang **public key** di VPS (`~/.ssh/authorized_keys` user deploy).
+
+3. GitLab → **Settings → CI/CD → Variables** → `SSH_PRIVATE_KEY`:
+   - **Type: File** (disarankan) — upload file `sijama_deploy` (private)
+   - atau **Variable** — paste seluruh isi private key termasuk baris `BEGIN` / `END`
+
+4. `SSH_KNOWN_HOSTS`: `ssh-keyscan -H IP_VPS` (satu baris per host).
+
+**Jangan** mask key yang format rusak; jika deploy gagal `error in libcrypto` / `invalid`, hapus variable dan buat ulang dengan type **File**.
+
 
 **DB Aiven** disimpan di server (`/opt/sijama/.env.production`), **bukan** di GitLab CI — kecuali kamu sengaja mau migrate via CI (tidak disarankan).
 
@@ -115,3 +134,13 @@ docker compose -f docker-compose.yml -f docker-compose.aiven.yml --env-file .env
 Pipeline **test + build** tetap jalan; job **deploy** skip sampai `DEPLOY_HOST` + SSH key diisi.
 
 Alternatif app hosting tanpa VPS: Render/Railway (butuh setup terpisah, DB tetap Aiven).
+
+## Troubleshooting deploy
+
+| Error CI | Penyebab | Solusi |
+|----------|----------|--------|
+| `Error loading key (stdin): error in libcrypto` | Private key invalid / truncated / format salah | Buat ulang key; simpan sebagai **File** variable; pastikan public key di VPS |
+| `SSH_PRIVATE_KEY is invalid or truncated` | Isi variable tidak lengkap | Paste full OpenSSH key atau gunakan type File |
+| `Permission denied (publickey)` | Public key tidak di `authorized_keys` VPS | Tambah `sijama_deploy.pub` ke user deploy |
+| `Could not resolve hostname` | `DEPLOY_HOST` kosong/salah | Cek variable `DEPLOY_HOST` |
+| migrate gagal di remote | `.env.production` / DB Aiven | Cek `/opt/sijama/.env.production` di server |
