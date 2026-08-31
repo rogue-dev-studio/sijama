@@ -110,7 +110,7 @@ Keduanya bisa dipakai: CI untuk quality gate, Render untuk hosting tanpa VPS.
 | Item | Catatan |
 |------|---------|
 | Cold start | Web service tidur ~15 menit idle; wake up ~30–60 detik |
-| Disk | Upload file di `storage/` hilang saat redeploy — pakai S3/R2 nanti jika perlu |
+| Disk | Upload di `storage/` hilang saat redeploy — **fix:** [#8](https://gitlab.com/rogue-dev-studio/sijama/-/issues/8) (S3/R2) atau persistent disk |
 | DB | **Jangan** pakai Render Postgres free (expired 30 hari) — tetap Aiven |
 | Scheduler | `schedule:work` tidak jalan di free web service — butuh cron job terpisah atau upgrade |
 

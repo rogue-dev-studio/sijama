@@ -11,6 +11,7 @@ Tracking utama: **GitLab Issues** + milestone [**v0.3.0**](https://gitlab.com/ro
 | [#5](https://gitlab.com/rogue-dev-studio/sijama/-/issues/5) | Aiven: backup policy + dokumentasi restore | infra |
 | [#6](https://gitlab.com/rogue-dev-studio/sijama/-/issues/6) | Render: custom domain + HTTPS | infra |
 | [#7](https://gitlab.com/rogue-dev-studio/sijama/-/issues/7) | Scheduler: update status kegiatan (cron) | infra |
+| [#8](https://gitlab.com/rogue-dev-studio/sijama/-/issues/8) | Migrasi upload ke object storage (S3/R2) | feature, infra |
 
 Alur: **Issue → branch `feat/<id>-slug` → MR (`Closes #id`) → review → merge**.
 
