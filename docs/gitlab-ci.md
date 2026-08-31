@@ -131,9 +131,9 @@ docker compose -f docker-compose.yml -f docker-compose.aiven.yml --env-file .env
 
 ## Tanpa VPS dulu
 
-Pipeline **test + build** tetap jalan; job **deploy** skip sampai `DEPLOY_HOST` + SSH key diisi.
+Pipeline **test + build** tetap jalan; job **deploy** hanya muncul jika variable `DEPLOY_HOST` diisi di GitLab CI.
 
-Alternatif app hosting tanpa VPS: Render/Railway (butuh setup terpisah, DB tetap Aiven).
+**Pakai Render saja?** Abaikan job `deploy:production` di GitLab — hosting app lewat Render Blueprint (`docs/render-deploy.md`), DB tetap Aiven.
 
 ## Troubleshooting deploy
 

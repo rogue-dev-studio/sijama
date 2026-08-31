@@ -84,8 +84,9 @@ deploy:production:
   needs:
     - job: build:images
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $DEPLOY_HOST
       when: manual
+    - when: never
   before_script:
     - apk add --no-cache openssh-client bash
     - bash scripts/ci-deploy-install-ssh.sh
