@@ -23,8 +23,6 @@ test:backend:
   stage: test
   image: php:8.2-cli
   extends: .default_rules
-  variables:
-    APP_KEY: base64:c2lqamFtYS1jaS10ZXN0LWtleS0zMmJ5dGVzLWxvbmchIQ==
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libpq-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev
     - docker-php-ext-configure gd --with-freetype --with-jpeg

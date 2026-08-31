@@ -4,16 +4,16 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-29 15:45:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-29 15:45:00
+ * @Last Modified time: 2026-08-31 12:20:00
  */
 
 namespace Tests\Feature;
 
+use App\Contracts\SmsSender;
 use App\Models\Jamaah;
 use App\Models\PasswordResetRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Tests\Support\CreatesAuthorizedUser;
 use Tests\TestCase;
 
@@ -24,7 +24,10 @@ class PasswordResetPhoneTest extends TestCase
 
     public function test_forgot_password_with_phone_sends_otp_via_log_driver(): void
     {
-        Log::fake();
+        $this->mock(SmsSender::class, function ($mock) {
+            $mock->shouldReceive('send')->once();
+        });
+
         config([
             'sms.default' => 'log',
             'sms.password_reset_enabled' => true,
@@ -54,13 +57,19 @@ class PasswordResetPhoneTest extends TestCase
             'user_id' => $user->id,
             'channel' => PasswordResetRequest::CHANNEL_PHONE,
         ]);
-
-        Log::assertLogged(fn ($log) => str_contains($log->message, 'SMS (log driver)'));
     }
 
     public function test_reset_password_with_valid_otp_updates_password(): void
     {
-        Log::fake();
+        $capturedMessage = '';
+        $this->mock(SmsSender::class, function ($mock) use (&$capturedMessage) {
+            $mock->shouldReceive('send')
+                ->once()
+                ->andReturnUsing(function (string $phone, string $message) use (&$capturedMessage) {
+                    $capturedMessage = $message;
+                });
+        });
+
         config([
             'sms.default' => 'log',
             'sms.password_reset_enabled' => true,
@@ -80,18 +89,8 @@ class PasswordResetPhoneTest extends TestCase
 
         $this->postJson('/api/forgot-password', ['identifier' => $phone])->assertOk();
 
-        $loggedMessage = null;
-        Log::assertLogged(function ($log) use (&$loggedMessage) {
-            if (! str_contains($log->message, 'SMS (log driver)')) {
-                return false;
-            }
-            $loggedMessage = $log->context['message'] ?? null;
-
-            return is_string($loggedMessage);
-        });
-
-        $this->assertNotNull($loggedMessage);
-        preg_match('/(\d{6})/', $loggedMessage, $matches);
+        $this->assertNotSame('', $capturedMessage);
+        preg_match('/(\d{6})/', $capturedMessage, $matches);
         $this->assertNotEmpty($matches[1] ?? null);
         $otp = $matches[1];
 

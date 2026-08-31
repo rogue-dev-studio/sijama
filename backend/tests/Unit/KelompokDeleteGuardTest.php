@@ -13,6 +13,7 @@ use App\Models\Daerah;
 use App\Models\Desa;
 use App\Models\Jamaah;
 use App\Models\Kelompok;
+use App\Models\Pusat;
 use App\Models\User;
 use App\Services\KelompokService;
 use App\Services\ScopeService;
@@ -33,7 +34,13 @@ class KelompokDeleteGuardTest extends TestCase
 
     public function test_cannot_delete_kelompok_when_soft_deleted_jamaah_exists(): void
     {
+        $pusat = Pusat::query()->create([
+            'kode' => 'pusat-1',
+            'nama' => 'Pusat 1',
+            'is_active' => true,
+        ]);
         $daerah = Daerah::query()->create([
+            'pusat_id' => $pusat->id,
             'kode' => 'd-1',
             'nama' => 'Daerah 1',
             'is_active' => true,

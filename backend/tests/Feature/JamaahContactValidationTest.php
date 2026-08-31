@@ -12,15 +12,18 @@ namespace Tests\Feature;
 use App\Models\Jamaah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\CreatesAuthorizedUser;
+use Tests\Support\SeedsLookupM;
 use Tests\TestCase;
 
 class JamaahContactValidationTest extends TestCase
 {
     use CreatesAuthorizedUser;
     use RefreshDatabase;
+    use SeedsLookupM;
 
     public function test_jamaah_can_be_created_without_phone_and_email(): void
     {
+        $this->seedLookupM();
         $user = $this->createAuthorizedUser(permissionSlugs: ['jamaah.create']);
 
         $response = $this->actingAs($user, 'sanctum')->postJson('/api/jamaah', [
@@ -39,6 +42,7 @@ class JamaahContactValidationTest extends TestCase
 
     public function test_jamaah_phone_must_be_unique_when_filled(): void
     {
+        $this->seedLookupM();
         $user = $this->createAuthorizedUser(permissionSlugs: ['jamaah.create']);
         Jamaah::query()->create([
             'nama' => 'Existing',
