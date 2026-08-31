@@ -32,6 +32,15 @@ git push -u origin main
 
 (Jika repo sudah ada, cukup `git remote set-url` + push.)
 
+## Kolaborasi (protected `main` + Merge Request)
+
+Branch `main` **protected** — kontributor push ke branch fitur, merge lewat MR.
+
+- Panduan lengkap: [docs/gitlab-collaboration.md](gitlab-collaboration.md)
+- Setup mesin kosong: [docs/contributor-setup.md](contributor-setup.md)
+- Undang member sebagai **Developer**; merge ke `main` oleh **Maintainer**
+- CI **test** jalan pada MR; **build/deploy** hanya setelah merge ke `main`
+
 ## 2. Aktifkan Container Registry
 
 GitLab project → **Deploy → Container Registry** (otomatis aktif setelah push image pertama).
