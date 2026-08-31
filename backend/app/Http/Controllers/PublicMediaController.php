@@ -12,7 +12,7 @@ namespace App\Http\Controllers;
 use App\Support\MediaMimeType;
 use App\Support\UploadStorage;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class PublicMediaController extends Controller
 {
@@ -23,7 +23,7 @@ class PublicMediaController extends Controller
         'share/',
     ];
 
-    public function show(Request $request, string $path): StreamedResponse
+    public function show(Request $request, string $path): Response
     {
         $path = ltrim($path, '/');
 
@@ -50,23 +50,18 @@ class PublicMediaController extends Controller
                 abort(404);
             }
 
-            $stream = $disk->readStream($path);
+            $content = $disk->get($path);
         } catch (\Throwable) {
             abort(404);
         }
 
-        if ($stream === false) {
+        if (! is_string($content) || $content === '') {
             abort(404);
         }
 
         $mime = MediaMimeType::forPath($path, $disk);
 
-        return response()->stream(function () use ($stream): void {
-            fpassthrough($stream);
-            if (is_resource($stream)) {
-                fclose($stream);
-            }
-        }, 200, [
+        return response($content, 200, [
             'Content-Type' => $mime,
             'Cache-Control' => 'public, max-age=86400',
             'Access-Control-Allow-Origin' => '*',
