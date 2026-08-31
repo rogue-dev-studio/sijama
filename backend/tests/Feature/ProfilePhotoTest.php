@@ -10,6 +10,7 @@
 namespace Tests\Feature;
 
 use App\Models\Jamaah;
+use App\Support\UploadStorage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -44,15 +45,15 @@ class ProfilePhotoTest extends TestCase
             ->assertJsonPath('data.jamaah.foto_path', fn ($value) => is_string($value) && str_starts_with($value, '/storage/jamaah/'));
 
         $fotoPath = $upload->json('data.jamaah.foto_path');
-        $relative = ltrim(substr((string) $fotoPath, strlen('/storage/')), '/');
-        Storage::disk('public')->assertExists($relative);
+        $relative = UploadStorage::relativePath((string) $fotoPath);
+        Storage::disk(UploadStorage::diskName())->assertExists($relative);
 
         $delete = $this->actingAs($user, 'sanctum')->deleteJson('/api/profile/photo');
 
         $delete->assertOk()
             ->assertJsonPath('data.jamaah.foto_path', null);
 
-        Storage::disk('public')->assertMissing($relative);
+        Storage::disk(UploadStorage::diskName())->assertMissing($relative);
     }
 
     public function test_user_without_jamaah_cannot_upload_profile_photo(): void

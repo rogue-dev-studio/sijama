@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Upload disk (user files: photos, konfig assets)
+    |--------------------------------------------------------------------------
+    |
+    | Local dev: public (storage/app/public). Production Render: s3 (R2).
+    |
+    */
+
+    'upload_disk' => env(
+        'FILESYSTEM_UPLOAD_DISK',
+        env('FILESYSTEM_DISK', 'local') === 's3' ? 's3' : 'public'
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

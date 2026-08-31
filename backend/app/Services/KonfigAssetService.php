@@ -11,9 +11,9 @@ namespace App\Services;
 
 use App\Models\KonfigSystemK;
 use App\Support\SystemKonfig;
+use App\Support\UploadStorage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 
 class KonfigAssetService
@@ -35,8 +35,7 @@ class KonfigAssetService
 
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
         $filename = str_replace('-', '_', $asset).'_'.now()->format('YmdHis').'.'.$extension;
-        $storedPath = $file->storeAs('konfig', $filename, 'public');
-        $publicPath = '/storage/'.$storedPath;
+        $publicPath = UploadStorage::storeUploadedAs($file, 'konfig', $filename);
 
         $konfig->update([
             $column => $publicPath,
@@ -81,14 +80,6 @@ class KonfigAssetService
 
     private function deleteStoredAsset(?string $path): void
     {
-        if (! is_string($path) || ! str_starts_with($path, '/storage/')) {
-            return;
-        }
-
-        $relative = ltrim(substr($path, strlen('/storage/')), '/');
-
-        if ($relative !== '' && str_starts_with($relative, 'konfig/')) {
-            Storage::disk('public')->delete($relative);
-        }
+        UploadStorage::delete($path, 'konfig/');
     }
 }

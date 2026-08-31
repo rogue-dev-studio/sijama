@@ -105,12 +105,44 @@ Login seed lokal: `admin@sijama.local` / `password` — **ganti password di prod
 
 Keduanya bisa dipakai: CI untuk quality gate, Render untuk hosting tanpa VPS.
 
+## Upload file — Cloudflare R2 (persisten)
+
+Upload (foto, tanda tangan, logo) disimpan di **R2 bucket**, bukan disk Render.
+
+### Cloudflare (sekali)
+
+1. Bucket `sijama-uploads`
+2. **Public Development URL** → Enable → catat `https://pub-xxxxx.r2.dev`
+3. **R2 API Token** → Object Read & Write → bucket ini saja
+4. **S3 API endpoint** dari bucket Settings
+
+### Render (`sijama-api` → Environment)
+
+```env
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=<R2 token>
+AWS_SECRET_ACCESS_KEY=<R2 token>
+AWS_DEFAULT_REGION=auto
+AWS_BUCKET=sijama-uploads
+AWS_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+AWS_URL=https://pub-xxxxx.r2.dev
+AWS_USE_PATH_STYLE_ENDPOINT=true
+```
+
+`AWS_ENDPOINT` tanpa `/sijama-uploads` di akhir. Secret hanya di Render, tidak di git.
+
+### CORS (jika gambar tidak tampil)
+
+Bucket → CORS → allow origin frontend Render (`https://sijama-web.onrender.com`), methods `GET`, `HEAD`.
+
+Setelah env + redeploy, upload baru masuk R2 dan **tetap ada** setelah redeploy.
+
 ## Batasan plan Free Render
 
 | Item | Catatan |
 |------|---------|
 | Cold start | Web service tidur ~15 menit idle; wake up ~30–60 detik |
-| Disk | Upload di `storage/` hilang saat redeploy — **fix:** [#8](https://gitlab.com/rogue-dev-studio/sijama/-/issues/8) (S3/R2) atau persistent disk |
+| Disk | Upload persisten via **R2** (`FILESYSTEM_DISK=s3`) — lihat section di atas |
 | DB | **Jangan** pakai Render Postgres free (expired 30 hari) — tetap Aiven |
 | Scheduler | `schedule:work` tidak jalan di free web service — butuh cron job terpisah atau upgrade |
 

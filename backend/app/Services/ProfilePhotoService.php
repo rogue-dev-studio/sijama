@@ -10,8 +10,8 @@
 namespace App\Services;
 
 use App\Models\Jamaah;
+use App\Support\UploadStorage;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 class ProfilePhotoService
 {
@@ -21,8 +21,7 @@ class ProfilePhotoService
 
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
         $filename = 'jamaah_'.$jamaah->id.'_'.now()->format('YmdHis').'.'.$extension;
-        $storedPath = $file->storeAs('jamaah/'.$jamaah->id, $filename, 'public');
-        $publicPath = '/storage/'.$storedPath;
+        $publicPath = UploadStorage::storeUploadedAs($file, 'jamaah/'.$jamaah->id, $filename);
 
         $jamaah->update([
             'foto_path' => $publicPath,
@@ -44,14 +43,6 @@ class ProfilePhotoService
 
     private function deleteStoredPhoto(?string $path): void
     {
-        if (! is_string($path) || ! str_starts_with($path, '/storage/')) {
-            return;
-        }
-
-        $relative = ltrim(substr($path, strlen('/storage/')), '/');
-
-        if ($relative !== '' && str_starts_with($relative, 'jamaah/')) {
-            Storage::disk('public')->delete($relative);
-        }
+        UploadStorage::delete($path, 'jamaah/');
     }
 }

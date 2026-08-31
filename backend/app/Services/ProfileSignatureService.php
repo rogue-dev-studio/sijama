@@ -10,8 +10,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Support\UploadStorage;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileSignatureService
 {
@@ -21,8 +21,7 @@ class ProfileSignatureService
 
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
         $filename = 'user_'.$user->id.'_'.now()->format('YmdHis').'.'.$extension;
-        $storedPath = $file->storeAs('users/'.$user->id.'/signature', $filename, 'public');
-        $publicPath = '/storage/'.$storedPath;
+        $publicPath = UploadStorage::storeUploadedAs($file, 'users/'.$user->id.'/signature', $filename);
 
         $user->update([
             'path_tanda_tangan' => $publicPath,
@@ -44,14 +43,6 @@ class ProfileSignatureService
 
     private function deleteStoredSignature(?string $path): void
     {
-        if (! is_string($path) || ! str_starts_with($path, '/storage/')) {
-            return;
-        }
-
-        $relative = ltrim(substr($path, strlen('/storage/')), '/');
-
-        if ($relative !== '' && str_starts_with($relative, 'users/')) {
-            Storage::disk('public')->delete($relative);
-        }
+        UploadStorage::delete($path, 'users/');
     }
 }

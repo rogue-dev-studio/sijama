@@ -16,12 +16,12 @@ use App\Support\DocumentKonfig;
 use App\Support\DocumentHeaderStyle;
 use App\Support\LookupKonfigDokumenMeta;
 use App\Support\LookupTypes;
+use App\Support\UploadStorage;
 use App\Support\PaginationHelper;
 use App\Support\SortHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
@@ -158,8 +158,7 @@ class KonfigDokumenKService
 
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
         $filename = str_replace('-', '_', $asset).'_'.now()->format('YmdHis').'.'.$extension;
-        $storedPath = $file->storeAs('konfig/dokumen/'.$lookupId, $filename, 'public');
-        $publicPath = '/storage/'.$storedPath;
+        $publicPath = UploadStorage::storeUploadedAs($file, 'konfig/dokumen/'.$lookupId, $filename);
 
         $model->update([
             $column => $publicPath,
@@ -252,15 +251,7 @@ class KonfigDokumenKService
 
     private function deleteStoredAsset(?string $path): void
     {
-        if (! is_string($path) || ! str_starts_with($path, '/storage/')) {
-            return;
-        }
-
-        $relative = ltrim(substr($path, strlen('/storage/')), '/');
-
-        if ($relative !== '' && str_starts_with($relative, 'konfig/dokumen/')) {
-            Storage::disk('public')->delete($relative);
-        }
+        UploadStorage::delete($path, 'konfig/dokumen/');
     }
 
     private function prepare(array $data): array

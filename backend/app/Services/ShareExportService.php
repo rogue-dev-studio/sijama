@@ -9,8 +9,8 @@
 
 namespace App\Services;
 
+use App\Support\UploadStorage;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ShareExportService
@@ -38,14 +38,15 @@ class ShareExportService
         }
 
         $storedName = Str::uuid()->toString().'.'.$extension;
-        $file->storeAs(self::SHARE_DIR, $storedName, 'public');
-
-        $relativePath = '/storage/'.self::SHARE_DIR.'/'.$storedName;
-        $baseUrl = rtrim((string) config('app.url'), '/');
+        $relative = UploadStorage::storeUploadedAsPath($file, self::SHARE_DIR, $storedName);
+        $publicPath = UploadStorage::publicPath($relative);
+        $url = UploadStorage::diskName() === 's3'
+            ? $publicPath
+            : rtrim((string) config('app.url'), '/').$publicPath;
 
         return [
-            'path' => $relativePath,
-            'url' => $baseUrl.$relativePath,
+            'path' => $publicPath,
+            'url' => $url,
             'filename' => $file->getClientOriginalName() ?: $storedName,
             'expires_at' => now()->addHours(self::TTL_HOURS)->toIso8601String(),
         ];
@@ -53,7 +54,7 @@ class ShareExportService
 
     private function purgeExpiredExports(): void
     {
-        $disk = Storage::disk('public');
+        $disk = UploadStorage::disk();
         if (! $disk->exists(self::SHARE_DIR)) {
             return;
         }
