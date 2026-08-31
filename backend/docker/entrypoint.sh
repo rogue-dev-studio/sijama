@@ -47,7 +47,21 @@ if [ "$ROLE" = "scheduler" ]; then
 fi
 
 php artisan migrate --force
-php artisan storage:link --force || true
+
+UPLOAD_DISK="${FILESYSTEM_UPLOAD_DISK:-}"
+if [ -z "$UPLOAD_DISK" ]; then
+  if [ "${FILESYSTEM_DISK:-local}" = "s3" ]; then
+    UPLOAD_DISK="s3"
+  else
+    UPLOAD_DISK="public"
+  fi
+fi
+
+if [ "$UPLOAD_DISK" != "s3" ]; then
+  php artisan storage:link --force || true
+else
+  echo "Upload disk is s3 — skipping storage:link (media served via /storage proxy)."
+fi
 
 # Render free tier: no Shell — set SEED_ON_DEPLOY=true once in Dashboard, redeploy, then unset.
 if [ "${SEED_ON_DEPLOY:-false}" = "true" ]; then

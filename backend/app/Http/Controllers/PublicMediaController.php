@@ -63,6 +63,8 @@ class PublicMediaController extends Controller
         }, 200, [
             'Content-Type' => $mime,
             'Cache-Control' => 'public, max-age=86400',
+            'Access-Control-Allow-Origin' => '*',
+            'Cross-Origin-Resource-Policy' => 'cross-origin',
         ]);
     }
 }

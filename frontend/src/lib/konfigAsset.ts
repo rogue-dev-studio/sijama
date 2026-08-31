@@ -2,12 +2,59 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-27 11:24:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-27 18:10:00
+ * @Last Modified time: 2026-08-31 14:25:00
  */
 
 import { API_BASE } from '../api/types'
 
 const LEGACY_DEFAULT_PATHS = new Set(['/logo.svg', '/favicon.svg'])
+
+const STORAGE_PREFIXES = ['konfig/', 'jamaah/', 'users/', 'share/']
+
+function rewriteExternalStorageUrl(value: string): string | null {
+  const pubMatch = value.match(/^https?:\/\/pub-[a-z0-9]+\.r2\.dev\/(.+)$/i)
+  if (pubMatch?.[1]) {
+    return `${API_BASE}/storage/${pubMatch[1]}`
+  }
+
+  const r2ApiMatch = value.match(/^https?:\/\/[^/]+\.r2\.cloudflarestorage\.com\/(?:[^/]+\/)?(.+)$/i)
+  if (r2ApiMatch?.[1]) {
+    return `${API_BASE}/storage/${r2ApiMatch[1]}`
+  }
+
+  try {
+    const parsed = new URL(value)
+    const path = parsed.pathname.replace(/^\/+/, '')
+    for (const prefix of STORAGE_PREFIXES) {
+      if (path.startsWith(prefix)) {
+        return `${API_BASE}/storage/${path}`
+      }
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
+function buildStorageUrl(path: string): string {
+  const normalized = path.startsWith('/') ? path : `/storage/${path.replace(/^\/+/, '')}`
+
+  if (typeof window === 'undefined') {
+    return `${API_BASE}${normalized}`
+  }
+
+  try {
+    const apiOrigin = new URL(API_BASE).origin
+    if (apiOrigin === window.location.origin) {
+      return normalized
+    }
+  } catch {
+    return `${API_BASE}${normalized}`
+  }
+
+  return `${API_BASE}${normalized}`
+}
 
 /**
  * Resolve path aset konfig ke URL yang bisa dimuat browser.
@@ -25,31 +72,16 @@ export function resolveKonfigAssetUrl(path?: string | null): string | null {
     value.startsWith('data:') ||
     value.startsWith('blob:')
   ) {
-    const r2Match = value.match(/^https?:\/\/pub-[a-z0-9]+\.r2\.dev\/(.+)$/i)
-    if (r2Match?.[1]) {
-      return `${API_BASE}/storage/${r2Match[1]}`
+    const rewritten = rewriteExternalStorageUrl(value)
+    if (rewritten) {
+      return rewritten
     }
 
     return value
   }
 
   if (value.startsWith('/storage/')) {
-    const apiUrl = `${API_BASE}${value}`
-
-    if (typeof window === 'undefined') {
-      return apiUrl
-    }
-
-    try {
-      const apiOrigin = new URL(API_BASE).origin
-      if (apiOrigin === window.location.origin) {
-        return value
-      }
-    } catch {
-      return apiUrl
-    }
-
-    return apiUrl
+    return buildStorageUrl(value)
   }
 
   return value
@@ -61,10 +93,8 @@ export async function fetchAssetAsDataUrl(pathOrUrl?: string | null): Promise<st
   if (url.startsWith('data:')) return url
 
   try {
-    const sameOrigin =
-      typeof window !== 'undefined' && url.startsWith(window.location.origin)
     const response = await fetch(url, {
-      credentials: sameOrigin ? 'same-origin' : 'omit',
+      credentials: 'omit',
       mode: 'cors',
     })
     if (!response.ok) return null

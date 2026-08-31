@@ -153,6 +153,6 @@ Browser memuat gambar lewat **`https://sijama-api.onrender.com/storage/...`** (A
 | Gejala | Solusi |
 |--------|--------|
 | 502 / service tidak start | Cek log Render; pastikan `DB_*` + `APP_KEY` benar |
-| CORS error | `FRONTEND_URL` harus exact URL frontend (https, tanpa slash akhir) |
-| Frontend API gagal | Rebuild frontend setelah `VITE_API_URL` benar |
+| Gambar logo/foto tidak tampil (Network: blocked) | Browser **tidak** load `pub-...r2.dev` — harus `sijama-api.../storage/...`. Hard refresh (`Ctrl+Shift+R`). Cek ad-blocker. Tes langsung URL `/storage/konfig/<file>` di tab baru |
+| Gambar 404 di `/storage/...` | File tidak ada di R2 atau path DB sudah lama — upload ulang di Konfigurasi |
 | DB connection timeout | Aiven → allowed IP: Render egress IP atau `0.0.0.0/0` sementara untuk uji |
