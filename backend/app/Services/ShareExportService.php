@@ -40,9 +40,7 @@ class ShareExportService
         $storedName = Str::uuid()->toString().'.'.$extension;
         $relative = UploadStorage::storeUploadedAsPath($file, self::SHARE_DIR, $storedName);
         $publicPath = UploadStorage::publicPath($relative);
-        $url = UploadStorage::diskName() === 's3'
-            ? $publicPath
-            : rtrim((string) config('app.url'), '/').$publicPath;
+        $url = rtrim((string) config('app.url'), '/').$publicPath;
 
         return [
             'path' => $publicPath,

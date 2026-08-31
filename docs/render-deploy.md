@@ -137,6 +137,8 @@ Bucket → CORS → allow origin frontend Render (`https://sijama-web.onrender.c
 
 Setelah env + redeploy, upload baru masuk R2 dan **tetap ada** setelah redeploy.
 
+Browser memuat gambar lewat **`https://sijama-api.onrender.com/storage/...`** (API stream dari R2) — **CORS di bucket R2 tidak diperlukan** untuk logo/foto di UI. CORS R2 hanya relevan jika browser fetch langsung ke `pub-...r2.dev`.
+
 ## Batasan plan Free Render
 
 | Item | Catatan |

@@ -25,6 +25,11 @@ export function resolveKonfigAssetUrl(path?: string | null): string | null {
     value.startsWith('data:') ||
     value.startsWith('blob:')
   ) {
+    const r2Match = value.match(/^https?:\/\/pub-[a-z0-9]+\.r2\.dev\/(.+)$/i)
+    if (r2Match?.[1]) {
+      return `${API_BASE}/storage/${r2Match[1]}`
+    }
+
     return value
   }
 
