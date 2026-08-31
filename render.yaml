@@ -70,6 +70,13 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     routes:
+      # Proxy media + API ke sijama-api (gambar same-origin, hindari cross-origin blocked)
+      - type: rewrite
+        source: /storage/*
+        destination: https://sijama-api.onrender.com/storage/*
+      - type: rewrite
+        source: /api/*
+        destination: https://sijama-api.onrender.com/api/*
       - type: rewrite
         source: /*
         destination: /index.html

@@ -2,7 +2,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-27 11:24:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-31 14:25:00
+ * @Last Modified time: 2026-08-31 15:05:00
  */
 
 import { API_BASE } from '../api/types'
@@ -11,15 +11,24 @@ const LEGACY_DEFAULT_PATHS = new Set(['/logo.svg', '/favicon.svg'])
 
 const STORAGE_PREFIXES = ['konfig/', 'jamaah/', 'users/', 'share/']
 
-function rewriteExternalStorageUrl(value: string): string | null {
+function normalizeStoragePath(path: string): string {
+  const trimmed = path.replace(/^\/+/, '')
+  if (trimmed.startsWith('storage/')) {
+    return `/${trimmed}`
+  }
+
+  return `/storage/${trimmed}`
+}
+
+function extractStorageRelativePath(value: string): string | null {
   const pubMatch = value.match(/^https?:\/\/pub-[a-z0-9]+\.r2\.dev\/(.+)$/i)
   if (pubMatch?.[1]) {
-    return `${API_BASE}/storage/${pubMatch[1]}`
+    return pubMatch[1]
   }
 
   const r2ApiMatch = value.match(/^https?:\/\/[^/]+\.r2\.cloudflarestorage\.com\/(?:[^/]+\/)?(.+)$/i)
   if (r2ApiMatch?.[1]) {
-    return `${API_BASE}/storage/${r2ApiMatch[1]}`
+    return r2ApiMatch[1]
   }
 
   try {
@@ -27,8 +36,12 @@ function rewriteExternalStorageUrl(value: string): string | null {
     const path = parsed.pathname.replace(/^\/+/, '')
     for (const prefix of STORAGE_PREFIXES) {
       if (path.startsWith(prefix)) {
-        return `${API_BASE}/storage/${path}`
+        return path
       }
+    }
+
+    if (path.startsWith('storage/')) {
+      return path.slice('storage/'.length)
     }
   } catch {
     return null
@@ -37,20 +50,15 @@ function rewriteExternalStorageUrl(value: string): string | null {
   return null
 }
 
-function buildStorageUrl(path: string): string {
-  const normalized = path.startsWith('/') ? path : `/storage/${path.replace(/^\/+/, '')}`
+/**
+ * Browser: same-origin `/storage/...` (Vite/nginx/Render proxy ke API).
+ * SSR/build: full URL ke API_BASE.
+ */
+function buildStorageUrl(relativePath: string): string {
+  const normalized = normalizeStoragePath(relativePath)
 
-  if (typeof window === 'undefined') {
-    return `${API_BASE}${normalized}`
-  }
-
-  try {
-    const apiOrigin = new URL(API_BASE).origin
-    if (apiOrigin === window.location.origin) {
-      return normalized
-    }
-  } catch {
-    return `${API_BASE}${normalized}`
+  if (typeof window !== 'undefined') {
+    return normalized
   }
 
   return `${API_BASE}${normalized}`
@@ -58,7 +66,6 @@ function buildStorageUrl(path: string): string {
 
 /**
  * Resolve path aset konfig ke URL yang bisa dimuat browser.
- * Path `/storage/...` dilayani backend API (Vite/Nginx proxy hanya di dev/Docker lokal).
  */
 export function resolveKonfigAssetUrl(path?: string | null): string | null {
   const value = path?.trim()
@@ -72,16 +79,16 @@ export function resolveKonfigAssetUrl(path?: string | null): string | null {
     value.startsWith('data:') ||
     value.startsWith('blob:')
   ) {
-    const rewritten = rewriteExternalStorageUrl(value)
-    if (rewritten) {
-      return rewritten
+    const relative = extractStorageRelativePath(value)
+    if (relative) {
+      return buildStorageUrl(relative)
     }
 
     return value
   }
 
   if (value.startsWith('/storage/')) {
-    return buildStorageUrl(value)
+    return buildStorageUrl(value.slice('/storage/'.length))
   }
 
   return value
@@ -93,9 +100,12 @@ export async function fetchAssetAsDataUrl(pathOrUrl?: string | null): Promise<st
   if (url.startsWith('data:')) return url
 
   try {
+    const sameOrigin =
+      typeof window !== 'undefined' &&
+      (url.startsWith('/') || url.startsWith(window.location.origin))
     const response = await fetch(url, {
-      credentials: 'omit',
-      mode: 'cors',
+      credentials: sameOrigin ? 'same-origin' : 'omit',
+      mode: sameOrigin ? 'same-origin' : 'cors',
     })
     if (!response.ok) return null
     const blob = await response.blob()

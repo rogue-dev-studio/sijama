@@ -137,7 +137,11 @@ Bucket → CORS → allow origin frontend Render (`https://sijama-web.onrender.c
 
 Setelah env + redeploy, upload baru masuk R2 dan **tetap ada** setelah redeploy.
 
-Browser memuat gambar lewat **`https://sijama-api.onrender.com/storage/...`** (API stream dari R2) — **CORS di bucket R2 tidak diperlukan** untuk logo/foto di UI. CORS R2 hanya relevan jika browser fetch langsung ke `pub-...r2.dev`.
+Browser memuat gambar lewat **`/storage/...` same-origin** di frontend (Render rewrite → `sijama-api`). **CORS di bucket R2 tidak diperlukan.**
+
+### Render static (`sijama-web`) — proxy wajib
+
+`render.yaml` sudah menyertakan rewrite `/storage/*` dan `/api/*` ke `sijama-api`. Jika API pakai custom domain, update destination di `render.yaml` lalu redeploy web.
 
 ## Batasan plan Free Render
 
@@ -153,6 +157,6 @@ Browser memuat gambar lewat **`https://sijama-api.onrender.com/storage/...`** (A
 | Gejala | Solusi |
 |--------|--------|
 | 502 / service tidak start | Cek log Render; pastikan `DB_*` + `APP_KEY` benar |
-| Gambar logo/foto tidak tampil (Network: blocked) | Browser **tidak** load `pub-...r2.dev` — harus `sijama-api.../storage/...`. Hard refresh (`Ctrl+Shift+R`). Cek ad-blocker. Tes langsung URL `/storage/konfig/<file>` di tab baru |
+| Gambar logo/foto tidak tampil (Network: blocked) | URL harus **`/storage/konfig/...`** di domain **web** (bukan `pub-...r2.dev` atau `sijama-api` cross-origin). Redeploy `sijama-web` agar rewrite proxy aktif. Hard refresh |
 | Gambar 404 di `/storage/...` | File tidak ada di R2 atau path DB sudah lama — upload ulang di Konfigurasi |
 | DB connection timeout | Aiven → allowed IP: Render egress IP atau `0.0.0.0/0` sementara untuk uji |
