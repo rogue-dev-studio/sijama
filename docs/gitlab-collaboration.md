@@ -6,12 +6,24 @@ Default branch: **`main`** (protected — tidak bisa push langsung kecuali Maint
 ## Ringkas alur
 
 ```text
-clone → branch fitur → commit → push branch → Merge Request → review → merge ke main → CI deploy (manual)
+issue → branch feat/<id>-slug → commit → push → MR (Closes #id) → review → merge → CI
 ```
 
 Kontributor **Developer** boleh push ke branch mereka sendiri, **tidak** boleh push ke `main`.
 
-## 1. Undang kolaborator
+## 1. Issues & milestone
+
+- **Issues:** https://gitlab.com/rogue-dev-studio/sijama/-/issues
+- **Milestone aktif:** [v0.3.0](https://gitlab.com/rogue-dev-studio/sijama/-/milestones/1)
+- **Backlog ringkas:** [planning/backlog-v0.3.md](planning/backlog-v0.3.md)
+
+Label: `bug` · `feature` · `qa` · `docs` · `infra`
+
+Ambil issue → assign ke diri sendiri → branch `feat/2-face-enroll-smoke` → MR dengan `Closes #2`.
+
+Template issue: `.gitlab/issue_templates/Default.md` (otomatis saat **New issue**).
+
+## 2. Undang kolaborator
 
 GitLab project → **Manage → Members → Invite member**
 
@@ -24,7 +36,7 @@ Untuk kolaborasi umum: undang sebagai **Developer**. Merge ke `main` oleh Mainta
 
 **Setup mesin kosong (install Git, Docker, clone, jalankan app):** [contributor-setup.md](contributor-setup.md)
 
-## 2. Clone & remote
+## 3. Clone & remote
 
 ```powershell
 git clone git@gitlab.com:rogue-dev-studio/sijama.git
@@ -40,17 +52,17 @@ git checkout main
 git pull gitlab main
 ```
 
-## 3. Branch fitur (wajib)
+## 4. Branch fitur (wajib)
 
 ```powershell
 git checkout main
 git pull gitlab main
-git checkout -b feat/nama-fitur
+git checkout -b feat/2-face-enroll-smoke
 ```
 
-Konvensi: `feat/`, `fix/`, `chore/`, `docs/` + slug pendek.
+Konvensi: `feat/<issue-id>-slug`, `fix/`, `chore/`, `docs/`.
 
-## 4. Commit & push branch
+## 5. Commit & push branch
 
 ```powershell
 git add .
@@ -60,7 +72,7 @@ git push -u gitlab feat/nama-fitur
 
 Push ke `main` akan **ditolak** (protected branch).
 
-## 5. Merge Request
+## 6. Merge Request
 
 Setelah push, buka link **Create merge request** atau **Merge requests → New**.
 
@@ -75,7 +87,7 @@ Pipeline **test** (PHPUnit + `npm build`) jalan untuk MR.
 
 **Build** dan **deploy production** hanya pada `main` setelah merge (deploy manual).
 
-## 6. Review & merge
+## 7. Review & merge
 
 Maintainer merge setelah pipeline hijau. Developer tidak merge ke `main` (default).
 
@@ -85,7 +97,7 @@ git pull gitlab main
 git branch -d feat/nama-fitur
 ```
 
-## 7. Protected branch (status)
+## 8. Protected branch (status)
 
 `main` di GitLab:
 
@@ -95,7 +107,7 @@ git branch -d feat/nama-fitur
 
 Settings → **Repository → Protected branches**.
 
-## 8. Approval & merge (sudah dikonfigurasi)
+## 9. Approval & merge (sudah dikonfigurasi)
 
 | Setting | Nilai |
 |---------|--------|

@@ -84,6 +84,7 @@ Wilayah berjenjang sampai unit terkecil, lalu data anggota.
 - DB cloud: [docs/database-aiven.md](docs/database-aiven.md)
 - CI/CD + VPS deploy: [docs/gitlab-ci.md](docs/gitlab-ci.md)
 - Kolaborasi (MR, protected `main`): [docs/gitlab-collaboration.md](docs/gitlab-collaboration.md)
+- Backlog v0.3.0: [docs/planning/backlog-v0.3.md](docs/planning/backlog-v0.3.md)
 - Setup kolaborator (mesin kosong): [docs/contributor-setup.md](docs/contributor-setup.md)
 
 ## Attribution

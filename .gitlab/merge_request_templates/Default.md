@@ -24,7 +24,7 @@ docker compose exec frontend sh -c "cd /app && npm run build"
 
 ## Issue / tiket
 
-<!-- Link issue GitLab jika ada -->
+Closes #<!-- nomor issue GitLab, contoh: Closes #2 -->
 
 ## Catatan deploy
 
