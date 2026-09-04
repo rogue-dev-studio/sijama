@@ -85,8 +85,30 @@ fi
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# Seed when asked or after a fresh wipe.
+# Seed when asked, after a fresh wipe, or when RBAC/users still empty after migrate.
+NEED_SEED=false
 if [ "${SEED_ON_DEPLOY:-false}" = "true" ] || [ "$DID_FRESH" = "true" ]; then
+  NEED_SEED=true
+else
+  USER_COUNT="$(php -r '
+    require "vendor/autoload.php";
+    $app = require "bootstrap/app.php";
+    $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    try {
+      echo Illuminate\Support\Facades\Schema::hasTable("users")
+        ? (string) App\Models\User::query()->count()
+        : "0";
+    } catch (Throwable $e) {
+      echo "0";
+    }
+  ' 2>/dev/null || echo "0")"
+  if [ "${USER_COUNT}" = "0" ]; then
+    echo "users=0 after migrate — will run production seed..."
+    NEED_SEED=true
+  fi
+fi
+
+if [ "$NEED_SEED" = "true" ]; then
   echo "Running production seed..."
   if [ -f scripts/seed-aiven-only.sh ]; then
     bash scripts/seed-aiven-only.sh
