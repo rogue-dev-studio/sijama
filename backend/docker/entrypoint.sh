@@ -48,23 +48,13 @@ if [ "$ROLE" = "scheduler" ]; then
   exec php artisan schedule:work
 fi
 
-# Squash remigrate: env flag, or auto-recover when migrate fails (old Aiven vs new definitions).
-DID_FRESH=false
+# Remigrate/seed ONLY when env flags are true (never auto-wipe after baseline is live).
 if [ "${MIGRATE_FRESH_ON_DEPLOY:-false}" = "true" ]; then
   echo "MIGRATE_FRESH_ON_DEPLOY=true — running migrate:fresh (DATA WIPE)..."
   php artisan migrate:fresh --force
-  DID_FRESH=true
-  echo "migrate:fresh done. Remove MIGRATE_FRESH_ON_DEPLOY from env after this deploy."
+  echo "migrate:fresh done. Set MIGRATE_FRESH_ON_DEPLOY=false after this deploy."
 else
-  set +e
   php artisan migrate --force
-  MIGRATE_EXIT=$?
-  set -e
-  if [ "$MIGRATE_EXIT" -ne 0 ]; then
-    echo "migrate failed (exit ${MIGRATE_EXIT}) — auto migrate:fresh for remigrate baseline (DATA WIPE)..."
-    php artisan migrate:fresh --force
-    DID_FRESH=true
-  fi
 fi
 
 UPLOAD_DISK="${FILESYSTEM_UPLOAD_DISK:-}"
@@ -85,37 +75,14 @@ fi
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# Seed when asked, after a fresh wipe, or when RBAC/users still empty after migrate.
-NEED_SEED=false
-if [ "${SEED_ON_DEPLOY:-false}" = "true" ] || [ "$DID_FRESH" = "true" ]; then
-  NEED_SEED=true
-else
-  USER_COUNT="$(php -r '
-    require "vendor/autoload.php";
-    $app = require "bootstrap/app.php";
-    $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-    try {
-      echo Illuminate\Support\Facades\Schema::hasTable("users")
-        ? (string) App\Models\User::query()->count()
-        : "0";
-    } catch (Throwable $e) {
-      echo "0";
-    }
-  ' 2>/dev/null || echo "0")"
-  if [ "${USER_COUNT}" = "0" ]; then
-    echo "users=0 after migrate — will run production seed..."
-    NEED_SEED=true
-  fi
-fi
-
-if [ "$NEED_SEED" = "true" ]; then
-  echo "Running production seed..."
+if [ "${SEED_ON_DEPLOY:-false}" = "true" ]; then
+  echo "SEED_ON_DEPLOY=true — running production seed..."
   if [ -f scripts/seed-aiven-only.sh ]; then
     bash scripts/seed-aiven-only.sh
   else
     echo "scripts/seed-aiven-only.sh not found; seed skipped."
   fi
-  echo "Seed finished. Remove SEED_ON_DEPLOY / MIGRATE_FRESH_ON_DEPLOY from env after success."
+  echo "Seed finished. Set SEED_ON_DEPLOY=false after this deploy."
 fi
 
 LISTEN_PORT="${PORT:-80}"

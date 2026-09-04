@@ -51,7 +51,7 @@ services:
           type: web
           name: sijama-web
           envVarKey: RENDER_EXTERNAL_URL
-      # One-shot only via Dashboard, or auto when migrate fails (see entrypoint.sh).
+      # Keep false. Set true only for one-shot remigrate/seed, then false again.
       - key: MIGRATE_FRESH_ON_DEPLOY
         value: "false"
       - key: SEED_ON_DEPLOY
