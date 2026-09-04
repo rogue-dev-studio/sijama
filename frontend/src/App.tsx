@@ -5,6 +5,7 @@
  * @Last Modified time: 2026-08-27 10:56:22
  */
 
+import { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppSettingsProvider } from './auth/AppSettingsContext'
 import { AuthProvider } from './auth/AuthContext'
@@ -27,6 +28,13 @@ export default function App() {
         <AuthProvider>
           <ConfirmDialogProvider>
             <ToastProvider>
+            <Suspense
+              fallback={
+                <div className="loading-state" role="status" aria-live="polite">
+                  Memuat…
+                </div>
+              }
+            >
             <Routes>
               <Route path="/maintenance" element={<MaintenanceRoute />} />
               <Route
@@ -58,6 +66,7 @@ export default function App() {
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
             </ToastProvider>
           </ConfirmDialogProvider>
         </AuthProvider>

@@ -32,7 +32,7 @@ class KeluargaController extends Controller
             $request->user(),
             $request->query('q'),
             $request->query('status') ?: null,
-            $request->filled('kelompok_id') ? $request->integer('kelompok_id') : null,
+            $request->filled('wilayah_fung_kelompok_id') ? $request->integer('wilayah_fung_kelompok_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,
@@ -54,21 +54,21 @@ class KeluargaController extends Controller
     {
         $items = $this->keluargaService->jamaahOptionsForForm(
             $request->user(),
-            $request->filled('kelompok_id') ? $request->integer('kelompok_id') : null,
+            $request->filled('wilayah_fung_kelompok_id') ? $request->integer('wilayah_fung_kelompok_id') : null,
             $request->filled('except_keluarga_id') ? $request->integer('except_keluarga_id') : null,
         );
 
         return ApiResponse::success(
             $items->map(fn ($jamaah) => [
                 'id' => $jamaah->id,
-                'kelompok_id' => $jamaah->kelompok_id,
+                'wilayah_fung_kelompok_id' => $jamaah->wilayah_fung_kelompok_id,
                 'nama' => $jamaah->nama,
                 'nik' => $jamaah->nik,
                 'no_hp' => $jamaah->no_hp,
                 'alamat' => $jamaah->alamat,
                 'rt' => $jamaah->rt,
                 'rw' => $jamaah->rw,
-                'adm_desa_kelurahan_id' => $jamaah->adm_desa_kelurahan_id,
+                'wilayah_adm_desa_id' => $jamaah->wilayah_adm_desa_id,
                 'kode_pos' => $jamaah->kode_pos,
             ])->values()->all()
         );

@@ -15,7 +15,7 @@ class UpdateDapukanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'slug' => ['sometimes', 'string', 'max:50', Rule::unique('dapukan', 'slug')->ignore($this->route('dapukan'))],
+            'slug' => ['sometimes', 'string', 'max:50', Rule::unique('dapukan_m', 'slug')->ignore($this->route('dapukan'))],
             'nama' => ['sometimes', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'urutan' => ['sometimes', 'integer', 'min:0'],

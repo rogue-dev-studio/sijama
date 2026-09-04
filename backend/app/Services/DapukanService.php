@@ -5,9 +5,12 @@ namespace App\Services;
 use App\Http\Resources\DapukanResource;
 use App\Models\Dapukan;
 use App\Models\User;
+use App\Support\DapukanAccessGuard;
 use App\Support\DapukanTingkat;
+use App\Support\DemoUserGuard;
 use App\Support\PaginationHelper;
 use App\Support\SortHelper;
+use App\Support\SuperAdminAccess;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -87,7 +90,7 @@ class DapukanService
             return false;
         }
 
-        if ($dapukan->slug === 'superadmin') {
+        if ($dapukan->slug === SuperAdminAccess::DAPUKAN_SLUG) {
             return false;
         }
 
@@ -130,22 +133,26 @@ class DapukanService
         return new DapukanResource($this->findModel($id));
     }
 
-    public function update(int $id, array $data): DapukanResource
+    public function update(int $id, array $data, User $actor): DapukanResource
     {
         $dapukan = $this->findModel($id);
-        $this->guardSystemMutation($dapukan, $data);
+        DapukanAccessGuard::assertCanManageDapukan($actor, $dapukan);
+        DemoUserGuard::assertCanMutateDapukan($dapukan);
+        $this->guardSuperadminMutation($dapukan, $data);
         $dapukan->update($data);
 
         return new DapukanResource($dapukan->fresh());
     }
 
-    public function delete(int $id): void
+    public function delete(int $id, User $actor): void
     {
         $dapukan = $this->findModel($id);
+        DapukanAccessGuard::assertCanManageDapukan($actor, $dapukan);
+        DemoUserGuard::assertCanMutateDapukan($dapukan);
 
-        if ($dapukan->is_system) {
+        if (SuperAdminAccess::isSuperadminDapukan($dapukan)) {
             throw ValidationException::withMessages([
-                'dapukan' => ['Dapukan sistem tidak dapat dihapus.'],
+                'dapukan' => ['Dapukan Super Admin tidak dapat dihapus.'],
             ]);
         }
 
@@ -169,21 +176,18 @@ class DapukanService
         return $dapukan;
     }
 
-    private function guardSystemMutation(Dapukan $dapukan, array $data): void
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function guardSuperadminMutation(Dapukan $dapukan, array $data): void
     {
-        if (! $dapukan->is_system) {
+        if (! SuperAdminAccess::isSuperadminDapukan($dapukan)) {
             return;
         }
 
-        if (array_key_exists('slug', $data) && $data['slug'] !== $dapukan->slug) {
+        if (array_key_exists('is_active', $data) && ! $data['is_active']) {
             throw ValidationException::withMessages([
-                'slug' => ['Slug dapukan sistem tidak dapat diubah.'],
-            ]);
-        }
-
-        if (array_key_exists('is_system', $data) && ! $data['is_system']) {
-            throw ValidationException::withMessages([
-                'is_system' => ['Status sistem dapukan bawaan tidak dapat diubah.'],
+                'is_active' => ['Dapukan Super Admin tidak dapat dinonaktifkan.'],
             ]);
         }
     }

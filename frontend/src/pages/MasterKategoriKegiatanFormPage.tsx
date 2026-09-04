@@ -45,26 +45,33 @@ export function MasterKategoriKegiatanFormPage() {
       update={masterKategoriKegiatanService.update}
       toForm={toForm}
       toPayload={toPayload}
-      renderExtraFields={(form, setForm) => (
-        <div className="field">
-          <label htmlFor="calendar_color">Warna kalender</label>
-          <div className="field-color">
-            <input
-              id="calendar_color"
-              type="color"
-              value={form.calendar_color || '#2563eb'}
-              onChange={(event) => setForm({ ...form, calendar_color: event.target.value })}
-            />
-            <input
-              type="text"
-              value={form.calendar_color || '#2563eb'}
-              onChange={(event) => setForm({ ...form, calendar_color: event.target.value })}
-              pattern="^#[0-9A-Fa-f]{6}$"
-              aria-label="Kode hex warna kalender"
-            />
+      permissionPrefix="kategori_kegiatan"
+      renderExtraFields={(form, setForm, fieldAccess) => {
+        const access = fieldAccess('calendar_color')
+        if (!access.visible) return null
+        return (
+          <div className="field">
+            <label htmlFor="calendar_color">Warna kalender</label>
+            <div className="field-color">
+              <input
+                id="calendar_color"
+                type="color"
+                value={form.calendar_color || '#2563eb'}
+                onChange={(event) => setForm({ ...form, calendar_color: event.target.value })}
+                disabled={!access.enabled}
+              />
+              <input
+                type="text"
+                value={form.calendar_color || '#2563eb'}
+                onChange={(event) => setForm({ ...form, calendar_color: event.target.value })}
+                pattern="^#[0-9A-Fa-f]{6}$"
+                aria-label="Kode hex warna kalender"
+                disabled={!access.enabled}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }}
     />
   )
 }

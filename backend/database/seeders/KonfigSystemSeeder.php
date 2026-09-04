@@ -63,6 +63,8 @@ class KonfigSystemSeeder extends Seeder
             'n8n_enabled' => filter_var(env('N8N_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
             'n8n_base_url' => env('N8N_BASE_URL'),
             'n8n_webhook_url' => env('N8N_WEBHOOK_URL'),
+            'api_co_id_holiday_enabled' => filter_var(env('API_CO_ID_HOLIDAY_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+            'api_co_id_holiday_base_url' => env('API_CO_ID_HOLIDAY_BASE_URL'),
             'header' => config('app.name', 'SIJAMA'),
             'footer' => 'Rogue Development',
             'website' => 'https://github.com/rogue-dev-studio',
@@ -84,6 +86,8 @@ class KonfigSystemSeeder extends Seeder
             'color_muted' => null,
             'color_border' => null,
             'theme_color' => null,
+            'font_family_display' => null,
+            'font_family_body' => null,
             'maintenance_mode' => false,
             'maintenance_message' => 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
             'path_maintenance_background' => null,
@@ -108,6 +112,10 @@ class KonfigSystemSeeder extends Seeder
 
         if ($n8nKey = env('N8N_API_KEY')) {
             $payload['n8n_api_key'] = $n8nKey;
+        }
+
+        if ($apiCoIdKey = env('API_CO_ID_API_KEY')) {
+            $payload['api_co_id_api_key'] = $apiCoIdKey;
         }
 
         if ($primary) {

@@ -40,11 +40,15 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - Frontend: http://localhost:5173  
 - API: http://localhost:8080/api  
 
-Container hanya menjalankan `migrate` (skema). Data dummy anggota/NIK tidak ikut. Seed master + akun uji (opsional, local):
+Container hanya menjalankan `migrate` (skema). Data dummy anggota/NIK tidak ikut. Seed master + akun uji (local/testing):
 
 ```powershell
 docker compose exec backend php artisan db:seed
-```  
+# setelah ubah migration / fresh DB — wajib sertakan seed:
+docker compose exec backend php artisan migrate:fresh --seed --force
+```
+
+9 akun demo (`admin`, `admin.pusat`, …) dibuat otomatis lewat `WilayahSeeder` → `DemoUsersSeeder` (lokal **dan** release). Password lokal: `password`; release: env `BOOTSTRAP_DEMO_PASSWORD` (min. 8 karakter). Akun demo dilindungi — tidak dapat diedit, dinonaktifkan, diganti password, atau dihapus dari aplikasi. Dapukan sistem terkait juga terkunci.  
 
 ## Hierarki wilayah
 

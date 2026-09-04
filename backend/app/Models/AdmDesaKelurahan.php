@@ -15,10 +15,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AdmDesaKelurahan extends Model
 {
-    protected $table = 'adm_desa_kelurahan';
+    protected $table = 'wilayah_adm_desa_m';
 
     protected $fillable = [
-        'kecamatan_id',
+        'wilayah_adm_kecamatan_id',
         'kode',
         'nama',
         'jenis',
@@ -32,28 +32,28 @@ class AdmDesaKelurahan extends Model
         ];
     }
 
-    public function kecamatan(): BelongsTo
+    public function wilayahAdmKecamatan(): BelongsTo
     {
-        return $this->belongsTo(AdmKecamatan::class, 'kecamatan_id');
+        return $this->belongsTo(AdmKecamatan::class, 'wilayah_adm_kecamatan_id');
     }
 
     public function kodePos(): HasMany
     {
-        return $this->hasMany(AdmKodePos::class, 'desa_kelurahan_id');
+        return $this->hasMany(AdmKodePos::class, 'wilayah_adm_desa_id');
     }
 
-    public function desa(): HasMany
+    public function wilayahFungDesa(): HasMany
     {
-        return $this->hasMany(Desa::class, 'adm_desa_kelurahan_id');
+        return $this->hasMany(Desa::class, 'wilayah_adm_desa_id');
     }
 
     public function jamaah(): HasMany
     {
-        return $this->hasMany(Jamaah::class, 'adm_desa_kelurahan_id');
+        return $this->hasMany(Jamaah::class, 'wilayah_adm_desa_id');
     }
 
     public function lokasi(): HasMany
     {
-        return $this->hasMany(Lokasi::class, 'adm_desa_kelurahan_id');
+        return $this->hasMany(Lokasi::class, 'wilayah_adm_desa_id');
     }
 }

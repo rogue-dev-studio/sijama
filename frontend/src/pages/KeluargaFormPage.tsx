@@ -34,6 +34,7 @@ import { fetchWilayahChainFromDesa } from '../lib/admWilayahChain'
 import { LOOKUP_TYPE } from '../lib/lookupTypes'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import { KeluargaAddressFields } from './keluarga/KeluargaAddressFields'
 import {
   KeluargaAnggotaSection,
@@ -42,13 +43,13 @@ import {
 } from './keluarga/KeluargaAnggotaSection'
 
 const emptyForm: KeluargaInput = {
-  kelompok_id: null,
+  wilayah_fung_kelompok_id: null,
   kepala_jamaah_id: 0,
   no_kk: '',
   alamat: '',
   rt: '',
   rw: '',
-  adm_desa_kelurahan_id: null,
+  wilayah_adm_desa_id: null,
   kode_pos: '',
   catatan: '',
   status: 'aktif',
@@ -124,13 +125,13 @@ export function KeluargaFormPage() {
           const keluarga = await keluargaService.get(Number(id))
           if (!active) return
           setForm({
-            kelompok_id: keluarga.kelompok_id,
+            wilayah_fung_kelompok_id: keluarga.wilayah_fung_kelompok_id,
             kepala_jamaah_id: keluarga.kepala_jamaah_id || 0,
             no_kk: keluarga.no_kk || '',
             alamat: keluarga.alamat || '',
             rt: keluarga.rt || '',
             rw: keluarga.rw || '',
-            adm_desa_kelurahan_id: keluarga.adm_desa_kelurahan_id,
+            wilayah_adm_desa_id: keluarga.wilayah_adm_desa_id,
             kode_pos: keluarga.kode_pos || '',
             catatan: keluarga.catatan || '',
             status: keluarga.status,
@@ -147,8 +148,8 @@ export function KeluargaFormPage() {
                 catatan: item.catatan || null,
               })),
           )
-          if (keluarga.adm_desa_kelurahan_id) {
-            await hydrateWilayahFromDesa(keluarga.adm_desa_kelurahan_id)
+          if (keluarga.wilayah_adm_desa_id) {
+            await hydrateWilayahFromDesa(keluarga.wilayah_adm_desa_id)
           }
         }
       } catch (err) {
@@ -167,7 +168,7 @@ export function KeluargaFormPage() {
   }, [hydrateWilayahFromDesa, id])
 
   useEffect(() => {
-    if (!form.kelompok_id) {
+    if (!form.wilayah_fung_kelompok_id) {
       setJamaahList([])
       return
     }
@@ -177,7 +178,7 @@ export function KeluargaFormPage() {
 
     void keluargaService
       .jamaahOptions({
-        kelompok_id: form.kelompok_id,
+        wilayah_fung_kelompok_id: form.wilayah_fung_kelompok_id,
         except_keluarga_id: id ? Number(id) : undefined,
       })
       .then((options) => {
@@ -205,7 +206,7 @@ export function KeluargaFormPage() {
     return () => {
       active = false
     }
-  }, [form.kelompok_id, id])
+  }, [form.wilayah_fung_kelompok_id, id])
 
   function updateField<K extends keyof KeluargaInput>(key: K, value: KeluargaInput[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -220,10 +221,10 @@ export function KeluargaFormPage() {
     setKabupatenKotaList([])
     setKecamatanList([])
     setDesaKelurahanList([])
-    updateField('adm_desa_kelurahan_id', null)
+    updateField('wilayah_adm_desa_id', null)
     updateField('kode_pos', '')
     if (!negaraId) return
-    const result = await admProvinsiService.list({ negara_id: negaraId, per_page: 200 })
+    const result = await admProvinsiService.list({ wilayah_adm_negara_id: negaraId, per_page: 200 })
     setProvinsiList(result.items)
   }
 
@@ -234,10 +235,10 @@ export function KeluargaFormPage() {
     setKabupatenKotaList([])
     setKecamatanList([])
     setDesaKelurahanList([])
-    updateField('adm_desa_kelurahan_id', null)
+    updateField('wilayah_adm_desa_id', null)
     updateField('kode_pos', '')
     if (!provinsiId) return
-    const result = await admKabupatenKotaService.list({ provinsi_id: provinsiId, per_page: 300 })
+    const result = await admKabupatenKotaService.list({ wilayah_adm_provinsi_id: provinsiId, per_page: 300 })
     setKabupatenKotaList(result.items)
   }
 
@@ -246,20 +247,20 @@ export function KeluargaFormPage() {
     setSelectedKecamatanId(0)
     setKecamatanList([])
     setDesaKelurahanList([])
-    updateField('adm_desa_kelurahan_id', null)
+    updateField('wilayah_adm_desa_id', null)
     updateField('kode_pos', '')
     if (!kabupatenId) return
-    const result = await admKecamatanService.list({ kabupaten_kota_id: kabupatenId, per_page: 400 })
+    const result = await admKecamatanService.list({ wilayah_adm_kabupaten_kota_id: kabupatenId, per_page: 400 })
     setKecamatanList(result.items)
   }
 
   async function loadDesa(kecamatanId: number) {
     setSelectedKecamatanId(kecamatanId)
     setDesaKelurahanList([])
-    updateField('adm_desa_kelurahan_id', null)
+    updateField('wilayah_adm_desa_id', null)
     updateField('kode_pos', '')
     if (!kecamatanId) return
-    const result = await admDesaKelurahanService.list({ kecamatan_id: kecamatanId, per_page: 500 })
+    const result = await admDesaKelurahanService.list({ wilayah_adm_kecamatan_id: kecamatanId, per_page: 500 })
     setDesaKelurahanList(result.items)
   }
 
@@ -269,7 +270,7 @@ export function KeluargaFormPage() {
     setError(null)
     try {
       let source: KeluargaJamaahOption | Jamaah = selectedKepala
-      if (!source.adm_desa_kelurahan_id && source.id) {
+      if (!source.wilayah_adm_desa_id && source.id) {
         source = await jamaahService.get(source.id)
       }
 
@@ -278,12 +279,12 @@ export function KeluargaFormPage() {
         alamat: source.alamat || '',
         rt: source.rt || '',
         rw: source.rw || '',
-        adm_desa_kelurahan_id: source.adm_desa_kelurahan_id,
+        wilayah_adm_desa_id: source.wilayah_adm_desa_id,
         kode_pos: source.kode_pos || '',
       }))
 
-      if (source.adm_desa_kelurahan_id) {
-        await hydrateWilayahFromDesa(source.adm_desa_kelurahan_id)
+      if (source.wilayah_adm_desa_id) {
+        await hydrateWilayahFromDesa(source.wilayah_adm_desa_id)
       } else {
         setSelectedNegaraId(0)
         setSelectedProvinsiId(0)
@@ -307,7 +308,7 @@ export function KeluargaFormPage() {
       setError('Pilih kepala keluarga.')
       return
     }
-    if (!form.kelompok_id) {
+    if (!form.wilayah_fung_kelompok_id) {
       setError('Pilih kelompok.')
       return
     }
@@ -350,7 +351,13 @@ export function KeluargaFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat data keluarga…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit keluarga' : 'Tambah keluarga'}
+        description="Atur kepala keluarga, nomor KK, alamat rumah tangga, dan anggota keluarga."
+        message="Memuat data keluarga…"
+      />
+    )
   }
 
   return (
@@ -367,15 +374,15 @@ export function KeluargaFormPage() {
           <legend className="form-section-title form-section-title--first">Data keluarga</legend>
           <div className="form-grid form-grid--2">
             <div className="field">
-              <label htmlFor="kelompok_id">Kelompok</label>
+              <label htmlFor="wilayah_fung_kelompok_id">Kelompok</label>
               <SearchableSelect
-                id="kelompok_id"
-                value={form.kelompok_id ? String(form.kelompok_id) : ''}
+                id="wilayah_fung_kelompok_id"
+                value={form.wilayah_fung_kelompok_id ? String(form.wilayah_fung_kelompok_id) : ''}
                 onChange={(next) => {
                   const kelompokId = Number(next) || null
                   setForm({
                     ...form,
-                    kelompok_id: kelompokId,
+                    wilayah_fung_kelompok_id: kelompokId,
                     kepala_jamaah_id: 0,
                   })
                   setAnggotaRows([])
@@ -396,7 +403,7 @@ export function KeluargaFormPage() {
                 onChange={(next) => updateField('kepala_jamaah_id', Number(next) || 0)}
                 placeholder="Pilih jamaah"
                 required
-                disabled={!form.kelompok_id || jamaahOptionsLoading}
+                disabled={!form.wilayah_fung_kelompok_id || jamaahOptionsLoading}
                 options={[
                   { value: '', label: jamaahOptionsLoading ? 'Memuat jamaah…' : 'Pilih jamaah' },
                   ...jamaahList.map((item) => ({
@@ -405,7 +412,7 @@ export function KeluargaFormPage() {
                   })),
                 ]}
               />
-              {form.kelompok_id && !jamaahOptionsLoading && jamaahList.length === 0 && (
+              {form.wilayah_fung_kelompok_id && !jamaahOptionsLoading && jamaahList.length === 0 && (
                 <p className="field-hint field-hint--error">
                   Tidak ada jamaah tersedia. Semua jamaah aktif di kelompok ini sudah terdaftar di keluarga
                   lain.

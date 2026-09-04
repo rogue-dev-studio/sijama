@@ -9,7 +9,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\AppFontPresets;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateKonfigSystemKRequest extends FormRequest
 {
@@ -53,6 +55,25 @@ class UpdateKonfigSystemKRequest extends FormRequest
             'n8n_base_url' => ['nullable', 'string', 'max:500'],
             'n8n_webhook_url' => ['nullable', 'string', 'max:500'],
             'n8n_api_key' => ['nullable', 'string', 'max:500'],
+            'api_co_id_holiday_enabled' => ['nullable', 'boolean'],
+            'api_co_id_api_key' => ['nullable', 'string', 'max:500'],
+            'api_co_id_holiday_base_url' => ['nullable', 'string', 'max:500'],
+            'db_enabled' => ['nullable', 'boolean'],
+            'db_driver' => ['nullable', 'string', 'max:32', 'in:pgsql,mysql,mariadb,sqlsrv,sqlite,other'],
+            'db_project' => ['nullable', 'string', 'max:120'],
+            'db_service_name' => ['nullable', 'string', 'max:120'],
+            'db_plan' => ['nullable', 'string', 'max:64'],
+            'db_region' => ['nullable', 'string', 'max:120'],
+            'db_host' => ['nullable', 'string', 'max:255'],
+            'db_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'db_database' => ['nullable', 'string', 'max:120'],
+            'db_valid_until' => ['nullable', 'date'],
+            'db_notes' => ['nullable', 'string', 'max:5000'],
+            'smtp_valid_until' => ['nullable', 'date'],
+            'fonnte_valid_until' => ['nullable', 'date'],
+            'telegram_valid_until' => ['nullable', 'date'],
+            'n8n_valid_until' => ['nullable', 'date'],
+            'api_co_id_valid_until' => ['nullable', 'date'],
             'header' => ['nullable', 'string'],
             'footer' => ['nullable', 'string', 'max:200'],
             'website' => ['nullable', 'string', 'max:500'],
@@ -78,6 +99,8 @@ class UpdateKonfigSystemKRequest extends FormRequest
             'color_muted' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_border' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'font_family_display' => ['nullable', 'string', 'max:64', Rule::in(AppFontPresets::ids())],
+            'font_family_body' => ['nullable', 'string', 'max:64', Rule::in(AppFontPresets::ids())],
             'maintenance_mode' => ['nullable', 'boolean'],
             'maintenance_message' => ['nullable', 'string'],
             'path_maintenance_background' => ['nullable', 'string', 'max:500'],

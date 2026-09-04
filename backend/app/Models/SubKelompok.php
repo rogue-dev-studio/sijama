@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SubKelompok extends Model
 {
-    protected $table = 'sub_kelompok';
+    protected $table = 'wilayah_fung_sub_kelompok_m';
 
     protected $fillable = [
-        'kelompok_id',
+        'wilayah_fung_kelompok_id',
         'kode',
         'nama',
+        'singkatan',
         'deskripsi',
         'is_active',
     ];
@@ -24,8 +25,8 @@ class SubKelompok extends Model
         ];
     }
 
-    public function kelompok(): BelongsTo
+    public function wilayahFungKelompok(): BelongsTo
     {
-        return $this->belongsTo(Kelompok::class);
+        return $this->belongsTo(Kelompok::class, 'wilayah_fung_kelompok_id');
     }
 }

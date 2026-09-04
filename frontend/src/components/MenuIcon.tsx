@@ -146,6 +146,28 @@ const ICONS: Record<string, IconDef> = {
   shield: {
     paths: ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'],
   },
+  'log-in': {
+    paths: [
+      'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4',
+      'M10 17l5-5-5-5',
+      'M15 12H3',
+    ],
+  },
+  'scroll-text': {
+    paths: [
+      'M15 12h-5',
+      'M15 8h-5',
+      'M19 17V5a2 2 0 0 0-2-2H4',
+      'M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3',
+    ],
+  },
+  'alert-triangle': {
+    paths: [
+      'm21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3',
+      'M12 9v4',
+      'M12 17h.01',
+    ],
+  },
   menu: {
     paths: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
   },
@@ -258,6 +280,9 @@ const ICONS: Record<string, IconDef> = {
   },
   'list-filter': {
     paths: ['M3 6h18', 'M7 12h10', 'M10 18h4'],
+  },
+  x: {
+    paths: ['M18 6 6 18', 'M6 6l12 12'],
   },
   'chevron-up': {
     paths: ['M18 15l-6-6-6 6'],

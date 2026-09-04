@@ -29,6 +29,7 @@ class KonfigSystemK extends Model
         'fonnte_token',
         'telegram_bot_token',
         'n8n_api_key',
+        'api_co_id_api_key',
     ];
 
     protected $fillable = [
@@ -67,6 +68,30 @@ class KonfigSystemK extends Model
         'n8n_base_url',
         'n8n_webhook_url',
         'n8n_api_key',
+            'api_co_id_holiday_enabled',
+        'api_co_id_api_key',
+        'api_co_id_holiday_base_url',
+        'api_co_id_holiday_last_synced_at',
+        'api_co_id_holiday_last_sync_count',
+        'db_enabled',
+        'db_driver',
+        'db_project',
+        'db_service_name',
+        'db_plan',
+        'db_region',
+        'db_host',
+        'db_port',
+        'db_database',
+        'db_valid_until',
+        'db_notes',
+        'db_last_checked_at',
+        'db_last_check_status',
+        'db_last_check_message',
+        'smtp_valid_until',
+        'fonnte_valid_until',
+        'telegram_valid_until',
+        'n8n_valid_until',
+        'api_co_id_valid_until',
         'header',
         'footer',
         'website',
@@ -95,6 +120,8 @@ class KonfigSystemK extends Model
         'color_muted',
         'color_border',
         'theme_color',
+        'font_family_display',
+        'font_family_body',
         'maintenance_mode',
         'maintenance_message',
         'path_maintenance_background',
@@ -118,13 +145,26 @@ class KonfigSystemK extends Model
             'password_reset_phone_enabled' => 'boolean',
             'telegram_enabled' => 'boolean',
             'n8n_enabled' => 'boolean',
+            'api_co_id_holiday_enabled' => 'boolean',
+            'api_co_id_holiday_last_sync_count' => 'integer',
+            'db_enabled' => 'boolean',
+            'db_port' => 'integer',
             'created_date' => 'datetime',
             'last_modified_date' => 'datetime',
             'deleted_date' => 'datetime',
+            'api_co_id_holiday_last_synced_at' => 'datetime',
+            'db_last_checked_at' => 'datetime',
+            'db_valid_until' => 'date',
+            'smtp_valid_until' => 'date',
+            'fonnte_valid_until' => 'date',
+            'telegram_valid_until' => 'date',
+            'n8n_valid_until' => 'date',
+            'api_co_id_valid_until' => 'date',
             'smtp_password' => 'encrypted',
             'fonnte_token' => 'encrypted',
             'telegram_bot_token' => 'encrypted',
             'n8n_api_key' => 'encrypted',
+            'api_co_id_api_key' => 'encrypted',
         ];
     }
 
@@ -136,5 +176,72 @@ class KonfigSystemK extends Model
     public function scopeNotDeleted(Builder $query): Builder
     {
         return $query->where('is_deleted', false);
+    }
+
+    /** @return list<string> */
+    public static function encryptedSecretAttributes(): array
+    {
+        return [
+            'smtp_password',
+            'fonnte_token',
+            'telegram_bot_token',
+            'n8n_api_key',
+            'api_co_id_api_key',
+        ];
+    }
+
+    public function secretIsSet(string $attribute): bool
+    {
+        $raw = $this->attributes[$attribute] ?? null;
+
+        return is_string($raw) ? trim($raw) !== '' : filled($raw);
+    }
+
+    public function decryptedSecret(string $attribute): ?string
+    {
+        if (! $this->secretIsSet($attribute)) {
+            return null;
+        }
+
+        try {
+            $value = $this->getAttribute($attribute);
+
+            return filled($value) ? (string) $value : null;
+        } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+            return null;
+        }
+    }
+
+    /**
+     * Hapus ciphertext yang tidak bisa didekripsi (mis. APP_KEY berubah).
+     *
+     * @return list<string>
+     */
+    public function repairCorruptSecrets(): array
+    {
+        $cleared = [];
+
+        foreach (self::encryptedSecretAttributes() as $attribute) {
+            if (! array_key_exists($attribute, $this->attributes)) {
+                continue;
+            }
+
+            if (! $this->secretIsSet($attribute)) {
+                continue;
+            }
+
+            try {
+                $this->getAttribute($attribute);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+                $this->attributes[$attribute] = null;
+                $cleared[] = $attribute;
+            }
+        }
+
+        if ($cleared !== []) {
+            $this->save();
+        }
+
+        return $cleared;
     }
 }

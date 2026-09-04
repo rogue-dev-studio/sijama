@@ -2,41 +2,44 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-27 15:39:06
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-27 17:16:38
+ * @Last Modified time: 2026-09-02 10:40:00
  */
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { ApiError } from '../api/client'
-import { laporanService } from '../api/services'
-import type { Kegiatan, PaginationMeta } from '../api/types'
-import { useAuth } from '../auth/AuthContext'
-import { ListFilterBar } from '../components/ListFilterBar'
-import { ExportPrintActions } from '../components/ExportPrintActions'
-import { Pagination, rowNumber } from '../components/Pagination'
+import { useEffect, useState } from 'react'
+import { laporanService, masterKategoriKegiatanService } from '../api/services'
+import type { KategoriKegiatan, Kegiatan } from '../api/types'
+import {
+  SimpleMasterListPage,
+  type GatedColumn,
+  type MasterListParams,
+} from '../components/SimpleMasterListPage'
 import { SearchableSelect } from '../components/SearchableSelect'
-import { SortableTh, bindSortableTh } from '../components/SortableTh'
-import { listColumnPerm, listExportAccess } from '../lib/listUiAccess'
-import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
-import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
+import { rowNumber } from '../components/Pagination'
+import {
+  dateRangeFilterFields,
+  isDefaultDateRange,
+  todayIsoDate,
+} from '../lib/dateRangeFilters'
 
 const PREFIX = 'laporan_kegiatan'
 
 function statusLabel(status: string) {
-  if (status === 'scheduled') return 'Terjadwal'
+  if (status === 'planned') return 'Direncanakan'
+  if (status === 'ongoing') return 'Berlangsung'
   if (status === 'completed') return 'Selesai'
   if (status === 'cancelled') return 'Dibatalkan'
   return status
 }
 
-type ColumnDef = {
-  key: string
-  label: string
-  sortKey: string
-  cell: (item: Kegiatan) => ReactNode
-  exportValue: (item: Kegiatan) => string | number
+function formatWaktu(item: Kegiatan): string {
+  const parts: string[] = []
+  if (item.jam_mulai) parts.push(item.jam_mulai.slice(0, 5))
+  if (item.jam_selesai) parts.push(item.jam_selesai.slice(0, 5))
+  if (parts.length === 0) return '—'
+  return parts.join(' – ')
 }
 
-const COLUMNS: ColumnDef[] = [
+const COLUMNS: GatedColumn<Kegiatan>[] = [
   {
     key: 'judul',
     label: 'Judul',
@@ -45,11 +48,25 @@ const COLUMNS: ColumnDef[] = [
     exportValue: (item) => item.judul,
   },
   {
-    key: 'jenis',
-    label: 'Jenis',
-    sortKey: 'jenis',
-    cell: (item) => item.jenis || item.kategori_kegiatan?.nama || '—',
-    exportValue: (item) => item.jenis || item.kategori_kegiatan?.nama || '—',
+    key: 'kategori',
+    label: 'Kategori',
+    sortKey: 'kategori_kegiatan_id',
+    cell: (item) => item.kategori_kegiatan?.nama || item.jenis || '—',
+    exportValue: (item) => item.kategori_kegiatan?.nama || item.jenis || '—',
+  },
+  {
+    key: 'pemateri',
+    label: 'Pemateri',
+    sortKey: 'pemateri',
+    cell: (item) => item.pemateri || item.pemateri_ref?.nama || '—',
+    exportValue: (item) => item.pemateri || item.pemateri_ref?.nama || '—',
+  },
+  {
+    key: 'waktu',
+    label: 'Waktu',
+    sortKey: 'jam_mulai',
+    cell: (item) => formatWaktu(item),
+    exportValue: (item) => formatWaktu(item),
   },
   {
     key: 'lokasi',
@@ -75,73 +92,34 @@ const COLUMNS: ColumnDef[] = [
 ]
 
 export function LaporanKegiatanPage() {
-  const { can } = useAuth()
-  const [items, setItems] = useState<Kegiatan[]>([])
-  const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
-  const [query, setQuery] = useState('')
-  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
-  const [sort, setSort] = useState<ListSortState>({ sortBy: 'tanggal', sortDir: 'desc' })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
-  const exportAccess = listExportAccess(can, PREFIX)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await laporanService.kegiatan({
-        q: search || undefined,
-        status: statusFilter || undefined,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
-        page,
-        per_page: perPage,
-        ...toSortParams(sort),
-      })
-      setItems(result.items)
-      setMeta(result.meta)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Gagal memuat laporan kegiatan')
-    } finally {
-      setLoading(false)
-    }
-  }, [search, statusFilter, dateFrom, dateTo, page, perPage, sort])
+  const [kategoriFilter, setKategoriFilter] = useState('')
+  const [kategoriOptions, setKategoriOptions] = useState<KategoriKegiatan[]>([])
+  const [dateFrom, setDateFrom] = useState(todayIsoDate)
+  const [dateTo, setDateTo] = useState(todayIsoDate)
 
   useEffect(() => {
-    void load()
-  }, [load])
+    let active = true
+    void masterKategoriKegiatanService.list({ active_only: true, per_page: 100 }).then((result) => {
+      if (active) setKategoriOptions(result.items)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
-  function submitSearch() {
-    setSearch(query)
-    setPage(1)
-  }
-
-  function clearFilters() {
-    setQuery('')
-    setSearch('')
+  function clearExtraFilters() {
+    const today = todayIsoDate()
     setStatusFilter('')
-    setDateFrom('')
-    setDateTo('')
-    setPage(1)
+    setKategoriFilter('')
+    setDateFrom(today)
+    setDateTo(today)
   }
 
-  function handleSort(column: string) {
-    setSort((current) => toggleSort(current, column))
-    setPage(1)
-  }
+  const hasExtraFilters =
+    statusFilter !== '' || kategoriFilter !== '' || !isDefaultDateRange(dateFrom, dateTo)
 
-  const sortBind = bindSortableTh(sort, handleSort)
-  const hasActiveFilters =
-    search !== '' || statusFilter !== '' || dateFrom !== '' || dateTo !== ''
-
-  const title = [
+  const exportTitle = [
     'Laporan Kegiatan',
     dateFrom || dateTo ? `(${dateFrom || '…'} s/d ${dateTo || '…'})` : '',
   ]
@@ -149,129 +127,83 @@ export function LaporanKegiatanPage() {
     .join(' ')
 
   return (
-    <>
-      <header className="page-header">
-        <div className="page-header__row">
-          <div>
-            <h1>Laporan Kegiatan</h1>
-            <p>Rekap agenda kegiatan per periode dan status.</p>
-          </div>
-          <div className="page-header__actions">
-            <ExportPrintActions
-              title={title}
-              dokumenKey="laporan_kegiatan"
-              disabled={loading || items.length === 0 || visibleColumns.length === 0}
-              {...exportAccess}
-              getPayload={() => ({
-                title,
-                headers: ['No', ...visibleColumns.map((column) => column.label)],
-                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
-                rows: items.map((item, index) => [
-                  rowNumber(meta, index),
-                  ...visibleColumns.map((column) => column.exportValue(item)),
-                ]),
-              })}
-            />
-          </div>
-        </div>
-      </header>
-
-      {error && <div className="alert alert--error">{error}</div>}
-
-      <ListFilterBar
-        search={{
-          value: query,
-          onChange: setQuery,
-          onSubmit: submitSearch,
-          placeholder: 'Cari judul kegiatan…',
-          ariaLabel: 'Cari kegiatan',
-        }}
-        primaryFilters={[
-          <div className="field" key="status">
-            <label htmlFor="lap-kegiatan-status">Status</label>
-            <SearchableSelect
-              id="lap-kegiatan-status"
-              value={statusFilter}
-              onChange={(next) => {
-                setStatusFilter(next)
-                setPage(1)
-              }}
-              options={[
-                { value: '', label: 'Semua' },
-                { value: 'scheduled', label: 'Terjadwal' },
-                { value: 'completed', label: 'Selesai' },
-                { value: 'cancelled', label: 'Dibatalkan' },
-              ]}
-            />
-          </div>,
-          <div className="field" key="from">
-            <label htmlFor="lap-kegiatan-from">Dari</label>
-            <input
-              id="lap-kegiatan-from"
-              type="date"
-              value={dateFrom}
-              onChange={(event) => {
-                setDateFrom(event.target.value)
-                setPage(1)
-              }}
-            />
-          </div>,
-          <div className="field" key="to">
-            <label htmlFor="lap-kegiatan-to">Sampai</label>
-            <input
-              id="lap-kegiatan-to"
-              type="date"
-              value={dateTo}
-              onChange={(event) => {
-                setDateTo(event.target.value)
-                setPage(1)
-              }}
-            />
-          </div>,
-        ]}
-        hasActiveFilters={hasActiveFilters}
-        onReset={clearFilters}
-        resetLabel="Reset"
-      />
-
-      {loading ? (
-        <div className="loading-state">Memuat laporan…</div>
-      ) : items.length === 0 ? (
-        <p className="empty-state">Tidak ada data kegiatan untuk filter ini.</p>
-      ) : visibleColumns.length === 0 ? (
-        <p className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</p>
-      ) : (
-        <>
-          <div className="data-table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">No</th>
-                  {visibleColumns.map((column) => (
-                    <SortableTh
-                      key={column.key}
-                      label={column.label}
-                      column={column.sortKey}
-                      {...sortBind}
-                    />
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id}>
-                    <td className="col-no">{rowNumber(meta, index)}</td>
-                    {visibleColumns.map((column) => (
-                      <td key={column.key}>{column.cell(item)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination meta={meta} onPageChange={setPage} onPerPageChange={setPerPage} />
-        </>
-      )}
-    </>
+    <SimpleMasterListPage<Kegiatan>
+      title="Laporan Kegiatan"
+      description="Rekap agenda kegiatan per periode dan status."
+      entityLabel="laporan kegiatan"
+      basePath="/laporan/kegiatan"
+      permissionPrefix={PREFIX}
+      createLabel=""
+      dokumenKey="laporan_kegiatan"
+      searchPlaceholder="Cari judul kegiatan…"
+      defaultSortBy="tanggal"
+      defaultSortDir="desc"
+      columns={COLUMNS}
+      showStatusFilter={false}
+      showStatusColumn={false}
+      hideCreateButton
+      showActionsColumn={false}
+      itemLabel={(item) => item.judul}
+      extraFilterParams={{
+        status: statusFilter || undefined,
+        kategori_kegiatan_id: kategoriFilter ? Number(kategoriFilter) : undefined,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
+      }}
+      hasExtraFilters={hasExtraFilters}
+      onClearExtraFilters={clearExtraFilters}
+      filterPrimary={[
+        ...dateRangeFilterFields({
+          fromId: 'lap-kegiatan-from',
+          toId: 'lap-kegiatan-to',
+          dateFrom,
+          dateTo,
+          onDateFromChange: setDateFrom,
+          onDateToChange: setDateTo,
+        }),
+        <div className="field" key="kategori">
+          <label htmlFor="lap-kegiatan-kategori">Kategori</label>
+          <SearchableSelect
+            id="lap-kegiatan-kategori"
+            value={kategoriFilter}
+            onChange={setKategoriFilter}
+            options={[
+              { value: '', label: 'Semua' },
+              ...kategoriOptions.map((item) => ({
+                value: String(item.id),
+                label: item.nama,
+              })),
+            ]}
+          />
+        </div>,
+        <div className="field" key="status">
+          <label htmlFor="lap-kegiatan-status">Status</label>
+          <SearchableSelect
+            id="lap-kegiatan-status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: '', label: 'Semua' },
+              { value: 'planned', label: 'Direncanakan' },
+              { value: 'ongoing', label: 'Berlangsung' },
+              { value: 'completed', label: 'Selesai' },
+              { value: 'cancelled', label: 'Dibatalkan' },
+            ]}
+          />
+        </div>,
+      ]}
+      getExportPayload={(items, meta) => ({
+        title: exportTitle,
+        headers: ['No', ...COLUMNS.map((column) => column.label)],
+        columnKeys: ['no', ...COLUMNS.map((column) => column.key)],
+        rows: items.map((item, index) => [
+          rowNumber(meta, index),
+          ...COLUMNS.map((column) => column.exportValue(item)),
+        ]),
+      })}
+      list={(params: MasterListParams) => laporanService.kegiatan(params)}
+      remove={async () => Promise.resolve()}
+      canDeleteItem={() => false}
+    />
   )
 }

@@ -21,7 +21,7 @@ const KONFIG_LIST_COLUMNS: DokumenColumnDef[] = [
 export const DOKUMEN_COLUMN_REGISTRY: Record<string, DokumenColumnDef[]> = {
   jamaah: [
     { key: 'nama', label: 'Nama' },
-    { key: 'kelompok', label: 'Kelompok' },
+    { key: 'wilayah_fung_kelompok', label: 'Kelompok' },
     { key: 'kategori', label: 'Kategori' },
     { key: 'nik', label: 'NIK' },
     { key: 'kontak', label: 'Kontak' },
@@ -33,26 +33,21 @@ export const DOKUMEN_COLUMN_REGISTRY: Record<string, DokumenColumnDef[]> = {
     { key: 'no_kk', label: 'No. KK' },
     { key: 'anggota', label: 'Anggota' },
     { key: 'alamat', label: 'Alamat' },
-    { key: 'kelompok', label: 'Kelompok' },
-    { key: 'status', label: 'Status' },
-  ],
-  pengajian: [
-    { key: 'judul', label: 'Judul' },
-    { key: 'pemateri', label: 'Pemateri' },
-    { key: 'lokasi', label: 'Lokasi' },
-    { key: 'waktu', label: 'Waktu' },
+    { key: 'wilayah_fung_kelompok', label: 'Kelompok' },
     { key: 'status', label: 'Status' },
   ],
   kegiatan: [
     { key: 'judul', label: 'Judul' },
-    { key: 'jenis', label: 'Jenis' },
+    { key: 'kategori', label: 'Kategori' },
+    { key: 'pemateri', label: 'Pemateri' },
+    { key: 'waktu', label: 'Waktu' },
     { key: 'lokasi', label: 'Lokasi' },
     { key: 'tanggal', label: 'Tanggal' },
     { key: 'status', label: 'Status' },
   ],
   laporan_jamaah: [
     { key: 'nama', label: 'Nama' },
-    { key: 'kelompok', label: 'Kelompok' },
+    { key: 'wilayah_fung_kelompok', label: 'Kelompok' },
     { key: 'kategori', label: 'Kategori' },
     { key: 'nik', label: 'NIK' },
     { key: 'kontak', label: 'Kontak' },
@@ -62,23 +57,18 @@ export const DOKUMEN_COLUMN_REGISTRY: Record<string, DokumenColumnDef[]> = {
   laporan_kehadiran: [
     { key: 'waktu', label: 'Waktu' },
     { key: 'nama', label: 'Nama' },
-    { key: 'kelompok', label: 'Kelompok' },
+    { key: 'wilayah_fung_kelompok', label: 'Kelompok' },
     { key: 'sesi', label: 'Sesi' },
     { key: 'jenis', label: 'Jenis' },
     { key: 'metode', label: 'Metode' },
   ],
   laporan_kegiatan: [
     { key: 'judul', label: 'Judul' },
-    { key: 'jenis', label: 'Jenis' },
+    { key: 'kategori', label: 'Kategori' },
+    { key: 'pemateri', label: 'Pemateri' },
+    { key: 'waktu', label: 'Waktu' },
     { key: 'lokasi', label: 'Lokasi' },
     { key: 'tanggal', label: 'Tanggal' },
-    { key: 'status', label: 'Status' },
-  ],
-  laporan_pengajian: [
-    { key: 'judul', label: 'Judul' },
-    { key: 'pemateri', label: 'Pemateri' },
-    { key: 'lokasi', label: 'Lokasi' },
-    { key: 'waktu', label: 'Waktu' },
     { key: 'status', label: 'Status' },
   ],
   master_users: [
@@ -130,13 +120,31 @@ export const DOKUMEN_EXPORT_MEDIA: Array<{ id: DokumenExportMedia; label: string
   { id: 'csv', label: 'CSV' },
 ]
 
+const LEGACY_COLUMN_KEY_ALIASES: Record<string, string[]> = {
+  wilayah_fung_kelompok: ['kelompok'],
+  wilayah_adm_negara: ['negara'],
+  wilayah_adm_desa: ['desa_kelurahan', 'desa'],
+  wilayah_fung_desa: ['desa'],
+  wilayah_fung_daerah: ['daerah'],
+  wilayah_fung_pusat: ['pusat'],
+}
+
+function isColumnVisibleInRaw(raw: DokumenColumnVisibilityMap | null | undefined, key: string): boolean {
+  if (!raw) return true
+  if (raw[key] !== undefined) return raw[key] !== false
+  for (const alias of LEGACY_COLUMN_KEY_ALIASES[key] ?? []) {
+    if (raw[alias] !== undefined) return raw[alias] !== false
+  }
+  return true
+}
+
 function normalizeColumnMap(
   columns: DokumenColumnDef[],
   raw?: DokumenColumnVisibilityMap | null,
 ): DokumenColumnVisibilityMap {
   const result: DokumenColumnVisibilityMap = {}
   for (const column of columns) {
-    result[column.key] = raw?.[column.key] !== false
+    result[column.key] = isColumnVisibleInRaw(raw, column.key)
   }
   return result
 }

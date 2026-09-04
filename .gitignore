@@ -4,6 +4,8 @@
 !.env.aiven.example
 !.env.production.example
 !.env.render.example
+sijama-api.env
+sijama-web.env
 backend/.env
 backend/.env.*
 !backend/.env.example

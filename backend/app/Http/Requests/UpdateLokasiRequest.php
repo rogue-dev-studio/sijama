@@ -19,7 +19,7 @@ class UpdateLokasiRequest extends FormRequest
             'nama' => ['sometimes', 'required', 'string', 'max:255'],
             'jenis' => ['sometimes', 'required', 'string', Rule::in(LokasiJenis::VALUES)],
             'kota' => ['nullable', 'string', 'max:100'],
-            'adm_desa_kelurahan_id' => ['nullable', 'integer', 'exists:adm_desa_kelurahan,id'],
+            'wilayah_adm_desa_id' => ['nullable', 'integer', 'exists:wilayah_adm_desa_m,id'],
             'alamat' => ['nullable', 'string'],
             'lat' => ['nullable', 'numeric', 'between:-90,90'],
             'lng' => ['nullable', 'numeric', 'between:-180,180'],

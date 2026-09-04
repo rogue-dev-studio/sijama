@@ -10,8 +10,16 @@ CSV dari **lokabisa-oss/region-id** (Kepmendagri 2025):
 | `regencies.csv` | Kabupaten/Kota |
 | `districts.csv` | Kecamatan |
 | `villages.csv` | Desa/Kelurahan |
+| `sni_provinces.csv` | Singkatan provinsi (SNI 7657:2010, format `ID-XX`) |
+| `sni_regencies.csv` | Singkatan kab/kota (3 huruf SNI) + kawasan metropolitan |
 
 Seeder: `WilayahAdministrasiSeeder`
+
+Regenerasi mapping SNI setelah update `regencies.csv`:
+
+```powershell
+docker exec sijama-backend-1 php scripts/generate-sni-abbreviations.php
+```
 
 ## Kode pos (opsional, untuk auto-isi)
 

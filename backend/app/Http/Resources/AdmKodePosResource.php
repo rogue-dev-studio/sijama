@@ -16,33 +16,33 @@ class AdmKodePosResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $desa = $this->relationLoaded('desaKelurahan') ? $this->desaKelurahan : null;
-        $kecamatan = $desa?->relationLoaded('kecamatan') ? $desa->kecamatan : null;
-        $kabupaten = $kecamatan?->relationLoaded('kabupatenKota') ? $kecamatan->kabupatenKota : null;
-        $provinsi = $kabupaten?->relationLoaded('provinsi') ? $kabupaten->provinsi : null;
-        $negara = $provinsi?->relationLoaded('negara') ? $provinsi->negara : null;
+        $desa = $this->relationLoaded('wilayahAdmDesa') ? $this->wilayahAdmDesa : null;
+        $kecamatan = $desa?->relationLoaded('wilayahAdmKecamatan') ? $desa->wilayahAdmKecamatan : null;
+        $kabupaten = $kecamatan?->relationLoaded('wilayahAdmKabupatenKota') ? $kecamatan->wilayahAdmKabupatenKota : null;
+        $provinsi = $kabupaten?->relationLoaded('wilayahAdmProvinsi') ? $kabupaten->wilayahAdmProvinsi : null;
+        $negara = $provinsi?->relationLoaded('wilayahAdmNegara') ? $provinsi->wilayahAdmNegara : null;
 
         return [
             'id' => $this->id,
             'kode' => $this->kode,
-            'desa_kelurahan_id' => $this->desa_kelurahan_id,
-            'desa_kelurahan' => $desa ? [
+            'wilayah_adm_desa_id' => $this->wilayah_adm_desa_id,
+            'wilayah_adm_desa' => $desa ? [
                 'id' => $desa->id,
                 'kode' => $desa->kode,
                 'nama' => $desa->nama,
             ] : null,
-            'kecamatan_id' => $this->kecamatan_id,
-            'kecamatan' => $kecamatan ? [
+            'wilayah_adm_kecamatan_id' => $this->wilayah_adm_kecamatan_id,
+            'wilayah_adm_kecamatan' => $kecamatan ? [
                 'id' => $kecamatan->id,
                 'kode' => $kecamatan->kode,
                 'nama' => $kecamatan->nama,
             ] : null,
             'wilayah' => ($desa || $kecamatan || $kabupaten || $provinsi || $negara) ? [
-                'negara' => $negara?->nama,
-                'provinsi' => $provinsi?->nama,
-                'kabupaten_kota' => $kabupaten?->nama,
-                'kecamatan' => $kecamatan?->nama,
-                'desa_kelurahan' => $desa?->nama,
+                'wilayah_adm_negara' => $negara?->nama,
+                'wilayah_adm_provinsi' => $provinsi?->nama,
+                'wilayah_adm_kabupaten_kota' => $kabupaten?->nama,
+                'wilayah_adm_kecamatan' => $kecamatan?->nama,
+                'wilayah_adm_desa' => $desa?->nama,
             ] : null,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

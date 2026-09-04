@@ -25,17 +25,15 @@ class KonfigDokumenSeeder extends Seeder
         return [
             ['lookup_value' => 'laporan_kehadiran', 'lookup_name' => 'Cetakan Laporan Kehadiran', 'lookup_urutan' => 1],
             ['lookup_value' => 'laporan_jamaah', 'lookup_name' => 'Cetakan Laporan Jamaah', 'lookup_urutan' => 2],
-            ['lookup_value' => 'laporan_pengajian', 'lookup_name' => 'Cetakan Laporan Pengajian', 'lookup_urutan' => 3],
-            ['lookup_value' => 'laporan_kegiatan', 'lookup_name' => 'Cetakan Laporan Kegiatan', 'lookup_urutan' => 4],
-            ['lookup_value' => 'jamaah', 'lookup_name' => 'Cetakan Daftar Jamaah', 'lookup_urutan' => 5],
-            ['lookup_value' => 'keluarga', 'lookup_name' => 'Cetakan Daftar Keluarga', 'lookup_urutan' => 6],
-            ['lookup_value' => 'pengajian', 'lookup_name' => 'Cetakan Daftar Pengajian', 'lookup_urutan' => 7],
-            ['lookup_value' => 'kegiatan', 'lookup_name' => 'Cetakan Daftar Kegiatan', 'lookup_urutan' => 8],
-            ['lookup_value' => 'kehadiran', 'lookup_name' => 'Cetakan Kehadiran', 'lookup_urutan' => 9],
-            ['lookup_value' => 'kategori_umur', 'lookup_name' => 'Cetakan Kategori Umur', 'lookup_urutan' => 10],
-            ['lookup_value' => 'master_users', 'lookup_name' => 'Cetakan Master Pengguna', 'lookup_urutan' => 11],
-            ['lookup_value' => 'matriks', 'lookup_name' => 'Cetakan Matriks Akses', 'lookup_urutan' => 12],
-            ['lookup_value' => 'master_list', 'lookup_name' => 'Cetakan Master List', 'lookup_urutan' => 13],
+            ['lookup_value' => 'laporan_kegiatan', 'lookup_name' => 'Cetakan Laporan Kegiatan', 'lookup_urutan' => 3],
+            ['lookup_value' => 'jamaah', 'lookup_name' => 'Cetakan Daftar Jamaah', 'lookup_urutan' => 4],
+            ['lookup_value' => 'keluarga', 'lookup_name' => 'Cetakan Daftar Keluarga', 'lookup_urutan' => 5],
+            ['lookup_value' => 'kegiatan', 'lookup_name' => 'Cetakan Daftar Kegiatan', 'lookup_urutan' => 6],
+            ['lookup_value' => 'kehadiran', 'lookup_name' => 'Cetakan Kehadiran', 'lookup_urutan' => 7],
+            ['lookup_value' => 'kategori_umur', 'lookup_name' => 'Cetakan Kategori Umur', 'lookup_urutan' => 8],
+            ['lookup_value' => 'master_users', 'lookup_name' => 'Cetakan Master Pengguna', 'lookup_urutan' => 9],
+            ['lookup_value' => 'matriks', 'lookup_name' => 'Cetakan Matriks Akses', 'lookup_urutan' => 10],
+            ['lookup_value' => 'master_list', 'lookup_name' => 'Cetakan Master List', 'lookup_urutan' => 11],
         ];
     }
 
@@ -98,6 +96,11 @@ class KonfigDokumenSeeder extends Seeder
                 'is_deleted' => false,
             ]);
         }
+
+        LookupM::query()
+            ->where('lookup_type', LookupTypes::KONFIG_DOKUMEN)
+            ->whereIn('lookup_value', ['pengajian', 'laporan_pengajian'])
+            ->update(['is_active' => false, 'is_deleted' => true]);
 
         DocumentKonfig::forgetCache();
     }

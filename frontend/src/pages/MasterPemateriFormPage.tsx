@@ -13,6 +13,7 @@ import type { Jamaah, PemateriInput } from '../api/types'
 
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 
 const emptyForm: PemateriInput = {
   jamaah_id: 0,
@@ -103,7 +104,13 @@ export function MasterPemateriFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat data pemateri…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit pemateri' : 'Tambah pemateri'}
+        description="Pilih jamaah sebagai pemateri. Nama dan kontak diisi otomatis."
+        message="Memuat data pemateri…"
+      />
+    )
   }
 
   return (

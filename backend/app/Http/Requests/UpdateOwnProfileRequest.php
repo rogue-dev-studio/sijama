@@ -43,7 +43,7 @@ class UpdateOwnProfileRequest extends FormRequest
             'rw' => ['sometimes', 'nullable', 'string', 'max:10'],
             'no_hp' => ['sometimes', ...JamaahContactRules::noHp($jamaahId)],
             'email' => JamaahContactRules::email($jamaahId),
-            'adm_desa_kelurahan_id' => ['sometimes', 'nullable', 'integer', 'exists:adm_desa_kelurahan,id'],
+            'wilayah_adm_desa_id' => ['sometimes', 'nullable', 'integer', 'exists:wilayah_adm_desa_m,id'],
             'kode_pos' => ['sometimes', 'nullable', 'string', 'regex:/^\d{5}$/'],
         ];
     }

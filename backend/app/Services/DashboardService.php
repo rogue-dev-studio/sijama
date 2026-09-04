@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\Jamaah;
 use App\Models\Kegiatan;
+use App\Models\KategoriKegiatan;
 use App\Models\Kelompok;
-use App\Models\Pengajian;
 use App\Models\User;
 use App\Support\JamaahKategoriUmur;
 use Carbon\Carbon;
@@ -16,7 +16,10 @@ class DashboardService
 {
     private const DAY_LABELS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
-    public function __construct(private readonly ScopeService $scopeService) {}
+    public function __construct(
+        private readonly ScopeService $scopeService,
+        private readonly ReportingViewService $reportingViewService,
+    ) {}
 
     public function getDashboard(User $user): array
     {
@@ -26,21 +29,25 @@ class DashboardService
         $monthStart = $now->copy()->startOfMonth();
         $monthEnd = $now->copy()->endOfMonth();
 
-        $jamaahQuery = Jamaah::query()->where('status', 'aktif');
-        $this->scopeService->applyJamaahScope($jamaahQuery, $user);
-        $jamaahAktif = (clone $jamaahQuery)->count();
+        $jamaahAktif = $this->reportingViewService->isEnabled()
+            ? $this->reportingViewService->jamaahAktifCount($user)
+            : $this->countJamaahAktifLegacy($user);
+
+        $pengajianKategoriId = KategoriKegiatan::query()->where('nama', 'Pengajian')->value('id');
 
         $payload = [
             'jamaah_aktif' => $jamaahAktif,
-            'pengajian_minggu_ini' => Pengajian::whereBetween('starts_at', [$weekStart, $weekEnd])->count(),
-            'absensi_hari_ini' => Attendance::query()
-                ->whereDate('recorded_at', $now->toDateString())
-                ->whereHas('jamaah', function (Builder $q) use ($user) {
-                    $this->scopeService->applyJamaahScope($q, $user);
-                })
+            'pengajian_minggu_ini' => Kegiatan::query()
+                ->when($pengajianKategoriId, fn ($q) => $q->where('kategori_kegiatan_id', $pengajianKategoriId))
+                ->whereBetween('tanggal', [$weekStart->toDateString(), $weekEnd->toDateString()])
                 ->count(),
+            'absensi_hari_ini' => $this->reportingViewService->isEnabled()
+                ? $this->reportingViewService->absensiHariIni($user, $now)
+                : $this->absensiHariIniLegacy($user, $now),
             'kegiatan_bulan_ini' => Kegiatan::whereBetween('tanggal', [$monthStart->toDateString(), $monthEnd->toDateString()])->count(),
-            'chart_absensi_7_hari' => $this->buildChartAbsensi7Hari($user, $now),
+            'chart_absensi_7_hari' => $this->reportingViewService->isEnabled()
+                ? $this->reportingViewService->chartAbsensi7Hari($user, $now)
+                : $this->buildChartAbsensi7HariLegacy($user, $now),
             'absensi_overview' => null,
             'chart_jamaah_per_kelompok' => null,
             'chart_kategori_umur' => null,
@@ -51,7 +58,9 @@ class DashboardService
         }
 
         if ($user->hasPermission('dashboard.jamaah_kelompok.view')) {
-            $payload['chart_jamaah_per_kelompok'] = $this->buildChartJamaahPerKelompok($user);
+            $payload['chart_jamaah_per_kelompok'] = $this->reportingViewService->isEnabled()
+                ? $this->reportingViewService->chartJamaahPerKelompok($user)
+                : $this->buildChartJamaahPerKelompokLegacy($user);
         }
 
         if ($user->hasPermission('dashboard.kategori_umur.view')) {
@@ -72,9 +81,9 @@ class DashboardService
 
     public function getAbsensiOverviewForRange(User $user, Carbon $from, Carbon $to): array
     {
-        $jamaahQuery = Jamaah::query()->where('status', 'aktif');
-        $this->scopeService->applyJamaahScope($jamaahQuery, $user);
-        $jamaahAktif = $jamaahQuery->count();
+        $jamaahAktif = $this->reportingViewService->isEnabled()
+            ? $this->reportingViewService->jamaahAktifCount($user)
+            : $this->countJamaahAktifLegacy($user);
 
         $from = $from->copy()->startOfDay();
         $to = $to->copy()->endOfDay();
@@ -167,47 +176,107 @@ class DashboardService
      */
     private function absensiCountsByUmur(User $user, Carbon $from, Carbon $to): array
     {
-        $jamaahScope = Jamaah::query()->select('id');
-        $this->scopeService->applyJamaahScope($jamaahScope, $user);
+        if ($this->reportingViewService->isEnabled()) {
+            return $this->reportingViewService->absensiCountsByUmur($user, $from, $to);
+        }
 
-        return Attendance::query()
-            ->join('jamaah', 'jamaah.id', '=', 'attendances.jamaah_id')
-            ->whereBetween('attendances.recorded_at', [
-                $from->copy()->startOfDay(),
-                $to->copy()->endOfDay(),
-            ])
-            ->whereIn('attendances.jamaah_id', $jamaahScope)
-            ->whereNotNull('jamaah.kategori_umur')
-            ->groupBy('jamaah.kategori_umur')
-            ->selectRaw('jamaah.kategori_umur as kategori_umur, COUNT(*) as total')
-            ->pluck('total', 'kategori_umur')
-            ->map(fn ($v) => (int) $v)
-            ->all();
+        return $this->absensiCountsByUmurLegacy($user, $from, $to);
     }
 
-    private function buildChartAbsensi7Hari(User $user, Carbon $now): array
+    private function buildChartKategoriUmur(User $user): array
     {
+        $counts = $this->reportingViewService->isEnabled()
+            ? $this->reportingViewService->kategoriUmurCounts($user)
+            : $this->kategoriUmurCountsLegacy($user);
+
         $series = [];
 
-        for ($i = 6; $i >= 0; $i--) {
-            $date = $now->copy()->subDays($i);
-            $value = Attendance::query()
-                ->whereDate('recorded_at', $date->toDateString())
-                ->whereHas('jamaah', function (Builder $q) use ($user) {
-                    $this->scopeService->applyJamaahScope($q, $user);
-                })
-                ->count();
-
+        foreach (JamaahKategoriUmur::VALUES as $kode) {
             $series[] = [
-                'label' => self::DAY_LABELS[$date->dayOfWeek],
-                'value' => $value,
+                'label' => JamaahKategoriUmur::LABELS[$kode] ?? $kode,
+                'value' => (int) ($counts[$kode] ?? 0),
             ];
         }
 
         return $series;
     }
 
-    private function buildChartJamaahPerKelompok(User $user): array
+    private function countJamaahAktifLegacy(User $user): int
+    {
+        $jamaahQuery = Jamaah::query()->where('status', 'aktif');
+        $this->scopeService->applyJamaahScope($jamaahQuery, $user);
+
+        return $jamaahQuery->count();
+    }
+
+    private function absensiHariIniLegacy(User $user, Carbon $now): int
+    {
+        return Attendance::query()
+            ->whereBetween('recorded_at', [$now->copy()->startOfDay(), $now->copy()->endOfDay()])
+            ->whereHas('jamaah', function (Builder $q) use ($user) {
+                $this->scopeService->applyJamaahScope($q, $user);
+            })
+            ->count();
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function absensiCountsByUmurLegacy(User $user, Carbon $from, Carbon $to): array
+    {
+        $jamaahScope = Jamaah::query()->select('id');
+        $this->scopeService->applyJamaahScope($jamaahScope, $user);
+
+        return Attendance::query()
+            ->join('jamaah_r', 'jamaah_r.id', '=', 'absensi_t.jamaah_id')
+            ->whereBetween('absensi_t.recorded_at', [
+                $from->copy()->startOfDay(),
+                $to->copy()->endOfDay(),
+            ])
+            ->whereIn('absensi_t.jamaah_id', $jamaahScope)
+            ->whereNotNull('jamaah_r.kategori_umur')
+            ->groupBy('jamaah_r.kategori_umur')
+            ->selectRaw('jamaah_r.kategori_umur as kategori_umur, COUNT(*) as total')
+            ->pluck('total', 'kategori_umur')
+            ->map(fn ($v) => (int) $v)
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{label: string, value: int}>
+     */
+    private function buildChartAbsensi7HariLegacy(User $user, Carbon $now): array
+    {
+        $start = $now->copy()->subDays(6)->startOfDay();
+        $end = $now->copy()->endOfDay();
+
+        $counts = Attendance::query()
+            ->selectRaw('DATE(recorded_at) as day, COUNT(*) as total')
+            ->whereBetween('recorded_at', [$start, $end])
+            ->whereHas('jamaah', function (Builder $q) use ($user) {
+                $this->scopeService->applyJamaahScope($q, $user);
+            })
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        $series = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = $now->copy()->subDays($i);
+            $key = $date->toDateString();
+            $series[] = [
+                'label' => self::DAY_LABELS[$date->dayOfWeek],
+                'value' => (int) ($counts[$key] ?? 0),
+            ];
+        }
+
+        return $series;
+    }
+
+    /**
+     * @return array<int, array{label: string, value: int}>
+     */
+    private function buildChartJamaahPerKelompokLegacy(User $user): array
     {
         $query = Kelompok::query()
             ->withCount([
@@ -231,26 +300,20 @@ class DashboardService
             ->all();
     }
 
-    private function buildChartKategoriUmur(User $user): array
+    /**
+     * @return array<string, int>
+     */
+    private function kategoriUmurCountsLegacy(User $user): array
     {
         $query = Jamaah::query()->where('status', 'aktif');
         $this->scopeService->applyJamaahScope($query, $user);
 
-        $counts = (clone $query)
+        return (clone $query)
             ->whereNotNull('kategori_umur')
             ->selectRaw('kategori_umur, COUNT(*) as total')
             ->groupBy('kategori_umur')
-            ->pluck('total', 'kategori_umur');
-
-        $series = [];
-
-        foreach (JamaahKategoriUmur::VALUES as $kode) {
-            $series[] = [
-                'label' => JamaahKategoriUmur::LABELS[$kode] ?? $kode,
-                'value' => (int) ($counts[$kode] ?? 0),
-            ];
-        }
-
-        return $series;
+            ->pluck('total', 'kategori_umur')
+            ->map(fn ($v) => (int) $v)
+            ->all();
     }
 }

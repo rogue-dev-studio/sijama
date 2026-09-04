@@ -16,6 +16,7 @@ import { BrandMark } from '../components/BrandMark'
 import { DeveloperFooter } from '../components/DeveloperFooter'
 import { MenuIcon } from '../components/MenuIcon'
 import { PasswordInput } from '../components/PasswordInput'
+import { PublicGateShell } from '../components/PublicGateShell'
 import { readRememberMe, writeRememberMe } from '../lib/loginRememberMe'
 
 const showDemoHint = import.meta.env.DEV === true
@@ -63,8 +64,7 @@ export function LoginPage() {
   const logo = settings.path_logoheader
 
   return (
-    <div className="login-page">
-      <div className="login-panel">
+    <PublicGateShell settings={settings}>
         <div className="login-panel__brand">
           <BrandMark size={56} src={logo} className="login-panel__brand-mark" alt={brandName} />
           <h1>{brandName}</h1>
@@ -140,7 +140,6 @@ export function LoginPage() {
           </p>
         )}
         <DeveloperFooter />
-      </div>
-    </div>
+    </PublicGateShell>
   )
 }

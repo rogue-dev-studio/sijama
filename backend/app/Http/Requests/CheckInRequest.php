@@ -15,7 +15,7 @@ class CheckInRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'jamaah_id' => ['required', 'integer', 'exists:jamaah,id'],
+            'jamaah_id' => ['required', 'integer', 'exists:jamaah_r,id'],
             'method' => ['required', Rule::in(['face', 'manual'])],
             'matched_distance' => ['nullable', 'numeric', 'min:0'],
         ];

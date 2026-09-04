@@ -18,13 +18,13 @@ class SubKelompokService
     public function list(
         User $user,
         ?string $query = null,
-        ?int $kelompokId = null,
+        ?int $wilayah_fung_kelompokId = null,
         ?int $perPage = null,
         ?int $page = null,
         ?string $sortBy = null,
         ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = SubKelompok::query()->with('kelompok');
+        $builder = SubKelompok::query()->with('wilayahFungKelompok');
         SortHelper::apply(
             $builder,
             $sortBy,
@@ -33,12 +33,12 @@ class SubKelompokService
             'nama',
         );
 
-        $builder->whereHas('kelompok', function ($q) use ($user) {
+        $builder->whereHas('wilayahFungKelompok', function ($q) use ($user) {
             $this->scopeService->applyKelompokScope($q, $user);
         });
 
-        if ($kelompokId !== null) {
-            $builder->where('kelompok_id', $kelompokId);
+        if ($wilayah_fung_kelompokId !== null) {
+            $builder->where('wilayah_fung_kelompok_id', $wilayah_fung_kelompokId);
         }
 
         if ($query) {
@@ -53,47 +53,47 @@ class SubKelompokService
 
     public function create(array $data, User $user): SubKelompokResource
     {
-        $kelompok = Kelompok::findOrFail($data['kelompok_id']);
+        $kelompok = Kelompok::findOrFail($data['wilayah_fung_kelompok_id']);
         $this->scopeService->assertKelompokInScope($user, $kelompok);
 
         $item = SubKelompok::create($data);
 
-        return new SubKelompokResource($item->load('kelompok'));
+        return new SubKelompokResource($item->load('wilayahFungKelompok'));
     }
 
     public function find(int $id, User $user): SubKelompokResource
     {
         $item = $this->findModel($id);
-        $this->scopeService->assertKelompokInScope($user, $item->kelompok);
+        $this->scopeService->assertKelompokInScope($user, $item->wilayahFungKelompok);
 
-        return new SubKelompokResource($item->load('kelompok'));
+        return new SubKelompokResource($item->load('wilayahFungKelompok'));
     }
 
     public function update(int $id, array $data, User $user): SubKelompokResource
     {
         $item = $this->findModel($id);
-        $this->scopeService->assertKelompokInScope($user, $item->kelompok);
+        $this->scopeService->assertKelompokInScope($user, $item->wilayahFungKelompok);
 
-        if (isset($data['kelompok_id'])) {
-            $kelompok = Kelompok::findOrFail($data['kelompok_id']);
+        if (isset($data['wilayah_fung_kelompok_id'])) {
+            $kelompok = Kelompok::findOrFail($data['wilayah_fung_kelompok_id']);
             $this->scopeService->assertKelompokInScope($user, $kelompok);
         }
 
         $item->update($data);
 
-        return new SubKelompokResource($item->fresh()->load('kelompok'));
+        return new SubKelompokResource($item->fresh()->load('wilayahFungKelompok'));
     }
 
     public function delete(int $id, User $user): void
     {
         $item = $this->findModel($id);
-        $this->scopeService->assertKelompokInScope($user, $item->kelompok);
+        $this->scopeService->assertKelompokInScope($user, $item->wilayahFungKelompok);
         $item->delete();
     }
 
     private function findModel(int $id): SubKelompok
     {
-        $item = SubKelompok::with('kelompok')->find($id);
+        $item = SubKelompok::with('wilayahFungKelompok')->find($id);
 
         if (! $item) {
             throw new ModelNotFoundException('Sub kelompok tidak ditemukan.');

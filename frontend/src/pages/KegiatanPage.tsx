@@ -1,29 +1,39 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { ApiError } from '../api/client'
-import { kegiatanService } from '../api/services'
-import { Pagination, rowNumber } from '../components/Pagination'
-import { SortableTh, bindSortableTh } from '../components/SortableTh'
-import type { Kegiatan, PaginationMeta } from '../api/types'
-import { useAuth } from '../auth/AuthContext'
-import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
-import { ListFilterBar } from '../components/ListFilterBar'
-import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
-import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
-import { SearchableSelect } from '../components/SearchableSelect'
-import { ExportPrintActions } from '../components/ExportPrintActions'
-import { PermissionLink } from '../components/PermissionLink'
-import { useToast } from '../components/ToastProvider'
-import { useConfirm } from '../components/ConfirmDialogProvider'
+/**
+ * @Author: rogue-dev-studio
+ * @Date: 2026-08-25 14:00:00
+ * @Last Modified by: rogue-dev-studio
+ * @Last Modified time: 2026-09-02 10:40:00
+ */
 
-type ColumnDef = {
-  key: string
-  label: string
-  sortKey: string
-  cell: (item: Kegiatan) => ReactNode
-  exportValue: (item: Kegiatan) => string | number
+import { useEffect, useState } from 'react'
+import { kegiatanService, masterKategoriKegiatanService } from '../api/services'
+import type { KategoriKegiatan, Kegiatan } from '../api/types'
+import { useAuth } from '../auth/AuthContext'
+import {
+  SimpleMasterListPage,
+  type GatedColumn,
+  type MasterListParams,
+} from '../components/SimpleMasterListPage'
+import { SearchableSelect } from '../components/SearchableSelect'
+import { PermissionLink } from '../components/PermissionLink'
+import { listButtonAccess } from '../lib/listUiAccess'
+import {
+  dateRangeFilterFields,
+  isDefaultDateRange,
+  todayIsoDate,
+} from '../lib/dateRangeFilters'
+
+const PREFIX = 'kegiatan'
+
+function formatWaktu(item: Kegiatan): string {
+  const parts: string[] = []
+  if (item.jam_mulai) parts.push(item.jam_mulai.slice(0, 5))
+  if (item.jam_selesai) parts.push(item.jam_selesai.slice(0, 5))
+  if (parts.length === 0) return '—'
+  return parts.join(' – ')
 }
 
-const COLUMNS: ColumnDef[] = [
+const COLUMNS: GatedColumn<Kegiatan>[] = [
   {
     key: 'judul',
     label: 'Judul',
@@ -32,11 +42,32 @@ const COLUMNS: ColumnDef[] = [
     exportValue: (item) => item.judul,
   },
   {
-    key: 'jenis',
-    label: 'Jenis',
-    sortKey: 'jenis',
-    cell: (item) => item.jenis || item.kategori_kegiatan?.nama || '—',
-    exportValue: (item) => item.jenis || item.kategori_kegiatan?.nama || '—',
+    key: 'kategori',
+    label: 'Kategori',
+    sortKey: 'kategori_kegiatan_id',
+    cell: (item) => item.kategori_kegiatan?.nama || item.jenis || '—',
+    exportValue: (item) => item.kategori_kegiatan?.nama || item.jenis || '—',
+  },
+  {
+    key: 'pemateri',
+    label: 'Pemateri',
+    sortKey: 'pemateri',
+    cell: (item) => item.pemateri || item.pemateri_ref?.nama || '—',
+    exportValue: (item) => item.pemateri || item.pemateri_ref?.nama || '—',
+  },
+  {
+    key: 'materi',
+    label: 'Materi',
+    sortable: false,
+    cell: (item) => item.materi_list?.map((m) => m.nama).join(', ') || '—',
+    exportValue: (item) => item.materi_list?.map((m) => m.nama).join(', ') || '—',
+  },
+  {
+    key: 'waktu',
+    label: 'Waktu',
+    sortKey: 'jam_mulai',
+    cell: (item) => formatWaktu(item),
+    exportValue: (item) => formatWaktu(item),
   },
   {
     key: 'lokasi',
@@ -61,272 +92,116 @@ const COLUMNS: ColumnDef[] = [
   },
 ]
 
-const PREFIX = 'kegiatan'
-
 export function KegiatanPage() {
   const { can } = useAuth()
-  const { notifyDeleted } = useToast()
-  const { confirm } = useConfirm()
-  const [items, setItems] = useState<Kegiatan[]>([])
-  const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
-  const [query, setQuery] = useState('')
-  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
-  const [sort, setSort] = useState<ListSortState>({ sortBy: 'tanggal', sortDir: 'desc' })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [kategoriFilter, setKategoriFilter] = useState('')
+  const [kategoriOptions, setKategoriOptions] = useState<KategoriKegiatan[]>([])
+  const [dateFrom, setDateFrom] = useState(todayIsoDate)
+  const [dateTo, setDateTo] = useState(todayIsoDate)
 
-  const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
-  const exportAccess = listExportAccess(can, PREFIX)
   const createAccess = listButtonAccess(can, PREFIX, 'create')
-  const updateAccess = listButtonAccess(can, PREFIX, 'update')
-  const deleteAccess = listButtonAccess(can, PREFIX, 'delete')
-  const showActions = updateAccess.visible || deleteAccess.visible
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await kegiatanService.list({
-        q: search || undefined,
-        status: statusFilter || undefined,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
-        page,
-        per_page: perPage,
-        ...toSortParams(sort),
-      })
-      setItems(result.items)
-      setMeta(result.meta)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Gagal memuat kegiatan')
-    } finally {
-      setLoading(false)
-    }
-  }, [search, statusFilter, dateFrom, dateTo, page, perPage, sort])
 
   useEffect(() => {
-    void load()
-  }, [load])
-
-  async function handleDelete(id: number) {
-    const ok = await confirm({
-      title: 'Konfirmasi hapus',
-      message: 'Hapus kegiatan ini? Tindakan ini tidak bisa dibatalkan.',
+    let active = true
+    void masterKategoriKegiatanService.list({ active_only: true, per_page: 100 }).then((result) => {
+      if (active) setKategoriOptions(result.items)
     })
-    if (!ok) return
-    try {
-      await kegiatanService.remove(id)
-      notifyDeleted('kegiatan')
-      await load()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Gagal menghapus kegiatan')
+    return () => {
+      active = false
     }
-  }
+  }, [])
 
-  function submitSearch() {
-    setSearch(query)
-    setPage(1)
-  }
-
-  function handleStatusChange(value: string) {
-    setStatusFilter(value)
-    setPage(1)
-  }
-
-  function clearFilters() {
-    setQuery('')
-    setSearch('')
+  function clearExtraFilters() {
+    const today = todayIsoDate()
     setStatusFilter('')
-    setDateFrom('')
-    setDateTo('')
-    setPage(1)
+    setKategoriFilter('')
+    setDateFrom(today)
+    setDateTo(today)
   }
 
-  function handleSort(column: string) {
-    setSort((current) => toggleSort(current, column))
-    setPage(1)
-  }
-
-  const sortBind = bindSortableTh(sort, handleSort)
-
-  const hasActiveFilters =
-    search !== '' || statusFilter !== '' || dateFrom !== '' || dateTo !== ''
+  const hasExtraFilters =
+    statusFilter !== '' || kategoriFilter !== '' || !isDefaultDateRange(dateFrom, dateTo)
 
   return (
-    <>
-      <header className="page-header">
-        <div className="page-header__row">
-          <div>
-            <h1>Kegiatan</h1>
-            <p>Agenda kegiatan jamaah dan masjid.</p>
-          </div>
-          <div className="page-header__actions">
-            <ExportPrintActions
-              title="Daftar Kegiatan"
-              dokumenKey="kegiatan"
-              disabled={loading || items.length === 0 || visibleColumns.length === 0}
-              {...exportAccess}
-              getPayload={() => ({
-                title: 'Daftar Kegiatan',
-                headers: ['No', ...visibleColumns.map((column) => column.label)],
-                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
-                rows: items.map((item, index) => [
-                  rowNumber(meta, index),
-                  ...visibleColumns.map((column) => column.exportValue(item)),
-                ]),
-              })}
-            />
-            {createAccess.visible && (
-              <PermissionLink
-                to="/kegiatan/new"
-                enabled={createAccess.enabled}
-                className="btn btn--primary"
-              >
-                Tambah kegiatan
-              </PermissionLink>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {error && <div className="alert alert--error">{error}</div>}
-
-      <ListFilterBar
-        search={{
-          value: query,
-          onChange: setQuery,
-          onSubmit: submitSearch,
-          placeholder: 'Cari judul atau jenis…',
-          ariaLabel: 'Cari kegiatan',
-        }}
-        primaryFilters={[
-          <div className="field" key="status">
-            <label htmlFor="filter_status">Status</label>
-            <SearchableSelect
-              id="filter_status"
-              value={statusFilter}
-              onChange={(next) => handleStatusChange(next)}
-              placeholder="Semua"
-              options={[
-                { value: '', label: 'Semua' },
-                { value: 'planned', label: 'Direncanakan' },
-                { value: 'ongoing', label: 'Berlangsung' },
-                { value: 'completed', label: 'Selesai' },
-                { value: 'cancelled', label: 'Dibatalkan' },
-              ]}
-            />
-          </div>,
-          <div className="field" key="date-from">
-            <label htmlFor="filter_date_from">Dari tanggal</label>
-            <input
-              id="filter_date_from"
-              type="date"
-              value={dateFrom}
-              onChange={(event) => {
-                setDateFrom(event.target.value)
-                setPage(1)
-              }}
-            />
-          </div>,
-          <div className="field" key="date-to">
-            <label htmlFor="filter_date_to">Sampai tanggal</label>
-            <input
-              id="filter_date_to"
-              type="date"
-              value={dateTo}
-              onChange={(event) => {
-                setDateTo(event.target.value)
-                setPage(1)
-              }}
-            />
-          </div>,
-        ]}
-        hasActiveFilters={hasActiveFilters}
-        onReset={clearFilters}
-      />
-
-      {loading && <div className="loading-state">Memuat kegiatan…</div>}
-
-      {!loading && items.length === 0 && (
-        <div className="empty-state">
-          {hasActiveFilters ? 'Tidak ada kegiatan yang cocok.' : 'Belum ada kegiatan.'}
-        </div>
-      )}
-
-      {!loading && items.length > 0 && visibleColumns.length === 0 && !showActions && (
-        <div className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</div>
-      )}
-
-      {!loading && items.length > 0 && (visibleColumns.length > 0 || showActions) && (
-        <>
-          <div className="data-table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>No</th>
-                  {visibleColumns.map((column) => (
-                    <SortableTh
-                      key={column.key}
-                      label={column.label}
-                      column={column.sortKey}
-                      {...sortBind}
-                    />
-                  ))}
-                  {showActions && <th>Aksi</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id}>
-                    <td className="col-no">{rowNumber(meta, index)}</td>
-                    {visibleColumns.map((column) => (
-                      <td key={column.key}>{column.cell(item)}</td>
-                    ))}
-                    {showActions && (
-                      <td>
-                        <div className="data-table__actions">
-                          {updateAccess.visible && (
-                            <PermissionLink
-                              to={`/kegiatan/${item.id}/edit`}
-                              enabled={updateAccess.enabled}
-                              className="btn btn--secondary btn--small"
-                            >
-                              Edit
-                            </PermissionLink>
-                          )}
-                          {deleteAccess.visible && (
-                            <button
-                              type="button"
-                              className="btn btn--danger btn--small"
-                              disabled={!deleteAccess.enabled}
-                              onClick={() => void handleDelete(item.id)}
-                            >
-                              Hapus
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination
-            meta={meta}
-            onPageChange={setPage}
-            onPerPageChange={(next) => {
-              setPerPage(next)
-              setPage(1)
-            }}
+    <SimpleMasterListPage<Kegiatan>
+      title="Kegiatan"
+      description="Agenda kegiatan jamaah dan masjid."
+      entityLabel="kegiatan"
+      basePath="/kegiatan"
+      permissionPrefix={PREFIX}
+      createLabel="Tambah kegiatan"
+      dokumenKey="kegiatan"
+      searchPlaceholder="Cari judul atau jenis…"
+      defaultSortBy="tanggal"
+      defaultSortDir="desc"
+      columns={COLUMNS}
+      showStatusFilter={false}
+      showStatusColumn={false}
+      itemLabel={(item) => item.judul}
+      extraFilterParams={{
+        status: statusFilter || undefined,
+        kategori_kegiatan_id: kategoriFilter ? Number(kategoriFilter) : undefined,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
+      }}
+      hasExtraFilters={hasExtraFilters}
+      onClearExtraFilters={clearExtraFilters}
+      filterPrimary={[
+        ...dateRangeFilterFields({
+          fromId: 'filter_date_from',
+          toId: 'filter_date_to',
+          dateFrom,
+          dateTo,
+          onDateFromChange: setDateFrom,
+          onDateToChange: setDateTo,
+        }),
+        <div className="field" key="kategori">
+          <label htmlFor="filter_kategori">Kategori</label>
+          <SearchableSelect
+            id="filter_kategori"
+            value={kategoriFilter}
+            onChange={setKategoriFilter}
+            placeholder="Semua"
+            options={[
+              { value: '', label: 'Semua' },
+              ...kategoriOptions.map((item) => ({
+                value: String(item.id),
+                label: item.nama,
+              })),
+            ]}
           />
-        </>
-      )}
-    </>
+        </div>,
+        <div className="field" key="status">
+          <label htmlFor="filter_status">Status</label>
+          <SearchableSelect
+            id="filter_status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            placeholder="Semua"
+            options={[
+              { value: '', label: 'Semua' },
+              { value: 'planned', label: 'Direncanakan' },
+              { value: 'ongoing', label: 'Berlangsung' },
+              { value: 'completed', label: 'Selesai' },
+              { value: 'cancelled', label: 'Dibatalkan' },
+            ]}
+          />
+        </div>,
+      ]}
+      headerActions={
+        createAccess.visible ? (
+          <PermissionLink
+            to="/kegiatan/jadwal-rutin"
+            enabled={createAccess.enabled}
+            className="btn btn--ghost"
+          >
+            Jadwal Rutin
+          </PermissionLink>
+        ) : null
+      }
+      list={(params: MasterListParams) => kegiatanService.list(params)}
+      remove={(id) => kegiatanService.remove(id)}
+    />
   )
 }

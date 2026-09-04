@@ -30,12 +30,13 @@ export function MasterPusatFormPage() {
     <SimpleMasterKodeFormPage
       entityLabel="pusat"
       description="Kelola wilayah pusat sebagai induk tertinggi hierarki SIJAMA."
-      listPath="/master/pusat"
+      listPath="/master/wilayah-fung/pusat"
       emptyForm={emptyForm}
       get={masterPusatService.get}
       create={masterPusatService.create}
       update={masterPusatService.update}
       toForm={toForm}
+      permissionPrefix="wilayah_fung_pusat"
     />
   )
 }

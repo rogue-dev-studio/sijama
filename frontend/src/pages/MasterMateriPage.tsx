@@ -17,6 +17,12 @@ const columns: GatedColumn<Materi>[] = [
     exportValue: (item) => item.nama,
   },
   {
+    key: 'deskripsi',
+    label: 'Deskripsi',
+    cell: (item) => item.deskripsi || '—',
+    exportValue: (item) => item.deskripsi || '',
+  },
+  {
     key: 'is_active',
     label: 'Status',
     cell: (item) => (
@@ -32,7 +38,7 @@ export function MasterMateriPage() {
   return (
     <SimpleMasterListPage<Materi>
       title="Master Materi"
-      description="Kelola materi pengajian yang dapat dipilih pada jadwal."
+      description="Kelola materi yang dapat dipilih pada kegiatan atau jadwal rutin."
       entityLabel="materi"
       basePath="/master/materi"
       permissionPrefix="materi"

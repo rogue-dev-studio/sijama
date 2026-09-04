@@ -12,6 +12,7 @@ import { masterMenuService } from '../api/services'
 import { MENU_ICON_NAMES, MenuIcon } from '../components/MenuIcon'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import type { Menu, MenuInput } from '../api/types'
 
 const emptyForm: MenuInput = {
@@ -100,7 +101,13 @@ export function MasterMenuFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat menu…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit menu' : 'Tambah menu'}
+        description="Kelola struktur navigasi aplikasi."
+        message="Memuat menu…"
+      />
+    )
   }
 
   const editingId = id ? Number(id) : null

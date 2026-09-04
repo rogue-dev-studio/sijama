@@ -22,7 +22,7 @@ class UpdateAdmKodePosRequest extends FormRequest
     {
         return [
             'kode' => ['sometimes', 'string', 'regex:/^\d{5}$/'],
-            'desa_kelurahan_id' => ['sometimes', 'integer', 'exists:adm_desa_kelurahan,id'],
+            'wilayah_adm_desa_id' => ['sometimes', 'integer', 'exists:wilayah_adm_desa_m,id'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

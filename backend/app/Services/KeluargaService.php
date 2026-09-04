@@ -33,7 +33,7 @@ class KeluargaService
         User $user,
         ?string $query = null,
         ?string $status = null,
-        ?int $kelompokId = null,
+        ?int $wilayah_fung_kelompokId = null,
         ?int $perPage = null,
         ?int $page = null,
         ?string $sortBy = null,
@@ -41,9 +41,9 @@ class KeluargaService
     ): LengthAwarePaginator {
         $builder = Keluarga::query()
             ->with([
-                'kelompok:id,kode,nama',
+                'wilayahFungKelompok:id,kode,nama',
                 'kepalaJamaah:id,nama,nik,no_hp',
-                'admDesaKelurahan:id,kode,nama',
+                'wilayahAdmDesa:id,kode,nama',
             ])
             ->withCount('anggota');
 
@@ -55,7 +55,7 @@ class KeluargaService
                 'no_kk',
                 'status',
                 'kepala' => 'kepala_jamaah_id',
-                'kelompok' => 'kelompok_id',
+                'wilayah_fung_kelompok' => 'wilayah_fung_kelompok_id',
                 'anggota' => 'anggota_count',
             ],
             'no_kk',
@@ -74,8 +74,8 @@ class KeluargaService
             $builder->where('status', $status);
         }
 
-        if ($kelompokId !== null) {
-            $builder->where('kelompok_id', $kelompokId);
+        if ($wilayah_fung_kelompokId !== null) {
+            $builder->where('wilayah_fung_kelompok_id', $wilayah_fung_kelompokId);
         }
 
         return PaginationHelper::paginate($builder, $perPage, $page);
@@ -86,7 +86,7 @@ class KeluargaService
      */
     public function jamaahOptionsForForm(
         User $user,
-        ?int $kelompokId = null,
+        ?int $wilayah_fung_kelompokId = null,
         ?int $exceptKeluargaId = null,
     ) {
         $registeredIds = JamaahKeluarga::query()
@@ -96,14 +96,14 @@ class KeluargaService
         $builder = Jamaah::query()
             ->select([
                 'id',
-                'kelompok_id',
+                'wilayah_fung_kelompok_id',
                 'nik',
                 'nama',
                 'no_hp',
                 'alamat',
                 'rt',
                 'rw',
-                'adm_desa_kelurahan_id',
+                'wilayah_adm_desa_id',
                 'kode_pos',
             ])
             ->where('status', 'aktif')
@@ -112,8 +112,8 @@ class KeluargaService
 
         $this->scopeService->applyJamaahScope($builder, $user);
 
-        if ($kelompokId !== null) {
-            $builder->where('kelompok_id', $kelompokId);
+        if ($wilayah_fung_kelompokId !== null) {
+            $builder->where('wilayah_fung_kelompok_id', $wilayah_fung_kelompokId);
         }
 
         return $builder->get();
@@ -123,11 +123,11 @@ class KeluargaService
     {
         return DB::transaction(function () use ($data, $user) {
             $kepala = $this->resolveJamaahInScope($data->kepalaJamaahId, $user);
-            $kelompokId = $data->kelompokId !== null
-                ? $this->scopeService->resolveKelompokIdForCreate($user, $data->kelompokId)
-                : $this->scopeService->resolveKelompokIdForCreate($user, $kepala->kelompok_id);
+            $kelompokId = $data->wilayah_fung_kelompokId !== null
+                ? $this->scopeService->resolveKelompokIdForCreate($user, $data->wilayah_fung_kelompokId)
+                : $this->scopeService->resolveKelompokIdForCreate($user, $kepala->wilayah_fung_kelompok_id);
 
-            if ($kepala->kelompok_id !== $kelompokId) {
+            if ($kepala->wilayah_fung_kelompok_id !== $kelompokId) {
                 throw ValidationException::withMessages([
                     'kepala_jamaah_id' => ['Kepala keluarga harus berasal dari kelompok yang sama.'],
                 ]);
@@ -137,7 +137,7 @@ class KeluargaService
 
             $keluarga = Keluarga::create(array_merge(
                 $data->toModelAttributes(),
-                ['kelompok_id' => $kelompokId]
+                ['wilayah_fung_kelompok_id' => $kelompokId]
             ));
 
             $this->syncAnggota($keluarga, $data, $user);
@@ -157,11 +157,11 @@ class KeluargaService
             $keluarga = $this->findModel($id, $user);
             $kepala = $this->resolveJamaahInScope($data->kepalaJamaahId, $user);
 
-            $kelompokId = $data->kelompokId !== null
-                ? $this->scopeService->resolveKelompokIdForCreate($user, $data->kelompokId)
-                : $keluarga->kelompok_id;
+            $kelompokId = $data->wilayah_fung_kelompokId !== null
+                ? $this->scopeService->resolveKelompokIdForCreate($user, $data->wilayah_fung_kelompokId)
+                : $keluarga->wilayah_fung_kelompok_id;
 
-            if ($kepala->kelompok_id !== $kelompokId) {
+            if ($kepala->wilayah_fung_kelompok_id !== $kelompokId) {
                 throw ValidationException::withMessages([
                     'kepala_jamaah_id' => ['Kepala keluarga harus berasal dari kelompok yang sama.'],
                 ]);
@@ -170,7 +170,7 @@ class KeluargaService
             $this->assertJamaahAvailable($data->kepalaJamaahId, $keluarga->id);
 
             $attributes = $data->toModelAttributes();
-            $attributes['kelompok_id'] = $kelompokId;
+            $attributes['wilayah_fung_kelompok_id'] = $kelompokId;
             $keluarga->update($attributes);
 
             $this->syncAnggota($keluarga, $data, $user);
@@ -202,9 +202,9 @@ class KeluargaService
     private function resource(Keluarga $keluarga): KeluargaResource
     {
         $keluarga->load([
-            'kelompok:id,kode,nama',
+            'wilayahFungKelompok:id,kode,nama',
             'kepalaJamaah:id,nama,nik,no_hp',
-            'admDesaKelurahan:id,kode,nama',
+            'wilayahAdmDesa:id,kode,nama',
             'anggota:id,nama,nik,gender,tanggal_lahir,no_hp',
         ])->loadCount('anggota');
 
@@ -247,7 +247,7 @@ class KeluargaService
             }
 
             $jamaah = $this->resolveJamaahInScope((int) $jamaahId, $user);
-            if ($jamaah->kelompok_id !== $keluarga->kelompok_id) {
+            if ($jamaah->wilayah_fung_kelompok_id !== $keluarga->wilayah_fung_kelompok_id) {
                 throw ValidationException::withMessages([
                     "anggota.{$jamaahId}.jamaah_id" => ['Anggota harus berasal dari kelompok yang sama.'],
                 ]);

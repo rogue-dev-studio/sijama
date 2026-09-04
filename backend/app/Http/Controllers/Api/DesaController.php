@@ -23,7 +23,7 @@ class DesaController extends Controller
         $paginator = $this->desaService->list(
             $request->user(),
             $request->query('q'),
-            $request->filled('daerah_id') ? $request->integer('daerah_id') : null,
+            $request->filled('wilayah_fung_daerah_id') ? $request->integer('wilayah_fung_daerah_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,
@@ -48,21 +48,21 @@ class DesaController extends Controller
         return ApiResponse::success($desa, 'Desa berhasil ditambahkan', 201);
     }
 
-    public function show(Request $request, int $desa): JsonResponse
+    public function show(Request $request, int $wilayah_fung_desa): JsonResponse
     {
-        return ApiResponse::success($this->desaService->find($desa, $request->user()));
+        return ApiResponse::success($this->desaService->find($wilayah_fung_desa, $request->user()));
     }
 
-    public function update(UpdateDesaRequest $request, int $desa): JsonResponse
+    public function update(UpdateDesaRequest $request, int $wilayah_fung_desa): JsonResponse
     {
-        $updated = $this->desaService->update($desa, $request->validated(), $request->user());
+        $updated = $this->desaService->update($wilayah_fung_desa, $request->validated(), $request->user());
 
         return ApiResponse::success($updated, 'Desa berhasil diperbarui');
     }
 
-    public function destroy(Request $request, int $desa): JsonResponse
+    public function destroy(Request $request, int $wilayah_fung_desa): JsonResponse
     {
-        $this->desaService->delete($desa, $request->user());
+        $this->desaService->delete($wilayah_fung_desa, $request->user());
 
         return ApiResponse::success(null, 'Desa berhasil dihapus');
     }

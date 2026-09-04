@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class WilayahSeeder extends Seeder
 {
+    private const KELOMPOK_SINGKATAN = [
+        'Pajajaran Timur' => 'PJT',
+        'Pajajaran Barat' => 'PJB',
+    ];
+
     public function run(): void
     {
         DB::transaction(function () {
@@ -32,7 +37,7 @@ class WilayahSeeder extends Seeder
             $bandungUtara = Daerah::updateOrCreate(
                 ['kode' => '05'],
                 [
-                    'pusat_id' => $pusatBarat->id,
+                    'wilayah_fung_pusat_id' => $pusatBarat->id,
                     'nama' => 'Bandung Utara',
                     'deskripsi' => null,
                     'is_active' => true,
@@ -45,7 +50,7 @@ class WilayahSeeder extends Seeder
             foreach ($this->desaDefinitions() as $desaDefinition) {
                 $desa = Desa::updateOrCreate(
                     [
-                        'daerah_id' => $bandungUtara->id,
+                        'wilayah_fung_daerah_id' => $bandungUtara->id,
                         'kode' => $desaDefinition['kode'],
                     ],
                     [
@@ -60,11 +65,12 @@ class WilayahSeeder extends Seeder
                 foreach ($desaDefinition['kelompok'] as $kelompokNama) {
                     $kelompok = Kelompok::updateOrCreate(
                         [
-                            'desa_id' => $desa->id,
+                            'wilayah_fung_desa_id' => $desa->id,
                             'nama' => $kelompokNama,
                         ],
                         [
                             'kode' => null,
+                            'singkatan' => self::KELOMPOK_SINGKATAN[$kelompokNama] ?? null,
                             'deskripsi' => null,
                             'is_active' => true,
                         ]
@@ -76,6 +82,8 @@ class WilayahSeeder extends Seeder
 
             $this->purgeLegacyWilayah($bandungUtara->id, $keepDesaIds, $keepKelompokIds);
         });
+
+        $this->call(DemoUsersSeeder::class);
     }
 
     /**
@@ -173,8 +181,8 @@ class WilayahSeeder extends Seeder
         $legacyKelompokIds = $legacyKelompokQuery->pluck('id')->all();
 
         if ($legacyKelompokIds !== []) {
-            SubKelompok::query()->whereIn('kelompok_id', $legacyKelompokIds)->delete();
-            User::query()->whereIn('kelompok_id', $legacyKelompokIds)->update(['kelompok_id' => null]);
+            SubKelompok::query()->whereIn('wilayah_fung_kelompok_id', $legacyKelompokIds)->delete();
+            User::query()->whereIn('wilayah_fung_kelompok_id', $legacyKelompokIds)->update(['wilayah_fung_kelompok_id' => null]);
             $legacyKelompokQuery->whereDoesntHave('jamaah')->delete();
         }
 
@@ -182,7 +190,7 @@ class WilayahSeeder extends Seeder
         $legacyDesaIds = $legacyDesaQuery->pluck('id')->all();
 
         if ($legacyDesaIds !== []) {
-            User::query()->whereIn('desa_id', $legacyDesaIds)->update(['desa_id' => null]);
+            User::query()->whereIn('wilayah_fung_desa_id', $legacyDesaIds)->update(['wilayah_fung_desa_id' => null]);
             $legacyDesaQuery->delete();
         }
 

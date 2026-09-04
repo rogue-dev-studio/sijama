@@ -23,13 +23,13 @@ class AdmKecamatanService
 {
     public function list(
         ?string $query = null,
-        ?int $kabupatenKotaId = null,
+        ?int $wilayahAdmKabupatenKotaId = null,
         ?int $perPage = null,
         ?int $page = null,
         ?string $sortBy = null,
         ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = AdmKecamatan::query()->with('kabupatenKota');
+        $builder = AdmKecamatan::query()->with('wilayahAdmKabupatenKota');
         SortHelper::apply(
             $builder,
             $sortBy,
@@ -38,8 +38,8 @@ class AdmKecamatanService
             'nama',
         );
 
-        if ($kabupatenKotaId !== null) {
-            $builder->where('kabupaten_kota_id', $kabupatenKotaId);
+        if ($wilayahAdmKabupatenKotaId !== null) {
+            $builder->where('wilayah_adm_kabupaten_kota_id', $wilayahAdmKabupatenKotaId);
         }
 
         if ($query) {
@@ -51,44 +51,44 @@ class AdmKecamatanService
 
     public function create(array $data): AdmKecamatanResource
     {
-        AdmKabupatenKota::findOrFail($data['kabupaten_kota_id']);
+        AdmKabupatenKota::findOrFail($data['wilayah_adm_kabupaten_kota_id']);
 
         $kecamatan = AdmKecamatan::create($data);
 
-        return new AdmKecamatanResource($kecamatan->load('kabupatenKota'));
+        return new AdmKecamatanResource($kecamatan->load('wilayahAdmKabupatenKota'));
     }
 
     public function find(int $id): AdmKecamatanResource
     {
-        return new AdmKecamatanResource($this->findModel($id)->load('kabupatenKota'));
+        return new AdmKecamatanResource($this->findModel($id)->load('wilayahAdmKabupatenKota'));
     }
 
     public function update(int $id, array $data): AdmKecamatanResource
     {
         $kecamatan = $this->findModel($id);
 
-        if (isset($data['kabupaten_kota_id'])) {
-            AdmKabupatenKota::findOrFail($data['kabupaten_kota_id']);
+        if (isset($data['wilayah_adm_kabupaten_kota_id'])) {
+            AdmKabupatenKota::findOrFail($data['wilayah_adm_kabupaten_kota_id']);
         }
 
         $kecamatan->update($data);
 
-        return new AdmKecamatanResource($kecamatan->fresh()->load('kabupatenKota'));
+        return new AdmKecamatanResource($kecamatan->fresh()->load('wilayahAdmKabupatenKota'));
     }
 
     public function delete(int $id): void
     {
         $kecamatan = $this->findModel($id);
 
-        if ($kecamatan->desaKelurahan()->exists()) {
+        if ($kecamatan->wilayahAdmDesa()->exists()) {
             throw ValidationException::withMessages([
-                'adm_kecamatan' => ['Kecamatan masih memiliki desa/kelurahan terkait.'],
+                'wilayah_adm_kecamatan' => ['Kecamatan masih memiliki desa/kelurahan terkait.'],
             ]);
         }
 
         if ($kecamatan->kodePos()->exists()) {
             throw ValidationException::withMessages([
-                'adm_kecamatan' => ['Kecamatan masih memiliki kode pos terkait.'],
+                'wilayah_adm_kecamatan' => ['Kecamatan masih memiliki kode pos terkait.'],
             ]);
         }
 

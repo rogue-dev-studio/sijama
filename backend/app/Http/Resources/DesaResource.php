@@ -11,14 +11,15 @@ class DesaResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'daerah_id' => $this->daerah_id,
-            'daerah' => $this->whenLoaded('daerah', fn () => [
-                'id' => $this->daerah->id,
-                'kode' => $this->daerah->kode,
-                'nama' => $this->daerah->nama,
+            'wilayah_fung_daerah_id' => $this->wilayah_fung_daerah_id,
+            'wilayah_fung_daerah' => $this->whenLoaded('wilayahFungDaerah', fn () => [
+                'id' => $this->wilayahFungDaerah->id,
+                'kode' => $this->wilayahFungDaerah->kode,
+                'nama' => $this->wilayahFungDaerah->nama,
             ]),
             'kode' => $this->kode,
             'nama' => $this->nama,
+            'singkatan' => $this->singkatan,
             'deskripsi' => $this->deskripsi,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

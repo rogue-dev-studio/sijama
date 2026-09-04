@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Support\SuperAdminAccess;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Fitur extends Model
 {
+    protected $table = 'fitur_m';
+
     protected $fillable = [
         'menu_id',
         'slug',
@@ -21,6 +24,13 @@ class Fitur extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (Fitur $fitur): void {
+            SuperAdminAccess::provisionFitur($fitur);
+        });
     }
 
     public function menu(): BelongsTo

@@ -22,7 +22,7 @@ class StoreAdmKodePosRequest extends FormRequest
     {
         return [
             'kode' => ['required', 'string', 'regex:/^\d{5}$/'],
-            'desa_kelurahan_id' => ['required', 'integer', 'exists:adm_desa_kelurahan,id'],
+            'wilayah_adm_desa_id' => ['required', 'integer', 'exists:wilayah_adm_desa_m,id'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

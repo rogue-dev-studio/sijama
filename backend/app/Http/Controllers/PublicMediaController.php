@@ -2,45 +2,33 @@
 
 /**
  * @Author: rogue-dev-studio
- * @Date: 2026-08-31 14:10:00
+ * @Date: 2026-09-02 04:15:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-31 14:10:00
+ * @Last Modified time: 2026-09-02 04:15:00
  */
 
 namespace App\Http\Controllers;
 
 use App\Support\MediaMimeType;
+use App\Support\MediaPathGuard;
 use App\Support\UploadStorage;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class PublicMediaController extends Controller
 {
-    private const ALLOWED_PREFIXES = [
-        'jamaah/',
-        'konfig/',
-        'users/',
-        'share/',
-    ];
-
     public function show(Request $request, string $path): Response
     {
-        $path = ltrim($path, '/');
+        $path = MediaPathGuard::normalize($path);
 
-        if ($path === '' || str_contains($path, '..')) {
-            abort(404);
-        }
+        if (MediaPathGuard::matchesPrefix($path, MediaPathGuard::SIGNED_PREFIXES)) {
+            MediaPathGuard::assertSignedAllowed($path);
 
-        $allowed = false;
-        foreach (self::ALLOWED_PREFIXES as $prefix) {
-            if (str_starts_with($path, $prefix)) {
-                $allowed = true;
-                break;
+            if (! $request->hasValidSignature()) {
+                abort(403);
             }
-        }
-
-        if (! $allowed) {
-            abort(404);
+        } else {
+            MediaPathGuard::assertPublicAllowed($path);
         }
 
         $disk = UploadStorage::disk();
@@ -60,11 +48,13 @@ class PublicMediaController extends Controller
         }
 
         $mime = MediaMimeType::forPath($path, $disk);
+        $cacheControl = MediaPathGuard::matchesPrefix($path, MediaPathGuard::SIGNED_PREFIXES)
+            ? 'private, max-age=3600'
+            : 'public, max-age=86400';
 
         return response($content, 200, [
             'Content-Type' => $mime,
-            'Cache-Control' => 'public, max-age=86400',
-            'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => $cacheControl,
             'Cross-Origin-Resource-Policy' => 'cross-origin',
         ]);
     }

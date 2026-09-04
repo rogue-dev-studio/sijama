@@ -52,6 +52,8 @@ services:
           name: sijama-web
           envVarKey: RENDER_EXTERNAL_URL
       # Set to "true" once in Render Dashboard → redeploy → unset (free tier has no Shell).
+      - key: MIGRATE_FRESH_ON_DEPLOY
+        sync: false
       - key: SEED_ON_DEPLOY
         sync: false
       - key: BOOTSTRAP_ADMIN_USERNAME

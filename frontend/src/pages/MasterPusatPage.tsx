@@ -23,6 +23,12 @@ const columns: GatedColumn<Pusat>[] = [
     exportValue: (item) => item.nama,
   },
   {
+    key: 'deskripsi',
+    label: 'Deskripsi',
+    cell: (item) => item.deskripsi || '—',
+    exportValue: (item) => item.deskripsi || '',
+  },
+  {
     key: 'is_active',
     label: 'Status',
     cell: (item) => (
@@ -40,8 +46,8 @@ export function MasterPusatPage() {
       title="Master Pusat"
       description="Kelola wilayah pusat sebagai induk tertinggi hierarki SIJAMA."
       entityLabel="pusat"
-      basePath="/master/pusat"
-      permissionPrefix="pusat"
+      basePath="/master/wilayah-fung/pusat"
+      permissionPrefix="wilayah_fung_pusat"
       createLabel="Tambah pusat"
       searchPlaceholder="Cari kode atau nama pusat…"
       showStatusFilter={false}

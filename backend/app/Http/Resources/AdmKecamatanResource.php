@@ -18,11 +18,11 @@ class AdmKecamatanResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'kabupaten_kota_id' => $this->kabupaten_kota_id,
-            'kabupaten_kota' => $this->whenLoaded('kabupatenKota', fn () => [
-                'id' => $this->kabupatenKota->id,
-                'kode' => $this->kabupatenKota->kode,
-                'nama' => $this->kabupatenKota->nama,
+            'wilayah_adm_kabupaten_kota_id' => $this->wilayah_adm_kabupaten_kota_id,
+            'wilayah_adm_kabupaten_kota' => $this->whenLoaded('wilayahAdmKabupatenKota', fn () => [
+                'id' => $this->wilayahAdmKabupatenKota->id,
+                'kode' => $this->wilayahAdmKabupatenKota->kode,
+                'nama' => $this->wilayahAdmKabupatenKota->nama,
             ]),
             'kode' => $this->kode,
             'nama' => $this->nama,

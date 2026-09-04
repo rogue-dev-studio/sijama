@@ -18,6 +18,10 @@ use Illuminate\Support\Facades\Schema;
 
 class KonfigSystemKService
 {
+    public function __construct(
+        private readonly AuditActivityService $auditActivityService,
+    ) {}
+
     public function current(): JsonResource
     {
         return new KonfigSystemKResource($this->resolveSingleton());
@@ -38,6 +42,10 @@ class KonfigSystemKService
     {
         $model = $this->resolveSingleton();
         $payload = $this->prepare($data);
+        $before = [];
+        foreach (array_keys($payload) as $key) {
+            $before[$key] = $model->{$key};
+        }
         $payload['last_modified_date'] = now();
         $payload['last_modified_by'] = Auth::id();
         $payload['modified_count'] = ((int) $model->modified_count) + 1;
@@ -45,7 +53,27 @@ class KonfigSystemKService
         SystemKonfig::forgetCache();
         SystemKonfig::applyRuntimeConfig();
 
-        return new KonfigSystemKResource($model->fresh());
+        $fresh = $model->fresh();
+        $after = [];
+        foreach (array_keys($payload) as $key) {
+            if (in_array($key, ['last_modified_date', 'last_modified_by', 'modified_count'], true)) {
+                continue;
+            }
+            $after[$key] = $fresh->{$key};
+        }
+        $beforeFiltered = array_intersect_key($before, $after);
+        $diff = $this->auditActivityService->diff($beforeFiltered, $after);
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_KONFIG,
+            'action' => 'konfig_system_update',
+            'entity_type' => 'konfig_system',
+            'entity_id' => $fresh->konfigsystem_id ?? $fresh->id ?? null,
+            'entity_label' => 'Konfigurasi Sistem',
+            'summary' => 'Ubah konfigurasi sistem ('.count($diff['changed']).' field)',
+            'meta' => $diff,
+        ]);
+
+        return new KonfigSystemKResource($fresh);
     }
 
     private function resolveSingleton(): KonfigSystemK
@@ -63,6 +91,8 @@ class KonfigSystemKService
         }
 
         if ($first) {
+            $first->repairCorruptSecrets();
+
             return $this->hydrateMailSmsFromEnvIfEmpty($first);
         }
 
@@ -96,6 +126,8 @@ class KonfigSystemKService
             'color_muted' => null,
             'color_border' => null,
             'theme_color' => null,
+            'font_family_display' => null,
+            'font_family_body' => null,
             'timezone' => config('app.timezone', 'Asia/Jakarta'),
             'locale' => config('app.locale', 'id'),
             'mail_protocol' => env('MAIL_MAILER', 'smtp') === 'log' ? 'log' : 'smtp',
@@ -122,6 +154,9 @@ class KonfigSystemKService
             'n8n_base_url' => env('N8N_BASE_URL'),
             'n8n_webhook_url' => env('N8N_WEBHOOK_URL'),
             'n8n_api_key' => env('N8N_API_KEY') ?: null,
+            'api_co_id_holiday_enabled' => filter_var(env('API_CO_ID_HOLIDAY_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+            'api_co_id_api_key' => env('API_CO_ID_API_KEY') ?: null,
+            'api_co_id_holiday_base_url' => env('API_CO_ID_HOLIDAY_BASE_URL'),
         ]);
         SystemKonfig::forgetCache();
 
@@ -144,7 +179,7 @@ class KonfigSystemKService
             $updates['smtp_username'] = env('MAIL_USERNAME');
         }
 
-        if (! filled($model->smtp_password) && filled(env('MAIL_PASSWORD'))) {
+        if (! $model->secretIsSet('smtp_password') && filled(env('MAIL_PASSWORD'))) {
             $updates['smtp_password'] = env('MAIL_PASSWORD');
         }
 
@@ -169,7 +204,7 @@ class KonfigSystemKService
             $updates['fonnte_endpoint'] = env('FONNTE_ENDPOINT');
         }
 
-        if (! filled($model->fonnte_token) && filled(env('FONNTE_TOKEN'))) {
+        if (! $model->secretIsSet('fonnte_token') && filled(env('FONNTE_TOKEN'))) {
             $updates['fonnte_token'] = env('FONNTE_TOKEN');
         }
 
@@ -188,7 +223,7 @@ class KonfigSystemKService
             return $model->fresh() ?? $model;
         }
 
-        if (! filled($model->telegram_bot_token) && filled(env('TELEGRAM_BOT_TOKEN'))) {
+        if (! $model->secretIsSet('telegram_bot_token') && filled(env('TELEGRAM_BOT_TOKEN'))) {
             $updates['telegram_bot_token'] = env('TELEGRAM_BOT_TOKEN');
         }
 
@@ -208,8 +243,18 @@ class KonfigSystemKService
             $updates['n8n_webhook_url'] = env('N8N_WEBHOOK_URL');
         }
 
-        if (! filled($model->n8n_api_key) && filled(env('N8N_API_KEY'))) {
+        if (! $model->secretIsSet('n8n_api_key') && filled(env('N8N_API_KEY'))) {
             $updates['n8n_api_key'] = env('N8N_API_KEY');
+        }
+
+        if (Schema::hasColumn('konfigsystem_k', 'api_co_id_api_key')) {
+            if (! $model->secretIsSet('api_co_id_api_key') && filled(env('API_CO_ID_API_KEY'))) {
+                $updates['api_co_id_api_key'] = env('API_CO_ID_API_KEY');
+            }
+
+            if (! filled($model->api_co_id_holiday_base_url) && filled(env('API_CO_ID_HOLIDAY_BASE_URL'))) {
+                $updates['api_co_id_holiday_base_url'] = env('API_CO_ID_HOLIDAY_BASE_URL');
+            }
         }
 
         if ($updates === []) {
@@ -236,6 +281,12 @@ class KonfigSystemKService
             $data['fonnte_token_set'],
             $data['telegram_bot_token_set'],
             $data['n8n_api_key_set'],
+            $data['api_co_id_api_key_set'],
+            $data['api_co_id_holiday_last_synced_at'],
+            $data['api_co_id_holiday_last_sync_count'],
+            $data['db_last_checked_at'],
+            $data['db_last_check_status'],
+            $data['db_last_check_message'],
         );
 
         if (array_key_exists('smtp_password', $data) && ($data['smtp_password'] === null || $data['smtp_password'] === '')) {
@@ -252,6 +303,10 @@ class KonfigSystemKService
 
         if (array_key_exists('n8n_api_key', $data) && ($data['n8n_api_key'] === null || $data['n8n_api_key'] === '')) {
             unset($data['n8n_api_key']);
+        }
+
+        if (array_key_exists('api_co_id_api_key', $data) && ($data['api_co_id_api_key'] === null || $data['api_co_id_api_key'] === '')) {
+            unset($data['api_co_id_api_key']);
         }
 
         return $data;

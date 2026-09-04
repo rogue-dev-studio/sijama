@@ -19,12 +19,21 @@ class TrustedAdminDeviceService
 {
     public function remember(User $user, ?Request $request = null, ?string $deviceKey = null): void
     {
-        if (! $user->isSuperAdmin() || ! Schema::hasTable('trusted_admin_devices')) {
+        if (! $user->isSuperAdmin() || ! Schema::hasTable('trusted_admin_device_r')) {
             return;
         }
 
         $key = $this->normalizeDeviceKey($deviceKey);
         if ($key === null) {
+            return;
+        }
+
+        $existing = TrustedAdminDevice::query()
+            ->where('user_id', $user->id)
+            ->where('device_key', $key)
+            ->first();
+
+        if ($existing?->last_seen_at?->gte(now()->subMinutes(15))) {
             return;
         }
 
@@ -43,7 +52,7 @@ class TrustedAdminDeviceService
 
     public function isAllowed(?Request $request = null, ?string $deviceKey = null): bool
     {
-        if (! Schema::hasTable('trusted_admin_devices')) {
+        if (! Schema::hasTable('trusted_admin_device_r')) {
             return false;
         }
 

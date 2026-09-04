@@ -35,10 +35,10 @@ type KodePosRow = AdmKodePos & { nama: string }
 function formatWilayah(item: AdmKodePos): string {
   const w = item.wilayah
   if (!w) {
-    return item.desa_kelurahan?.nama || '—'
+    return item.wilayah_adm_desa?.nama || '—'
   }
 
-  return [w.desa_kelurahan, w.kecamatan, w.kabupaten_kota, w.provinsi].filter(Boolean).join(', ')
+  return [w.wilayah_adm_desa, w.wilayah_adm_kecamatan, w.wilayah_adm_kabupaten_kota, w.wilayah_adm_provinsi].filter(Boolean).join(', ')
 }
 
 const columns: GatedColumn<KodePosRow>[] = [
@@ -56,11 +56,11 @@ const columns: GatedColumn<KodePosRow>[] = [
     exportValue: (item) => formatWilayah(item),
   },
   {
-    key: 'negara',
+    key: 'wilayah_adm_negara',
     label: 'Negara',
     sortable: false,
-    cell: (item) => item.wilayah?.negara || '—',
-    exportValue: (item) => item.wilayah?.negara || '',
+    cell: (item) => item.wilayah?.wilayah_adm_negara || '—',
+    exportValue: (item) => item.wilayah?.wilayah_adm_negara || '',
   },
   {
     key: 'is_active',
@@ -98,11 +98,11 @@ export function MasterAdmKodePosPage() {
 
   const extraFilterParams = useMemo(
     () => ({
-      negara_id: negaraId || undefined,
-      provinsi_id: provinsiId || undefined,
-      kabupaten_kota_id: kabupatenKotaId || undefined,
-      kecamatan_id: kecamatanId || undefined,
-      desa_kelurahan_id: desaKelurahanId || undefined,
+      wilayah_adm_negara_id: negaraId || undefined,
+      wilayah_adm_provinsi_id: provinsiId || undefined,
+      wilayah_adm_kabupaten_kota_id: kabupatenKotaId || undefined,
+      wilayah_adm_kecamatan_id: kecamatanId || undefined,
+      wilayah_adm_desa_id: desaKelurahanId || undefined,
     }),
     [negaraId, provinsiId, kabupatenKotaId, kecamatanId, desaKelurahanId],
   )
@@ -117,13 +117,13 @@ export function MasterAdmKodePosPage() {
   async function listKodePos(params: MasterListParams): Promise<Paginated<KodePosRow>> {
     const result = await admKodePosService.list({
       q: typeof params.q === 'string' ? params.q : undefined,
-      negara_id: typeof params.negara_id === 'number' ? params.negara_id : undefined,
-      provinsi_id: typeof params.provinsi_id === 'number' ? params.provinsi_id : undefined,
-      kabupaten_kota_id:
-        typeof params.kabupaten_kota_id === 'number' ? params.kabupaten_kota_id : undefined,
-      kecamatan_id: typeof params.kecamatan_id === 'number' ? params.kecamatan_id : undefined,
-      desa_kelurahan_id:
-        typeof params.desa_kelurahan_id === 'number' ? params.desa_kelurahan_id : undefined,
+      wilayah_adm_negara_id: typeof params.wilayah_adm_negara_id === 'number' ? params.wilayah_adm_negara_id : undefined,
+      wilayah_adm_provinsi_id: typeof params.wilayah_adm_provinsi_id === 'number' ? params.wilayah_adm_provinsi_id : undefined,
+      wilayah_adm_kabupaten_kota_id:
+        typeof params.wilayah_adm_kabupaten_kota_id === 'number' ? params.wilayah_adm_kabupaten_kota_id : undefined,
+      wilayah_adm_kecamatan_id: typeof params.wilayah_adm_kecamatan_id === 'number' ? params.wilayah_adm_kecamatan_id : undefined,
+      wilayah_adm_desa_id:
+        typeof params.wilayah_adm_desa_id === 'number' ? params.wilayah_adm_desa_id : undefined,
       page: typeof params.page === 'number' ? params.page : undefined,
       per_page: typeof params.per_page === 'number' ? params.per_page : undefined,
       sort_by: typeof params.sort_by === 'string' ? params.sort_by : undefined,
@@ -150,7 +150,7 @@ export function MasterAdmKodePosPage() {
     setDesaKelurahanList([])
     setProvinsiList(
       nextId > 0
-        ? (await admProvinsiService.list({ negara_id: nextId, per_page: 100 })).items
+        ? (await admProvinsiService.list({ wilayah_adm_negara_id: nextId, per_page: 100 })).items
         : [],
     )
     setPage(1)
@@ -165,7 +165,7 @@ export function MasterAdmKodePosPage() {
     setDesaKelurahanList([])
     setKabupatenKotaList(
       nextId > 0
-        ? (await admKabupatenKotaService.list({ provinsi_id: nextId, per_page: 100 })).items
+        ? (await admKabupatenKotaService.list({ wilayah_adm_provinsi_id: nextId, per_page: 100 })).items
         : [],
     )
     setPage(1)
@@ -178,7 +178,7 @@ export function MasterAdmKodePosPage() {
     setDesaKelurahanList([])
     setKecamatanList(
       nextId > 0
-        ? (await admKecamatanService.list({ kabupaten_kota_id: nextId, per_page: 100 })).items
+        ? (await admKecamatanService.list({ wilayah_adm_kabupaten_kota_id: nextId, per_page: 100 })).items
         : [],
     )
     setPage(1)
@@ -189,7 +189,7 @@ export function MasterAdmKodePosPage() {
     setDesaKelurahanId(0)
     setDesaKelurahanList(
       nextId > 0
-        ? (await admDesaKelurahanService.list({ kecamatan_id: nextId, per_page: 100 })).items
+        ? (await admDesaKelurahanService.list({ wilayah_adm_kecamatan_id: nextId, per_page: 100 })).items
         : [],
     )
     setPage(1)
@@ -212,8 +212,8 @@ export function MasterAdmKodePosPage() {
       title="Master Kode Pos"
       description="Kelola kode pos per desa/kelurahan (wilayah administrasi resmi)."
       entityLabel="kode pos"
-      basePath="/master/adm/kode-pos"
-      permissionPrefix="adm_kode_pos"
+      basePath="/master/wilayah-adm/kode-pos"
+      permissionPrefix="wilayah_adm_kode_pos"
       createLabel="Tambah kode pos"
       searchPlaceholder="Cari kode pos atau nama wilayah…"
       showStatusFilter={false}
@@ -285,9 +285,9 @@ export function MasterAdmKodePosPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="filter_desa_kelurahan">Desa/Kelurahan</label>
+            <label htmlFor="filter_wilayah_adm_desa">Desa/Kelurahan</label>
             <SearchableSelect
-              id="filter_desa_kelurahan"
+              id="filter_wilayah_adm_desa"
               value={desaKelurahanId ? String(desaKelurahanId) : ''}
               onChange={(next) => {
                 setDesaKelurahanId(Number(next) || 0)

@@ -14,8 +14,8 @@ class StoreFiturRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'menu_id' => ['required', 'integer', 'exists:menus,id'],
-            'slug' => ['required', 'string', 'max:50', 'unique:fiturs,slug'],
+            'menu_id' => ['required', 'integer', 'exists:menu_m,id'],
+            'slug' => ['required', 'string', 'max:50', 'unique:fitur_m,slug'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

@@ -64,6 +64,15 @@ class JamaahKategoriUmurTest extends TestCase
         );
     }
 
+    public function test_accepts_date_string_from_request_payload(): void
+    {
+        $this->assertSame(
+            'dewasa',
+            JamaahKategoriUmur::classify('1993-12-24', JamaahStatusPernikahan::SUDAH_MENIKAH, '2026-09-04')
+        );
+        $this->assertNull(JamaahKategoriUmur::classify('', JamaahStatusPernikahan::SUDAH_MENIKAH));
+    }
+
     public function test_age_range_labels(): void
     {
         $this->assertSame('0–1 tahun', JamaahKategoriUmur::ageRangeLabel('bayi'));

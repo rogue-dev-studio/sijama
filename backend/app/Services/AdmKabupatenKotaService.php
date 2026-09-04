@@ -30,7 +30,7 @@ class AdmKabupatenKotaService
         ?string $sortBy = null,
         ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = AdmKabupatenKota::query()->with('provinsi');
+        $builder = AdmKabupatenKota::query()->with('wilayahAdmProvinsi');
         SortHelper::apply(
             $builder,
             $sortBy,
@@ -40,7 +40,7 @@ class AdmKabupatenKotaService
         );
 
         if ($provinsiId !== null) {
-            $builder->where('provinsi_id', $provinsiId);
+            $builder->where('wilayah_adm_provinsi_id', $provinsiId);
         }
 
         if ($jenis) {
@@ -56,52 +56,52 @@ class AdmKabupatenKotaService
 
     public function create(array $data): AdmKabupatenKotaResource
     {
-        AdmProvinsi::findOrFail($data['provinsi_id']);
+        AdmProvinsi::findOrFail($data['wilayah_adm_provinsi_id']);
 
-        $kabupatenKota = AdmKabupatenKota::create($data);
+        $wilayahAdmKabupatenKota = AdmKabupatenKota::create($data);
 
-        return new AdmKabupatenKotaResource($kabupatenKota->load('provinsi'));
+        return new AdmKabupatenKotaResource($wilayahAdmKabupatenKota->load('wilayahAdmProvinsi'));
     }
 
     public function find(int $id): AdmKabupatenKotaResource
     {
-        return new AdmKabupatenKotaResource($this->findModel($id)->load('provinsi'));
+        return new AdmKabupatenKotaResource($this->findModel($id)->load('wilayahAdmProvinsi'));
     }
 
     public function update(int $id, array $data): AdmKabupatenKotaResource
     {
-        $kabupatenKota = $this->findModel($id);
+        $wilayahAdmKabupatenKota = $this->findModel($id);
 
-        if (isset($data['provinsi_id'])) {
-            AdmProvinsi::findOrFail($data['provinsi_id']);
+        if (isset($data['wilayah_adm_provinsi_id'])) {
+            AdmProvinsi::findOrFail($data['wilayah_adm_provinsi_id']);
         }
 
-        $kabupatenKota->update($data);
+        $wilayahAdmKabupatenKota->update($data);
 
-        return new AdmKabupatenKotaResource($kabupatenKota->fresh()->load('provinsi'));
+        return new AdmKabupatenKotaResource($wilayahAdmKabupatenKota->fresh()->load('wilayahAdmProvinsi'));
     }
 
     public function delete(int $id): void
     {
-        $kabupatenKota = $this->findModel($id);
+        $wilayahAdmKabupatenKota = $this->findModel($id);
 
-        if ($kabupatenKota->kecamatan()->exists()) {
+        if ($wilayahAdmKabupatenKota->wilayahAdmKecamatan()->exists()) {
             throw ValidationException::withMessages([
-                'adm_kabupaten_kota' => ['Kabupaten/kota masih memiliki kecamatan terkait.'],
+                'wilayah_adm_kabupaten_kota' => ['Kabupaten/kota masih memiliki kecamatan terkait.'],
             ]);
         }
 
-        $kabupatenKota->delete();
+        $wilayahAdmKabupatenKota->delete();
     }
 
     private function findModel(int $id): AdmKabupatenKota
     {
-        $kabupatenKota = AdmKabupatenKota::find($id);
+        $wilayahAdmKabupatenKota = AdmKabupatenKota::find($id);
 
-        if (! $kabupatenKota) {
+        if (! $wilayahAdmKabupatenKota) {
             throw new ModelNotFoundException('Kabupaten/kota tidak ditemukan.');
         }
 
-        return $kabupatenKota;
+        return $wilayahAdmKabupatenKota;
     }
 }

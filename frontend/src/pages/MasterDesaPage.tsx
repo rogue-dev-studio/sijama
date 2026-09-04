@@ -16,7 +16,7 @@ async function loadDaerahOptions() {
 
 const parentFilter = {
   label: 'Daerah',
-  paramKey: 'daerah_id',
+  paramKey: 'wilayah_fung_daerah_id',
   loadOptions: loadDaerahOptions,
 }
 
@@ -28,10 +28,22 @@ const columns: GatedColumn<Desa>[] = [
     exportValue: (item) => item.kode,
   },
   {
+    key: 'wilayah_fung_daerah',
+    label: 'Daerah',
+    cell: (item) => item.wilayah_fung_daerah?.nama || '—',
+    exportValue: (item) => item.wilayah_fung_daerah?.nama || '',
+  },
+  {
     key: 'nama',
     label: 'Nama',
     cell: (item) => item.nama,
     exportValue: (item) => item.nama,
+  },
+  {
+    key: 'deskripsi',
+    label: 'Deskripsi',
+    cell: (item) => item.deskripsi || '—',
+    exportValue: (item) => item.deskripsi || '',
   },
   {
     key: 'is_active',
@@ -51,8 +63,8 @@ export function MasterDesaPage() {
       title="Master Desa"
       description="Kelola wilayah desa per daerah dalam hierarki SIJAMA."
       entityLabel="desa"
-      basePath="/master/desa"
-      permissionPrefix="desa"
+      basePath="/master/wilayah-fung/desa"
+      permissionPrefix="wilayah_fung_desa"
       createLabel="Tambah desa"
       searchPlaceholder="Cari kode atau nama desa…"
       showStatusFilter={false}

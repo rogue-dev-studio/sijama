@@ -48,14 +48,14 @@ class DapukanController extends Controller
 
     public function update(UpdateDapukanRequest $request, int $dapukan): JsonResponse
     {
-        $updated = $this->dapukanService->update($dapukan, $request->validated());
+        $updated = $this->dapukanService->update($dapukan, $request->validated(), $request->user());
 
         return ApiResponse::success($updated, 'Dapukan berhasil diperbarui');
     }
 
     public function destroy(int $dapukan): JsonResponse
     {
-        $this->dapukanService->delete($dapukan);
+        $this->dapukanService->delete($dapukan, $request->user());
 
         return ApiResponse::success(null, 'Dapukan berhasil dihapus');
     }

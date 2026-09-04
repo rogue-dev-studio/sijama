@@ -29,7 +29,7 @@ class AdmKecamatanController extends Controller
 
         $paginator = $this->admKecamatanService->list(
             $request->query('q'),
-            $request->filled('kabupaten_kota_id') ? $request->integer('kabupaten_kota_id') : null,
+            $request->filled('wilayah_adm_kabupaten_kota_id') ? $request->integer('wilayah_adm_kabupaten_kota_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,
@@ -54,21 +54,21 @@ class AdmKecamatanController extends Controller
         return ApiResponse::success($kecamatan, 'Kecamatan berhasil ditambahkan', 201);
     }
 
-    public function show(int $adm_kecamatan): JsonResponse
+    public function show(int $wilayah_adm_kecamatan): JsonResponse
     {
-        return ApiResponse::success($this->admKecamatanService->find($adm_kecamatan));
+        return ApiResponse::success($this->admKecamatanService->find($wilayah_adm_kecamatan));
     }
 
-    public function update(UpdateAdmKecamatanRequest $request, int $adm_kecamatan): JsonResponse
+    public function update(UpdateAdmKecamatanRequest $request, int $wilayah_adm_kecamatan): JsonResponse
     {
-        $updated = $this->admKecamatanService->update($adm_kecamatan, $request->validated());
+        $updated = $this->admKecamatanService->update($wilayah_adm_kecamatan, $request->validated());
 
         return ApiResponse::success($updated, 'Kecamatan berhasil diperbarui');
     }
 
-    public function destroy(int $adm_kecamatan): JsonResponse
+    public function destroy(int $wilayah_adm_kecamatan): JsonResponse
     {
-        $this->admKecamatanService->delete($adm_kecamatan);
+        $this->admKecamatanService->delete($wilayah_adm_kecamatan);
 
         return ApiResponse::success(null, 'Kecamatan berhasil dihapus');
     }

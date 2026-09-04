@@ -27,6 +27,10 @@ use InvalidArgumentException;
 
 class KonfigDokumenKService
 {
+    public function __construct(
+        private readonly AuditActivityService $auditActivityService,
+    ) {}
+
     public function list(
         ?string $query = null,
         ?int $perPage = null,
@@ -127,13 +131,19 @@ class KonfigDokumenKService
 
         $payload = $this->prepare($data);
         unset($payload['lookup_id']);
+        $created = false;
 
         if ($model) {
+            $before = [];
+            foreach (array_keys($payload) as $key) {
+                $before[$key] = $model->{$key};
+            }
             $payload['last_modified_date'] = now();
             $payload['last_modified_by'] = Auth::id();
             $payload['modified_count'] = ((int) $model->modified_count) + 1;
             $model->update($payload);
         } else {
+            $created = true;
             $model = KonfigDokumenK::query()->create(array_merge($payload, [
                 'lookup_id' => $lookup->lookup_id,
                 'created_date' => now(),
@@ -145,8 +155,38 @@ class KonfigDokumenKService
         }
 
         DocumentKonfig::forgetCache();
+        $fresh = $model->fresh()->loadMissing('lookup');
 
-        return new KonfigDokumenKResource($model->fresh()->loadMissing('lookup'));
+        $meta = ['lookup_id' => $lookup->lookup_id];
+        if (! $created) {
+            $after = [];
+            foreach (array_keys($payload) as $key) {
+                if (in_array($key, ['last_modified_date', 'last_modified_by', 'modified_count'], true)) {
+                    continue;
+                }
+                $after[$key] = $fresh->{$key};
+            }
+            $meta = array_merge($meta, $this->auditActivityService->diff(
+                array_intersect_key($before ?? [], $after),
+                $after,
+            ));
+        }
+
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_KONFIG,
+            'action' => $created ? 'konfig_dokumen_create' : 'konfig_dokumen_update',
+            'entity_type' => 'konfig_dokumen',
+            'entity_id' => $lookup->lookup_id,
+            'entity_label' => $lookup->nama ?? ('Lookup #'.$lookup->lookup_id),
+            'summary' => sprintf(
+                '%s konfigurasi dokumen %s',
+                $created ? 'Buat' : 'Ubah',
+                $lookup->nama ?? ('#'.$lookup->lookup_id),
+            ),
+            'meta' => $meta,
+        ]);
+
+        return new KonfigDokumenKResource($fresh);
     }
 
     public function uploadAsset(int $lookupId, string $asset, UploadedFile $file): KonfigDokumenKResource
@@ -169,6 +209,16 @@ class KonfigDokumenKService
 
         DocumentKonfig::forgetCache();
 
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_KONFIG,
+            'action' => 'konfig_dokumen_upload_asset',
+            'entity_type' => 'konfig_dokumen',
+            'entity_id' => $lookupId,
+            'entity_label' => 'Dokumen #'.$lookupId,
+            'summary' => sprintf('Unggah aset dokumen %s', $asset),
+            'meta' => ['asset' => $asset, 'path_set' => true],
+        ]);
+
         return new KonfigDokumenKResource($model->fresh()->loadMissing('lookup'));
     }
 
@@ -187,6 +237,16 @@ class KonfigDokumenKService
         ]);
 
         DocumentKonfig::forgetCache();
+
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_KONFIG,
+            'action' => 'konfig_dokumen_delete_asset',
+            'entity_type' => 'konfig_dokumen',
+            'entity_id' => $lookupId,
+            'entity_label' => 'Dokumen #'.$lookupId,
+            'summary' => sprintf('Hapus aset dokumen %s', $asset),
+            'meta' => ['asset' => $asset, 'path_set' => false],
+        ]);
 
         return new KonfigDokumenKResource($model->fresh()->loadMissing('lookup'));
     }

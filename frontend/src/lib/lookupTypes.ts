@@ -12,6 +12,7 @@ export const LOOKUP_TYPE = {
   STATUS_PERNIKAHAN: 'status_pernikahan',
   PENDIDIKAN: 'pendidikan',
   HUBUNGAN_KELUARGA: 'hubungan_keluarga',
+  HARI_MINGGU: 'hari_minggu',
   KONFIG_DOKUMEN: 'konfig_dokumen',
 } as const
 
@@ -32,6 +33,7 @@ export const JAMAAH_FORM_TYPES: Array<
 export const LOOKUP_OPTION_TYPES = [
   ...JAMAAH_FORM_TYPES,
   LOOKUP_TYPE.HUBUNGAN_KELUARGA,
+  LOOKUP_TYPE.HARI_MINGGU,
 ] as const
 
 export type LookupOptionTypeKey = (typeof LOOKUP_OPTION_TYPES)[number]
@@ -43,6 +45,7 @@ export const LOOKUP_TYPE_LABELS: Record<LookupOptionTypeKey, string> = {
   [LOOKUP_TYPE.STATUS_PERNIKAHAN]: 'Status pernikahan',
   [LOOKUP_TYPE.PENDIDIKAN]: 'Pendidikan',
   [LOOKUP_TYPE.HUBUNGAN_KELUARGA]: 'Hubungan keluarga',
+  [LOOKUP_TYPE.HARI_MINGGU]: 'Hari minggu',
 }
 
 export const LOOKUP_TYPE_OPTIONS = LOOKUP_OPTION_TYPES.map((value) => ({

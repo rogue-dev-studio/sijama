@@ -7,6 +7,7 @@
 
 import type { JamaahDapukanOption, JamaahInput, Kelompok, LookupOption } from '../../api/types'
 import { SearchableSelect } from '../../components/SearchableSelect'
+import { DateField } from '../../components/DateField'
 import {
   JAMAHA_KELOMPOK_DAPUKAN_SLUG,
   normalizeDapukanIds,
@@ -79,27 +80,27 @@ export function JamaahProfileFields({
   return (
     <div className="form-grid form-grid--2">
       <div className="field">
-        <label htmlFor="kelompok_id">Kelompok</label>
+        <label htmlFor="wilayah_fung_kelompok_id">Kelompok</label>
         <SearchableSelect
-          id="kelompok_id"
-          value={form.kelompok_id ? String(form.kelompok_id) : ''}
+          id="wilayah_fung_kelompok_id"
+          value={form.wilayah_fung_kelompok_id ? String(form.wilayah_fung_kelompok_id) : ''}
           onChange={(next) => onKelompokChange(Number(next) || 0)}
           required
           disabled={kelompokList.length === 0}
-          aria-invalid={isFieldInvalid('kelompok_id')}
+          aria-invalid={isFieldInvalid('wilayah_fung_kelompok_id')}
           placeholder="Pilih kelompok"
           options={kelompokList.map((item) => ({
             value: String(item.id),
-            label: item.desa
-              ? `${item.desa.kode ? `${item.desa.kode} ` : ''}${item.desa.nama} — ${item.nama}`
+            label: item.wilayah_fung_desa
+              ? `${item.wilayah_fung_desa.kode ? `${item.wilayah_fung_desa.kode} ` : ''}${item.wilayah_fung_desa.nama} — ${item.nama}`
               : item.nama,
           }))}
         />
         <p className="field-hint">
           Daftar kelompok mengikuti cakupan wilayah akun Anda (pusat/daerah/desa/kelompok).
         </p>
-        {fieldMessage('kelompok_id') && (
-          <p className="field-hint field-hint--error">{fieldMessage('kelompok_id')}</p>
+        {fieldMessage('wilayah_fung_kelompok_id') && (
+          <p className="field-hint field-hint--error">{fieldMessage('wilayah_fung_kelompok_id')}</p>
         )}
       </div>
       <div className="field">
@@ -157,11 +158,10 @@ export function JamaahProfileFields({
       </div>
       <div className="field">
         <label htmlFor="tanggal_lahir">Tanggal lahir</label>
-        <input
+        <DateField
           id="tanggal_lahir"
-          type="date"
           value={form.tanggal_lahir || ''}
-          onChange={(event) => updateField('tanggal_lahir', event.target.value)}
+          onChange={(next) => updateField('tanggal_lahir', next)}
         />
         <p className="field-hint">
           Bisa diisi otomatis dari NIK. Kategori umur dihitung dari tanggal lahir + status
@@ -218,7 +218,7 @@ export function JamaahProfileFields({
             {dapukanList.map((item) => {
               const locked = item.slug === JAMAHA_KELOMPOK_DAPUKAN_SLUG
               const checked =
-                locked && form.kelompok_id
+                locked && form.wilayah_fung_kelompok_id
                   ? true
                   : normalizeDapukanIds(form.dapukan_ids).includes(item.id)
               return (

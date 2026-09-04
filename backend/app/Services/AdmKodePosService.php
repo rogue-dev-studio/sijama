@@ -21,14 +21,14 @@ use Illuminate\Validation\ValidationException;
 class AdmKodePosService
 {
     private const WILAYAH_RELATIONS = [
-        'desaKelurahan.kecamatan.kabupatenKota.provinsi.negara',
+        'wilayahAdmDesa.wilayahAdmKecamatan.wilayahAdmKabupatenKota.wilayahAdmProvinsi.wilayahAdmNegara',
     ];
 
     public function list(
         ?string $query = null,
-        ?int $desaKelurahanId = null,
+        ?int $wilayahAdmDesaId = null,
         ?int $kecamatanId = null,
-        ?int $kabupatenKotaId = null,
+        ?int $wilayahAdmKabupatenKotaId = null,
         ?int $provinsiId = null,
         ?int $negaraId = null,
         ?int $perPage = null,
@@ -45,32 +45,32 @@ class AdmKodePosService
             'kode',
         );
 
-        if ($desaKelurahanId !== null) {
-            $builder->where('desa_kelurahan_id', $desaKelurahanId);
+        if ($wilayahAdmDesaId !== null) {
+            $builder->where('wilayah_adm_desa_id', $wilayahAdmDesaId);
         }
 
         if ($kecamatanId !== null) {
-            $builder->where('kecamatan_id', $kecamatanId);
+            $builder->where('wilayah_adm_kecamatan_id', $kecamatanId);
         }
 
-        if ($kabupatenKotaId !== null) {
+        if ($wilayahAdmKabupatenKotaId !== null) {
             $builder->whereHas(
-                'desaKelurahan.kecamatan',
-                fn ($q) => $q->where('kabupaten_kota_id', $kabupatenKotaId),
+                'wilayahAdmDesa.wilayahAdmKecamatan',
+                fn ($q) => $q->where('wilayah_adm_kabupaten_kota_id', $wilayahAdmKabupatenKotaId),
             );
         }
 
         if ($provinsiId !== null) {
             $builder->whereHas(
-                'desaKelurahan.kecamatan.kabupatenKota',
-                fn ($q) => $q->where('provinsi_id', $provinsiId),
+                'wilayahAdmDesa.wilayahAdmKecamatan.wilayahAdmKabupatenKota',
+                fn ($q) => $q->where('wilayah_adm_provinsi_id', $provinsiId),
             );
         }
 
         if ($negaraId !== null) {
             $builder->whereHas(
-                'desaKelurahan.kecamatan.kabupatenKota.provinsi',
-                fn ($q) => $q->where('negara_id', $negaraId),
+                'wilayahAdmDesa.wilayahAdmKecamatan.wilayahAdmKabupatenKota.wilayahAdmProvinsi',
+                fn ($q) => $q->where('wilayah_adm_negara_id', $negaraId),
             );
         }
 
@@ -78,14 +78,14 @@ class AdmKodePosService
             $term = trim($query);
             $builder->where(function ($nested) use ($term) {
                 $nested->where('kode', 'like', "%{$term}%")
-                    ->orWhereHas('desaKelurahan', fn ($desa) => $desa->where('nama', 'like', "%{$term}%"))
-                    ->orWhereHas('desaKelurahan.kecamatan', fn ($kec) => $kec->where('nama', 'like', "%{$term}%"))
+                    ->orWhereHas('wilayahAdmDesa', fn ($desa) => $desa->where('nama', 'like', "%{$term}%"))
+                    ->orWhereHas('wilayahAdmDesa.wilayahAdmKecamatan', fn ($kec) => $kec->where('nama', 'like', "%{$term}%"))
                     ->orWhereHas(
-                        'desaKelurahan.kecamatan.kabupatenKota',
+                        'wilayahAdmDesa.wilayahAdmKecamatan.wilayahAdmKabupatenKota',
                         fn ($kab) => $kab->where('nama', 'like', "%{$term}%"),
                     )
                     ->orWhereHas(
-                        'desaKelurahan.kecamatan.kabupatenKota.provinsi',
+                        'wilayahAdmDesa.wilayahAdmKecamatan.wilayahAdmKabupatenKota.wilayahAdmProvinsi',
                         fn ($prov) => $prov->where('nama', 'like', "%{$term}%"),
                     );
             });
@@ -125,24 +125,24 @@ class AdmKodePosService
 
     private function normalizeWilayah(array $data, ?AdmKodePos $existing = null): array
     {
-        unset($data['kecamatan_id'], $data['nama_wilayah']);
+        unset($data['wilayah_adm_kecamatan_id'], $data['nama_wilayah']);
 
-        $desaId = $data['desa_kelurahan_id'] ?? $existing?->desa_kelurahan_id;
+        $desaId = $data['wilayah_adm_desa_id'] ?? $existing?->wilayah_adm_desa_id;
         if (! $desaId) {
             throw ValidationException::withMessages([
-                'desa_kelurahan_id' => ['Desa/kelurahan wajib dipilih.'],
+                'wilayah_adm_desa_id' => ['Desa/kelurahan wajib dipilih.'],
             ]);
         }
 
         $desa = AdmDesaKelurahan::query()->find($desaId);
         if (! $desa) {
             throw ValidationException::withMessages([
-                'desa_kelurahan_id' => ['Desa/kelurahan tidak ditemukan.'],
+                'wilayah_adm_desa_id' => ['Desa/kelurahan tidak ditemukan.'],
             ]);
         }
 
-        $data['desa_kelurahan_id'] = $desa->id;
-        $data['kecamatan_id'] = $desa->kecamatan_id;
+        $data['wilayah_adm_desa_id'] = $desa->id;
+        $data['wilayah_adm_kecamatan_id'] = $desa->wilayah_adm_kecamatan_id;
 
         return $data;
     }

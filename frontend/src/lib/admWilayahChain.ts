@@ -34,20 +34,20 @@ export type WilayahChainLists = {
 
 export async function fetchWilayahChainFromDesa(desaId: number): Promise<WilayahChainLists | null> {
   const desa = await admDesaKelurahanService.get(desaId)
-  if (!desa.kecamatan_id) return null
+  if (!desa.wilayah_adm_kecamatan_id) return null
 
-  const kecamatan = await admKecamatanService.get(desa.kecamatan_id)
-  if (!kecamatan.kabupaten_kota_id) return null
+  const kecamatan = await admKecamatanService.get(desa.wilayah_adm_kecamatan_id)
+  if (!kecamatan.wilayah_adm_kabupaten_kota_id) return null
 
-  const kabupaten = await admKabupatenKotaService.get(kecamatan.kabupaten_kota_id)
-  if (!kabupaten.provinsi_id) return null
+  const kabupaten = await admKabupatenKotaService.get(kecamatan.wilayah_adm_kabupaten_kota_id)
+  if (!kabupaten.wilayah_adm_provinsi_id) return null
 
-  const provinsi = await admProvinsiService.get(kabupaten.provinsi_id)
-  if (!provinsi.negara_id) return null
+  const provinsi = await admProvinsiService.get(kabupaten.wilayah_adm_provinsi_id)
+  if (!provinsi.wilayah_adm_negara_id) return null
 
-  const negara = await admNegaraService.get(provinsi.negara_id)
+  const negara = await admNegaraService.get(provinsi.wilayah_adm_negara_id)
   const desaResult = await admDesaKelurahanService.list({
-    kecamatan_id: kecamatan.id,
+    wilayah_adm_kecamatan_id: kecamatan.id,
     per_page: 500,
   })
 

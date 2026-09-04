@@ -17,13 +17,16 @@ import type {
 } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { DateField } from '../components/DateField'
 import { LoginSessionFields } from '../components/LoginSessionFields'
 import { PasswordInput } from '../components/PasswordInput'
 import { ProfilePhotoUpload } from '../components/ProfilePhotoUpload'
 import { ProfileSignatureUpload } from '../components/ProfileSignatureUpload'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import { describeLoginSessionExpiry, parseLoginRememberMinutesInput } from '../lib/loginSession'
 import { kodePosFromDesa } from '../lib/kodePosFromDesa'
+import { isSuperAdminUser } from '../lib/isSuperAdmin'
 import {
   syncPreferenceFromRememberMinutes,
   writeLoginSessionPreference,
@@ -42,7 +45,7 @@ type ProfileForm = {
   rw: string
   no_hp: string
   email: string
-  adm_desa_kelurahan_id: number | null
+  wilayah_adm_desa_id: number | null
   kode_pos: string
 }
 
@@ -60,7 +63,7 @@ function toForm(jamaah: Jamaah): ProfileForm {
     rw: jamaah.rw || '',
     no_hp: jamaah.no_hp || '',
     email: jamaah.email || '',
-    adm_desa_kelurahan_id: jamaah.adm_desa_kelurahan_id || null,
+    wilayah_adm_desa_id: jamaah.wilayah_adm_desa_id || null,
     kode_pos: jamaah.kode_pos || '',
   }
 }
@@ -68,7 +71,7 @@ function toForm(jamaah: Jamaah): ProfileForm {
 function formatScope(profile: ProfileResult): string {
   const scope = profile.user.scope
   if (!scope) return '—'
-  const parts = [scope.pusat?.nama, scope.daerah?.nama, scope.desa?.nama, scope.kelompok?.nama].filter(
+  const parts = [scope.wilayah_fung_pusat?.nama, scope.wilayah_fung_daerah?.nama, scope.wilayah_fung_desa?.nama, scope.wilayah_fung_kelompok?.nama].filter(
     Boolean,
   )
   return parts.length > 0 ? parts.join(' · ') : '—'
@@ -133,6 +136,22 @@ export function ProfilePage() {
     [profile?.jamaah],
   )
 
+  const passwordChangeLocked = useMemo(() => {
+    if (!profile?.user) return false
+    return Boolean(profile.user.is_demo) || isSuperAdminUser(profile.user)
+  }, [profile?.user])
+
+  const passwordLockReason = useMemo(() => {
+    if (!profile?.user) return null
+    if (profile.user.is_demo) {
+      return 'Akun demo tidak dapat mengubah password dari profil.'
+    }
+    if (isSuperAdminUser(profile.user)) {
+      return 'Akun Super Admin tidak dapat mengubah password dari profil.'
+    }
+    return null
+  }, [profile?.user])
+
   useEffect(() => {
     if (visibleTabs.length === 0) return
     if (!visibleTabs.some((item) => item.id === tab)) {
@@ -186,7 +205,7 @@ export function ProfilePage() {
   }, [])
 
   async function hydrateAdmChain(chain: ProfileAdmChain | null, active = true) {
-    if (!chain?.desa_kelurahan_id) {
+    if (!chain?.wilayah_adm_desa_id) {
       setSelectedNegaraId(0)
       setSelectedProvinsiId(0)
       setSelectedKabupatenKotaId(0)
@@ -198,10 +217,10 @@ export function ProfilePage() {
       return
     }
 
-    const negaraId = chain.negara_id || 0
-    const provinsiId = chain.provinsi_id || 0
-    const kabupatenId = chain.kabupaten_kota_id || 0
-    const kecamatanId = chain.kecamatan_id || 0
+    const negaraId = chain.wilayah_adm_negara_id || 0
+    const provinsiId = chain.wilayah_adm_provinsi_id || 0
+    const kabupatenId = chain.wilayah_adm_kabupaten_kota_id || 0
+    const kecamatanId = chain.wilayah_adm_kecamatan_id || 0
 
     const [provinsi, kabupaten, kecamatan, desa] = await Promise.all([
       negaraId ? profileService.wilayahOptions('provinsi', negaraId) : Promise.resolve({ items: [] }),
@@ -212,7 +231,7 @@ export function ProfilePage() {
         ? profileService.wilayahOptions('kecamatan', kabupatenId)
         : Promise.resolve({ items: [] }),
       kecamatanId
-        ? profileService.wilayahOptions('desa_kelurahan', kecamatanId)
+        ? profileService.wilayahOptions('wilayah_adm_desa', kecamatanId)
         : Promise.resolve({ items: [] }),
     ])
 
@@ -251,7 +270,7 @@ export function ProfilePage() {
     setKabupatenKotaList([])
     setKecamatanList([])
     setDesaKelurahanList([])
-    setForm((prev) => (prev ? { ...prev, adm_desa_kelurahan_id: null, kode_pos: '' } : prev))
+    setForm((prev) => (prev ? { ...prev, wilayah_adm_desa_id: null, kode_pos: '' } : prev))
     setProvinsiList(
       negaraId > 0 ? (await profileService.wilayahOptions('provinsi', negaraId)).items : [],
     )
@@ -263,7 +282,7 @@ export function ProfilePage() {
     setSelectedKecamatanId(0)
     setKecamatanList([])
     setDesaKelurahanList([])
-    setForm((prev) => (prev ? { ...prev, adm_desa_kelurahan_id: null, kode_pos: '' } : prev))
+    setForm((prev) => (prev ? { ...prev, wilayah_adm_desa_id: null, kode_pos: '' } : prev))
     setKabupatenKotaList(
       provinsiId > 0
         ? (await profileService.wilayahOptions('kabupaten_kota', provinsiId)).items
@@ -275,7 +294,7 @@ export function ProfilePage() {
     setSelectedKabupatenKotaId(kabupatenKotaId)
     setSelectedKecamatanId(0)
     setDesaKelurahanList([])
-    setForm((prev) => (prev ? { ...prev, adm_desa_kelurahan_id: null, kode_pos: '' } : prev))
+    setForm((prev) => (prev ? { ...prev, wilayah_adm_desa_id: null, kode_pos: '' } : prev))
     setKecamatanList(
       kabupatenKotaId > 0
         ? (await profileService.wilayahOptions('kecamatan', kabupatenKotaId)).items
@@ -285,10 +304,10 @@ export function ProfilePage() {
 
   async function handleKecamatanChange(kecamatanId: number) {
     setSelectedKecamatanId(kecamatanId)
-    setForm((prev) => (prev ? { ...prev, adm_desa_kelurahan_id: null, kode_pos: '' } : prev))
+    setForm((prev) => (prev ? { ...prev, wilayah_adm_desa_id: null, kode_pos: '' } : prev))
     setDesaKelurahanList(
       kecamatanId > 0
-        ? (await profileService.wilayahOptions('desa_kelurahan', kecamatanId)).items
+        ? (await profileService.wilayahOptions('wilayah_adm_desa', kecamatanId)).items
         : [],
     )
   }
@@ -299,7 +318,7 @@ export function ProfilePage() {
       prev
         ? {
             ...prev,
-            adm_desa_kelurahan_id: desaId,
+            wilayah_adm_desa_id: desaId,
             kode_pos: kodePosFromDesa(desaKelurahanList, desaId),
           }
         : prev,
@@ -351,7 +370,7 @@ export function ProfilePage() {
       rw: form.rw.trim() || undefined,
       no_hp: form.no_hp,
       email: form.email || null,
-      adm_desa_kelurahan_id: form.adm_desa_kelurahan_id,
+      wilayah_adm_desa_id: form.wilayah_adm_desa_id,
       kode_pos: form.kode_pos || null,
     }
 
@@ -371,6 +390,7 @@ export function ProfilePage() {
 
   async function handlePasswordSubmit(event: FormEvent) {
     event.preventDefault()
+    if (passwordChangeLocked) return
     setPasswordSubmitting(true)
     setPasswordError(null)
     setPasswordFieldErrors({})
@@ -441,7 +461,13 @@ export function ProfilePage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat profil…</div>
+    return (
+      <FormPageLoading
+        title="Profil saya"
+        description="Kelola akun login dan data jamaah yang terhubung. Simpan setelah selesai mengubah."
+        message="Memuat profil…"
+      />
+    )
   }
 
   if (!profile) {
@@ -583,11 +609,10 @@ export function ProfilePage() {
                 </div>
                 <div className="field">
                   <label htmlFor="tanggal_lahir">Tanggal lahir</label>
-                  <input
+                  <DateField
                     id="tanggal_lahir"
-                    type="date"
                     value={form.tanggal_lahir}
-                    onChange={(event) => setForm({ ...form, tanggal_lahir: event.target.value })}
+                    onChange={(next) => setForm({ ...form, tanggal_lahir: next })}
                   />
                 </div>
                 <div className="field">
@@ -714,7 +739,7 @@ export function ProfilePage() {
               <div className="form-grid form-grid--2">
                 <div className="field">
                   <label htmlFor="kelompok">Kelompok</label>
-                  <input id="kelompok" value={jamaah.kelompok?.nama || '—'} disabled />
+                  <input id="kelompok" value={jamaah.wilayah_fung_kelompok?.nama || '—'} disabled />
                 </div>
                 <div className="field">
                   <label htmlFor="dapukan_jamaah">Dapukan jamaah</label>
@@ -767,9 +792,9 @@ export function ProfilePage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="negara_id">Negara</label>
+                  <label htmlFor="wilayah_adm_negara_id">Negara</label>
                   <SearchableSelect
-                    id="negara_id"
+                    id="wilayah_adm_negara_id"
                     value={selectedNegaraId ? String(selectedNegaraId) : ''}
                     onChange={(next) => void handleNegaraChange(Number(next) || 0)}
                     placeholder="Pilih negara"
@@ -783,9 +808,9 @@ export function ProfilePage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="provinsi_id">Provinsi</label>
+                  <label htmlFor="wilayah_adm_provinsi_id">Provinsi</label>
                   <SearchableSelect
-                    id="provinsi_id"
+                    id="wilayah_adm_provinsi_id"
                     value={selectedProvinsiId ? String(selectedProvinsiId) : ''}
                     onChange={(next) => void handleProvinsiChange(Number(next) || 0)}
                     disabled={provinsiList.length === 0}
@@ -800,9 +825,9 @@ export function ProfilePage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="kabupaten_kota_id">Kabupaten/Kota</label>
+                  <label htmlFor="wilayah_adm_kabupaten_kota_id">Kabupaten/Kota</label>
                   <SearchableSelect
-                    id="kabupaten_kota_id"
+                    id="wilayah_adm_kabupaten_kota_id"
                     value={selectedKabupatenKotaId ? String(selectedKabupatenKotaId) : ''}
                     onChange={(next) => void handleKabupatenKotaChange(Number(next) || 0)}
                     disabled={kabupatenKotaList.length === 0}
@@ -817,9 +842,9 @@ export function ProfilePage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="kecamatan_id">Kecamatan</label>
+                  <label htmlFor="wilayah_adm_kecamatan_id">Kecamatan</label>
                   <SearchableSelect
-                    id="kecamatan_id"
+                    id="wilayah_adm_kecamatan_id"
                     value={selectedKecamatanId ? String(selectedKecamatanId) : ''}
                     onChange={(next) => void handleKecamatanChange(Number(next) || 0)}
                     disabled={kecamatanList.length === 0}
@@ -834,10 +859,10 @@ export function ProfilePage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="adm_desa_kelurahan_id">Desa/Kelurahan</label>
+                  <label htmlFor="wilayah_adm_desa_id">Desa/Kelurahan</label>
                   <SearchableSelect
-                    id="adm_desa_kelurahan_id"
-                    value={form.adm_desa_kelurahan_id ? String(form.adm_desa_kelurahan_id) : ''}
+                    id="wilayah_adm_desa_id"
+                    value={form.wilayah_adm_desa_id ? String(form.wilayah_adm_desa_id) : ''}
                     onChange={handleDesaKelurahanChange}
                     disabled={desaKelurahanList.length === 0}
                     placeholder="Pilih desa/kelurahan"
@@ -888,6 +913,12 @@ export function ProfilePage() {
             className="profile-tab-panel"
           >
             <h2 className="profile-card__title">Keamanan</h2>
+            {passwordChangeLocked ? (
+              <div className="alert alert--info" role="status">
+                {passwordLockReason}
+              </div>
+            ) : (
+              <>
             <p className="field-hint">Ubah password login akun Anda. Minimal 8 karakter.</p>
 
             {passwordError && <div className="alert alert--error">{passwordError}</div>}
@@ -958,6 +989,8 @@ export function ProfilePage() {
                 {passwordSubmitting ? 'Menyimpan…' : 'Ubah password'}
               </button>
             </div>
+              </>
+            )}
           </div>
         </form>
 

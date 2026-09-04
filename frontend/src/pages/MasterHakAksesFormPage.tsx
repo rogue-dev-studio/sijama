@@ -11,6 +11,7 @@ import { ApiError } from '../api/client'
 import { masterFiturService, masterHakAksesService } from '../api/services'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import type { Fitur, HakAkses, HakAksesInput } from '../api/types'
 
 const aksiOptions: HakAkses['aksi'][] = ['view', 'create', 'update', 'delete', 'execute']
@@ -90,7 +91,13 @@ export function MasterHakAksesFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat hak akses…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit hak akses' : 'Tambah hak akses'}
+        description="Kelola permission per fitur."
+        message="Memuat hak akses…"
+      />
+    )
   }
 
   return (

@@ -63,6 +63,7 @@ export function MasterDapukanPage() {
       remove={masterDapukanService.remove}
       searchPlaceholder="Cari slug atau nama dapukan…"
       canDeleteItem={(item) => !item.is_system}
+      canEditItem={(item) => !item.is_system}
       defaultSortBy="urutan"
       columns={columns}
     />

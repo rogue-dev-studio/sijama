@@ -12,6 +12,7 @@ import { masterDapukanService } from '../api/services'
 import type { DapukanInput } from '../api/types'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 
 const emptyForm: DapukanInput = {
   slug: '',
@@ -48,6 +49,9 @@ export function MasterDapukanFormPage() {
             urutan: item.urutan,
             is_active: item.is_active,
           })
+          if (item.is_system) {
+            setError('Dapukan sistem / peran akun demo tidak dapat diubah atau dinonaktifkan.')
+          }
         }
       } catch (err) {
         if (active) {
@@ -66,6 +70,7 @@ export function MasterDapukanFormPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    if (isSystem) return
     setSubmitting(true)
     setError(null)
 
@@ -90,7 +95,13 @@ export function MasterDapukanFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat dapukan…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit dapukan' : 'Tambah dapukan'}
+        description="Kelola peran dan tingkat akses pengguna."
+        message="Memuat dapukan…"
+      />
+    )
   }
 
   return (
@@ -102,6 +113,13 @@ export function MasterDapukanFormPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
+      {isSystem ? (
+        <div className="form-actions">
+          <Link to="/master/dapukan" className="btn btn--secondary">
+            Kembali
+          </Link>
+        </div>
+      ) : (
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
           <div className="field">
@@ -111,7 +129,6 @@ export function MasterDapukanFormPage() {
               value={form.slug}
               onChange={(event) => setForm({ ...form, slug: event.target.value })}
               required
-              disabled={isEdit && isSystem}
             />
           </div>
           <div className="field">
@@ -163,6 +180,7 @@ export function MasterDapukanFormPage() {
           </Link>
         </div>
       </form>
+      )}
     </>
   )
 }

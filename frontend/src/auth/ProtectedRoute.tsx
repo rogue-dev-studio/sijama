@@ -12,10 +12,10 @@ import { isSuperAdminUser } from '../lib/isSuperAdmin'
 
 export function ProtectedRoute() {
   const { user, loading } = useAuth()
-  const { settings, loading: settingsLoading } = useAppSettings()
+  const { settings } = useAppSettings()
   const location = useLocation()
 
-  if (loading || settingsLoading) {
+  if (loading) {
     return <div className="loading-state">Memuat sesi…</div>
   }
 

@@ -19,15 +19,15 @@ final class UserProfileFromJamaah
      *   name: string,
      *   email: ?string,
      *   dapukan_id: int,
-     *   pusat_id: ?int,
-     *   daerah_id: ?int,
-     *   desa_id: ?int,
-     *   kelompok_id: ?int
+     *   wilayah_fung_pusat_id: ?int,
+     *   wilayah_fung_daerah_id: ?int,
+     *   wilayah_fung_desa_id: ?int,
+     *   wilayah_fung_kelompok_id: ?int
      * }
      */
     public static function resolve(Jamaah $jamaah): array
     {
-        $jamaah->loadMissing(['dapukan', 'kelompok.desa.daerah']);
+        $jamaah->loadMissing(['dapukan', 'wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah']);
 
         if ($jamaah->dapukan->isEmpty()) {
             throw ValidationException::withMessages([
@@ -42,45 +42,45 @@ final class UserProfileFromJamaah
             ]);
         }
 
-        $kelompok = $jamaah->kelompok;
-        $desa = $kelompok?->desa;
-        $daerah = $desa?->daerah;
+        $kelompok = $jamaah->wilayahFungKelompok;
+        $desa = $kelompok?->wilayahFungDesa;
+        $daerah = $desa?->wilayahFungDaerah;
         $tingkat = $primary->tingkat;
 
         $scope = [
-            'pusat_id' => null,
-            'daerah_id' => null,
-            'desa_id' => null,
-            'kelompok_id' => null,
+            'wilayah_fung_pusat_id' => null,
+            'wilayah_fung_daerah_id' => null,
+            'wilayah_fung_desa_id' => null,
+            'wilayah_fung_kelompok_id' => null,
         ];
 
         if ($tingkat === 'pusat') {
-            $scope['pusat_id'] = $daerah?->pusat_id;
-            if (! $scope['pusat_id']) {
+            $scope['wilayah_fung_pusat_id'] = $daerah?->wilayah_fung_pusat_id;
+            if (! $scope['wilayah_fung_pusat_id']) {
                 throw ValidationException::withMessages([
                     'jamaah_id' => ['Kelompok jamaah belum terhubung ke pusat untuk dapukan tingkat pusat.'],
                 ]);
             }
         } elseif ($tingkat === 'daerah') {
-            $scope['daerah_id'] = $desa?->daerah_id;
-            if (! $scope['daerah_id']) {
+            $scope['wilayah_fung_daerah_id'] = $desa?->wilayah_fung_daerah_id;
+            if (! $scope['wilayah_fung_daerah_id']) {
                 throw ValidationException::withMessages([
                     'jamaah_id' => ['Kelompok jamaah belum terhubung ke daerah untuk dapukan tingkat daerah.'],
                 ]);
             }
         } elseif ($tingkat === 'desa') {
-            $scope['daerah_id'] = $desa?->daerah_id;
-            $scope['desa_id'] = $kelompok?->desa_id;
-            if (! $scope['daerah_id'] || ! $scope['desa_id']) {
+            $scope['wilayah_fung_daerah_id'] = $desa?->wilayah_fung_daerah_id;
+            $scope['wilayah_fung_desa_id'] = $kelompok?->wilayah_fung_desa_id;
+            if (! $scope['wilayah_fung_daerah_id'] || ! $scope['wilayah_fung_desa_id']) {
                 throw ValidationException::withMessages([
                     'jamaah_id' => ['Kelompok jamaah belum lengkap untuk dapukan tingkat desa.'],
                 ]);
             }
         } elseif ($tingkat === 'kelompok') {
-            $scope['daerah_id'] = $desa?->daerah_id;
-            $scope['desa_id'] = $kelompok?->desa_id;
-            $scope['kelompok_id'] = $jamaah->kelompok_id;
-            if (! $scope['daerah_id'] || ! $scope['desa_id'] || ! $scope['kelompok_id']) {
+            $scope['wilayah_fung_daerah_id'] = $desa?->wilayah_fung_daerah_id;
+            $scope['wilayah_fung_desa_id'] = $kelompok?->wilayah_fung_desa_id;
+            $scope['wilayah_fung_kelompok_id'] = $jamaah->wilayah_fung_kelompok_id;
+            if (! $scope['wilayah_fung_daerah_id'] || ! $scope['wilayah_fung_desa_id'] || ! $scope['wilayah_fung_kelompok_id']) {
                 throw ValidationException::withMessages([
                     'jamaah_id' => ['Jamaah belum memiliki kelompok untuk dapukan tingkat kelompok.'],
                 ]);

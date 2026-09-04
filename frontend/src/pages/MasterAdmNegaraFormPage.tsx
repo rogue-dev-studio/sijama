@@ -37,7 +37,7 @@ export function MasterAdmNegaraFormPage() {
     <SimpleMasterKodeFormPage
       entityLabel="negara"
       description="Kelola data wilayah administrasi negara."
-      listPath="/master/adm/negara"
+      listPath="/master/wilayah-adm/negara"
       emptyForm={emptyForm}
       get={admNegaraService.get}
       create={admNegaraService.create}
@@ -45,19 +45,25 @@ export function MasterAdmNegaraFormPage() {
       toForm={toForm}
       toPayload={toPayload}
       showDeskripsi={false}
-      renderExtraFields={(form, setForm) => (
-        <div className="field">
-          <label htmlFor="iso3">Kode ISO3</label>
-          <input
-            id="iso3"
-            value={form.iso3 || ''}
-            onChange={(event) =>
-              setForm({ ...form, iso3: event.target.value.toUpperCase() })
-            }
-            maxLength={3}
-          />
-        </div>
-      )}
+      permissionPrefix="wilayah_adm_negara"
+      renderExtraFields={(form, setForm, _isEdit, fieldAccess) => {
+        const access = fieldAccess('iso3')
+        if (!access.visible) return null
+        return (
+          <div className="field">
+            <label htmlFor="iso3">Kode ISO3</label>
+            <input
+              id="iso3"
+              value={form.iso3 || ''}
+              onChange={(event) =>
+                setForm({ ...form, iso3: event.target.value.toUpperCase() })
+              }
+              maxLength={3}
+              disabled={!access.enabled}
+            />
+          </div>
+        )
+      }}
     />
   )
 }

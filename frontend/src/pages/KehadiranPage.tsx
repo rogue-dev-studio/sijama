@@ -14,6 +14,12 @@ import { listColumnPerm, listExportAccess } from '../lib/listUiAccess'
 import { toggleSort, type ListSortState } from '../lib/listSort'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { ExportPrintActions } from '../components/ExportPrintActions'
+import { ListFilterBar } from '../components/ListFilterBar'
+import {
+  dateRangeFilterFields,
+  isDefaultDateRange,
+  todayIsoDate,
+} from '../lib/dateRangeFilters'
 
 type ColumnDef = {
   key: string
@@ -89,10 +95,11 @@ export function KehadiranPage() {
   const [activeSession, setActiveSession] = useState<AttendanceSession | null>(null)
   const [sessionStatusFilter, setSessionStatusFilter] = useState<'' | 'open' | 'closed'>('')
   const [methodFilter, setMethodFilter] = useState<'' | 'face' | 'manual'>('')
+  const [dateFrom, setDateFrom] = useState(todayIsoDate)
+  const [dateTo, setDateTo] = useState(todayIsoDate)
   const [namaQuery, setNamaQuery] = useState('')
   const [sort, setSort] = useState<ListSortState>({ sortBy: 'recorded_at', sortDir: 'desc' })
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
@@ -122,14 +129,15 @@ export function KehadiranPage() {
   const loadSessions = useCallback(async () => {
     const result = await attendanceService.listSessions({
       status: sessionStatusFilter || undefined,
+      date_from: dateFrom || undefined,
+      date_to: dateTo || undefined,
       per_page: 100,
     })
     setSessions(result.items)
     return result.items
-  }, [sessionStatusFilter])
+  }, [dateFrom, dateTo, sessionStatusFilter])
 
-  const loadSessionDetail = useCallback(async (id: number, quiet = false) => {
-    if (!quiet) setRefreshing(true)
+  const loadSessionDetail = useCallback(async (id: number) => {
     try {
       const session = await attendanceService.getSession(id)
       setActiveSession(session)
@@ -138,8 +146,6 @@ export function KehadiranPage() {
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal memuat daftar kehadiran')
       return null
-    } finally {
-      if (!quiet) setRefreshing(false)
     }
   }, [])
 
@@ -183,7 +189,7 @@ export function KehadiranPage() {
     if (!sessionId || activeSession?.status !== 'open') return
 
     const timer = window.setInterval(() => {
-      void loadSessionDetail(Number(sessionId), true)
+      void loadSessionDetail(Number(sessionId))
     }, REFRESH_MS)
 
     return () => window.clearInterval(timer)
@@ -228,72 +234,88 @@ export function KehadiranPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="form-panel absensi-controls">
-        <div className="field">
-          <label htmlFor="kehadiran-session-status">Status sesi</label>
-          <SearchableSelect
-            id="kehadiran-session-status"
-            value={sessionStatusFilter}
-            onChange={(next) => setSessionStatusFilter(next as '' | 'open' | 'closed')}
-            placeholder="Semua"
-            options={[
-              { value: "", label: "Semua" },
-              { value: "open", label: "Open" },
-              { value: "closed", label: "Closed" },
-            ]}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="kehadiran-session">Sesi absensi</label>
-          <SearchableSelect
-            id="kehadiran-session"
-            value={sessionId ? String(sessionId) : ''}
-            onChange={(next) => void handleSelectSession(next)}
-            placeholder="— Pilih sesi —"
-            options={[
-              { value: "", label: "— Pilih sesi —" },
-              ...sessions.map((session) => ({ value: String(session.id), label: (session.title) + " · " + (session.status) + " · " + (session.attendance_count ?? 0) + " hadir" })),
-            ]}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="kehadiran-method">Metode</label>
-          <SearchableSelect
-            id="kehadiran-method"
-            value={methodFilter}
-            onChange={(next) => setMethodFilter(next as '' | 'face' | 'manual')}
-            placeholder="Semua"
-            options={[
-              { value: "", label: "Semua" },
-              { value: "face", label: "Wajah" },
-              { value: "manual", label: "Manual" },
-            ]}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="kehadiran-nama">Cari nama</label>
-          <input
-            id="kehadiran-nama"
-            type="search"
-            placeholder="Filter nama jamaah…"
-            value={namaQuery}
-            onChange={(event) => setNamaQuery(event.target.value)}
-          />
-        </div>
-        <div className="btn-group">
-          <button
-            type="button"
-            className="btn btn--secondary"
-            disabled={!sessionId || refreshing}
-            onClick={() => {
-              if (!sessionId) return
-              void loadSessionDetail(Number(sessionId))
-            }}
-          >
-            {refreshing ? 'Memuat…' : 'Muat ulang'}
-          </button>
-        </div>
-      </div>
+      <ListFilterBar
+        search={{
+          value: namaQuery,
+          onChange: setNamaQuery,
+          onSubmit: () => undefined,
+          placeholder: 'Filter nama jamaah…',
+          label: 'Cari nama',
+          ariaLabel: 'Cari nama jamaah',
+        }}
+        primaryFilters={[
+          ...dateRangeFilterFields({
+            fromId: 'kehadiran-date-from',
+            toId: 'kehadiran-date-to',
+            dateFrom,
+            dateTo,
+            onDateFromChange: setDateFrom,
+            onDateToChange: setDateTo,
+          }),
+          <div className="field" key="status">
+            <label htmlFor="kehadiran-session-status">Status sesi</label>
+            <SearchableSelect
+              id="kehadiran-session-status"
+              value={sessionStatusFilter}
+              onChange={(next) => setSessionStatusFilter(next as '' | 'open' | 'closed')}
+              placeholder="Semua"
+              options={[
+                { value: '', label: 'Semua' },
+                { value: 'open', label: 'Open' },
+                { value: 'closed', label: 'Closed' },
+              ]}
+            />
+          </div>,
+          <div className="field" key="session">
+            <label htmlFor="kehadiran-session">Sesi absensi</label>
+            <SearchableSelect
+              id="kehadiran-session"
+              value={sessionId ? String(sessionId) : ''}
+              onChange={(next) => void handleSelectSession(next)}
+              placeholder="— Pilih sesi —"
+              options={[
+                { value: '', label: '— Pilih sesi —' },
+                ...sessions.map((session) => ({
+                  value: String(session.id),
+                  label: `${session.title} · ${session.status} · ${session.attendance_count ?? 0} hadir`,
+                })),
+              ]}
+            />
+          </div>,
+          <div className="field" key="method">
+            <label htmlFor="kehadiran-method">Metode</label>
+            <SearchableSelect
+              id="kehadiran-method"
+              value={methodFilter}
+              onChange={(next) => setMethodFilter(next as '' | 'face' | 'manual')}
+              placeholder="Semua"
+              options={[
+                { value: '', label: 'Semua' },
+                { value: 'face', label: 'Wajah' },
+                { value: 'manual', label: 'Manual' },
+              ]}
+            />
+          </div>,
+        ]}
+        secondaryActive={Boolean(sessionId || methodFilter)}
+        hasActiveFilters={
+          Boolean(namaQuery.trim()) ||
+          Boolean(sessionStatusFilter) ||
+          Boolean(sessionId) ||
+          Boolean(methodFilter) ||
+          !isDefaultDateRange(dateFrom, dateTo)
+        }
+        onReset={() => {
+          const today = todayIsoDate()
+          setNamaQuery('')
+          setSessionStatusFilter('')
+          setMethodFilter('')
+          setDateFrom(today)
+          setDateTo(today)
+          setSessionId('')
+          setActiveSession(null)
+        }}
+      />
 
       {loading && <div className="loading-state">Memuat daftar kehadiran…</div>}
 

@@ -12,6 +12,7 @@ import { masterLookupService } from '../api/services'
 import type { LookupMInput } from '../api/types'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import { LOOKUP_TYPE, LOOKUP_TYPE_OPTIONS } from '../lib/lookupTypes'
 import {
   defaultLookupKonfigDokumenMeta,
@@ -131,7 +132,13 @@ export function MasterLookupFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat lookup…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit lookup' : 'Tambah lookup'}
+        description="Tipe lookup diisi manual. Untuk cetakan dokumen gunakan tipe konfig_dokumen."
+        message="Memuat lookup…"
+      />
+    )
   }
 
   const isKonfigDokumen = form.lookup_type.trim() === LOOKUP_TYPE.KONFIG_DOKUMEN

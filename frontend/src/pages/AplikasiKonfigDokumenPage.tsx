@@ -2,24 +2,24 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-27 16:14:05
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-27 17:16:38
+ * @Last Modified time: 2026-09-02 10:30:00
  */
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { ApiError } from '../api/client'
+import type { ReactNode } from 'react'
 import { aplikasiKonfigDokumenService } from '../api/services'
-import type { KonfigDokumen, PaginationMeta } from '../api/types'
+import type { KonfigDokumen } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { ListFilterBar } from '../components/ListFilterBar'
-import { ExportPrintActions } from '../components/ExportPrintActions'
+import {
+  SimpleMasterListPage,
+  type GatedColumn,
+  type MasterListParams,
+} from '../components/SimpleMasterListPage'
 import { PermissionLink } from '../components/PermissionLink'
-import { Pagination, rowNumber } from '../components/Pagination'
-import { SortableTh, bindSortableTh } from '../components/SortableTh'
-import { listButtonAccess, listColumnPerm, listExportAccess } from '../lib/listUiAccess'
-import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
-import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
+import { listButtonAccess } from '../lib/listUiAccess'
 
 const PREFIX = 'konfig_dokumen'
+
+type KonfigDokumenRow = KonfigDokumen & { id: number }
 
 function kopMediaLabel(item: KonfigDokumen): string {
   const parts: string[] = []
@@ -29,16 +29,7 @@ function kopMediaLabel(item: KonfigDokumen): string {
   return parts.length > 0 ? parts.join(', ') : '—'
 }
 
-type ColumnDef = {
-  key: string
-  label: string
-  sortKey?: string
-  sortable?: boolean
-  cell: (item: KonfigDokumen) => ReactNode
-  exportValue: (item: KonfigDokumen) => string | number
-}
-
-const COLUMNS: ColumnDef[] = [
+const COLUMNS: GatedColumn<KonfigDokumenRow>[] = [
   {
     key: 'nama_cetakan',
     label: 'Nama cetakan',
@@ -82,188 +73,54 @@ const COLUMNS: ColumnDef[] = [
 
 export function AplikasiKonfigDokumenPage() {
   const { can } = useAuth()
-  const updateAccess = listButtonAccess(can, PREFIX, 'update')
   const createLookupAccess = listButtonAccess(can, 'lookup', 'create')
-  const [items, setItems] = useState<KonfigDokumen[]>([])
-  const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
-  const [query, setQuery] = useState('')
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
-  const [sort, setSort] = useState<ListSortState>({ sortBy: 'lookup_urutan', sortDir: 'asc' })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
-  const exportAccess = listExportAccess(can, PREFIX)
-  const showActions = updateAccess.visible
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await aplikasiKonfigDokumenService.list({
-        q: search || undefined,
-        page,
-        per_page: perPage,
-        ...toSortParams(sort),
-      })
-      setItems(result.items)
-      setMeta(result.meta)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Gagal memuat konfigurasi dokumen')
-    } finally {
-      setLoading(false)
-    }
-  }, [search, page, perPage, sort])
-
-  useEffect(() => {
-    void load()
-  }, [load])
-
-  function submitSearch() {
-    setSearch(query)
-    setPage(1)
-  }
-
-  function clearFilters() {
-    setQuery('')
-    setSearch('')
-    setPage(1)
-  }
-
-  function handleSort(column: string) {
-    setSort((current) => toggleSort(current, column))
-    setPage(1)
-  }
-
-  const sortBind = bindSortableTh(sort, handleSort)
-  const hasActiveFilters = search !== ''
+  const updateAccess = listButtonAccess(can, PREFIX, 'update')
 
   return (
-    <>
-      <header className="page-header">
-        <div className="page-header__row">
-          <div>
-            <h1>Konfigurasi Dokumen</h1>
-            <p>
-              Header/footer per cetakan dari lookup tipe <code>konfig_dokumen</code>.
-            </p>
-          </div>
-          <div className="page-header__actions">
-            <ExportPrintActions
-              title="Konfigurasi Dokumen"
-              dokumenKey="master_list"
-              disabled={loading || items.length === 0 || visibleColumns.length === 0}
-              {...exportAccess}
-              getPayload={() => ({
-                title: 'Konfigurasi Dokumen',
-                headers: ['No', ...visibleColumns.map((column) => column.label)],
-                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
-                rows: items.map((item, index) => [
-                  rowNumber(meta, index),
-                  ...visibleColumns.map((column) => column.exportValue(item)),
-                ]),
-              })}
-            />
-            {createLookupAccess.visible && (
-              <PermissionLink
-                to="/master/lookup/new"
-                enabled={createLookupAccess.enabled}
-                className="btn btn--secondary"
-              >
-                Tambah lookup
-              </PermissionLink>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {error && <div className="alert alert--error">{error}</div>}
-
-      <ListFilterBar
-        search={{
-          value: query,
-          onChange: setQuery,
-          onSubmit: submitSearch,
-          placeholder: 'Cari nama / value cetakan…',
-          ariaLabel: 'Cari konfigurasi dokumen',
-        }}
-        hasActiveFilters={hasActiveFilters}
-        onReset={clearFilters}
-        resetLabel="Reset"
-      />
-
-      {loading ? (
-        <div className="loading-state">Memuat konfigurasi dokumen…</div>
-      ) : items.length === 0 ? (
-        <div className="empty-state">
-          <p>
-            Belum ada lookup tipe <code>konfig_dokumen</code>. Tambahkan di Master Lookup (tipe
-            manual).
-          </p>
-          {createLookupAccess.visible && (
-            <PermissionLink
-              to="/master/lookup/new"
-              enabled={createLookupAccess.enabled}
-              className="btn btn--secondary"
-            >
-              Tambah lookup
-            </PermissionLink>
-          )}
-        </div>
-      ) : visibleColumns.length === 0 && !showActions ? (
-        <div className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</div>
-      ) : (
-        <>
-          <div className="data-table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">No</th>
-                  {visibleColumns.map((column) =>
-                    column.sortable === false ? (
-                      <th key={column.key} scope="col">
-                        {column.label}
-                      </th>
-                    ) : (
-                      <SortableTh
-                        key={column.key}
-                        label={column.label}
-                        column={column.sortKey ?? column.key}
-                        {...sortBind}
-                      />
-                    ),
-                  )}
-                  {showActions && <th scope="col">Aksi</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.lookup_id}>
-                    <td className="col-no">{rowNumber(meta, index)}</td>
-                    {visibleColumns.map((column) => (
-                      <td key={column.key}>{column.cell(item)}</td>
-                    ))}
-                    {showActions && (
-                      <td>
-                        <PermissionLink
-                          to={`/aplikasi/konfig-dokumen/${item.lookup_id}/edit`}
-                          enabled={updateAccess.enabled}
-                          className="btn btn--secondary btn--small"
-                        >
-                          Ubah
-                        </PermissionLink>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination meta={meta} onPageChange={setPage} onPerPageChange={setPerPage} />
-        </>
+    <SimpleMasterListPage<KonfigDokumenRow>
+      title="Konfigurasi Dokumen"
+      description="Header/footer per cetakan dari lookup tipe konfig_dokumen."
+      entityLabel="konfigurasi dokumen"
+      basePath="/aplikasi/konfig-dokumen"
+      permissionPrefix={PREFIX}
+      createLabel="Tambah lookup"
+      searchPlaceholder="Cari nama / value cetakan…"
+      defaultSortBy="lookup_urutan"
+      columns={COLUMNS}
+      showStatusFilter={false}
+      showStatusColumn={false}
+      hideCreateButton
+      getRowKey={(item) => item.lookup_id}
+      editItemPath={(item) => `/aplikasi/konfig-dokumen/${item.lookup_id}/edit`}
+      headerActions={
+        createLookupAccess.visible ? (
+          <PermissionLink
+            to="/master/lookup/new"
+            enabled={createLookupAccess.enabled}
+            className="btn btn--secondary"
+          >
+            Tambah lookup
+          </PermissionLink>
+        ) : null
+      }
+      list={async (params: MasterListParams) => {
+        const result = await aplikasiKonfigDokumenService.list(params)
+        return {
+          ...result,
+          items: result.items.map((item) => ({ ...item, id: item.lookup_id })),
+        }
+      }}
+      remove={async () => Promise.resolve()}
+      canDeleteItem={() => false}
+      renderRowActions={(item): ReactNode => (
+        <PermissionLink
+          to={`/aplikasi/konfig-dokumen/${item.lookup_id}/edit`}
+          enabled={updateAccess.enabled}
+          className="btn btn--secondary btn--small"
+        >
+          Ubah
+        </PermissionLink>
       )}
-    </>
+    />
   )
 }

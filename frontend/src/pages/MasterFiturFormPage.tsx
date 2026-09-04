@@ -11,6 +11,7 @@ import { ApiError } from '../api/client'
 import { masterFiturService, masterMenuService } from '../api/services'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import type { FiturInput, Menu } from '../api/types'
 
 const emptyForm: FiturInput = {
@@ -95,7 +96,13 @@ export function MasterFiturFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat fitur…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit fitur' : 'Tambah fitur'}
+        description="Kelola fitur per menu navigasi."
+        message="Memuat fitur…"
+      />
+    )
   }
 
   return (

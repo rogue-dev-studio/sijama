@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-30 17:50:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-30 17:50:00
+ * @Last Modified time: 2026-08-31 19:15:00
  */
 
 namespace Database\Seeders;
@@ -20,7 +20,6 @@ use App\Models\Kegiatan;
 use App\Models\KategoriKegiatan;
 use App\Models\Lokasi;
 use App\Models\LookupM;
-use App\Models\Pengajian;
 use App\Models\User;
 use App\Support\LookupTypes;
 use Illuminate\Database\Seeder;
@@ -47,7 +46,7 @@ class DemoDataSeeder extends Seeder
             return;
         }
 
-        if (Jamaah::query()->where('kelompok_id', $kelompok->id)->exists()) {
+        if (Jamaah::query()->where('wilayah_fung_kelompok_id', $kelompok->id)->exists()) {
             $this->command?->info('DemoDataSeeder: data demo jamaah sudah ada, dilewati.');
 
             return;
@@ -130,7 +129,7 @@ class DemoDataSeeder extends Seeder
             }
 
             $keluarga = Keluarga::query()->create([
-                'kelompok_id' => $kelompok->id,
+                'wilayah_fung_kelompok_id' => $kelompok->id,
                 'kepala_jamaah_id' => $kepala->id,
                 'no_kk' => '3201010101010001',
                 'alamat' => 'Jl. Pajajaran Timur No. 10',
@@ -151,22 +150,26 @@ class DemoDataSeeder extends Seeder
 
             $lokasi = Lokasi::query()->where('is_active', true)->orderBy('id')->first();
             $kategoriPengajian = KategoriKegiatan::query()->where('nama', 'Pengajian')->first();
-            $kategoriSosial = KategoriKegiatan::query()->where('nama', 'Sosial')->first();
+            $kategoriSosial = KategoriKegiatan::query()->where('nama', 'Kemandirian')->first()
+                ?? KategoriKegiatan::query()->where('is_active', true)->orderBy('id')->first();
 
-            $pengajian = Pengajian::query()->create([
+            $pengajianTanggal = now()->subDays(7);
+            $kegiatanPengajian = Kegiatan::query()->create([
                 'judul' => 'Pengajian Rutin Pajajaran Timur',
                 'pemateri' => 'Ustadz Demo',
+                'jenis' => 'Pengajian',
+                'kategori_kegiatan_id' => $kategoriPengajian?->id,
+                'tanggal' => $pengajianTanggal->toDateString(),
+                'jam_mulai' => '19:30:00',
+                'jam_selesai' => '21:00:00',
                 'lokasi' => $lokasi?->nama,
                 'lokasi_id' => $lokasi?->id,
-                'kategori_kegiatan_id' => $kategoriPengajian?->id,
-                'starts_at' => now()->subDays(7)->setTime(19, 30),
-                'ends_at' => now()->subDays(7)->setTime(21, 0),
                 'status' => 'completed',
             ]);
 
             Kegiatan::query()->create([
                 'judul' => 'Kerja Bakti Kelompok',
-                'jenis' => 'Sosial',
+                'jenis' => $kategoriSosial?->nama ?? 'Kemandirian',
                 'kategori_kegiatan_id' => $kategoriSosial?->id,
                 'tanggal' => now()->subDays(3)->toDateString(),
                 'lokasi' => $lokasi?->nama,
@@ -177,12 +180,12 @@ class DemoDataSeeder extends Seeder
 
             if ($adminUser) {
                 $session = AttendanceSession::query()->create([
-                    'type' => 'pengajian',
-                    'ref_id' => $pengajian->id,
-                    'title' => $pengajian->judul,
+                    'type' => 'kegiatan',
+                    'ref_id' => $kegiatanPengajian->id,
+                    'title' => $kegiatanPengajian->judul,
                     'opened_by' => $adminUser->id,
-                    'opened_at' => $pengajian->starts_at,
-                    'closed_at' => $pengajian->ends_at,
+                    'opened_at' => $pengajianTanggal->copy()->setTime(19, 30),
+                    'closed_at' => $pengajianTanggal->copy()->setTime(21, 0),
                     'status' => 'closed',
                 ]);
 
@@ -192,20 +195,20 @@ class DemoDataSeeder extends Seeder
                         'jamaah_id' => $jamaah->id,
                         'method' => 'manual',
                         'recorded_by' => $adminUser->id,
-                        'recorded_at' => $pengajian->starts_at,
+                        'recorded_at' => $pengajianTanggal->copy()->setTime(19, 30),
                     ]);
                 }
             }
         });
 
-        $this->command?->info('DemoDataSeeder: jamaah, keluarga, pengajian, kegiatan, dan kehadiran demo siap.');
+        $this->command?->info('DemoDataSeeder: jamaah, keluarga, kegiatan, dan kehadiran demo siap.');
     }
 
     /** @param array<string, mixed> $data */
-    private function createJamaah(int $kelompokId, array $data): Jamaah
+    private function createJamaah(int $wilayah_fung_kelompokId, array $data): Jamaah
     {
         return Jamaah::query()->create([
-            'kelompok_id' => $kelompokId,
+            'wilayah_fung_kelompok_id' => $wilayah_fung_kelompokId,
             'status' => 'aktif',
             ...$data,
         ]);

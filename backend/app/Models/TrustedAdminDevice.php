@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TrustedAdminDevice extends Model
 {
+    protected $table = 'trusted_admin_device_r';
+
     protected $fillable = [
         'user_id',
         'device_key',

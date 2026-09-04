@@ -25,6 +25,7 @@ import type {
 import { JAMAAH_FORM_TYPES, LOOKUP_TYPE } from '../lib/lookupTypes'
 import { parseBirthInfoFromNik } from '../lib/nik'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import { JamaahAddressFields } from './jamaah/JamaahAddressFields'
 import { JamaahProfileFields } from './jamaah/JamaahProfileFields'
 import {
@@ -72,16 +73,16 @@ export function JamaahFormPage() {
   }, [dapukanList])
 
   useEffect(() => {
-    if (!jamaahKelompokDapukanId || !form.kelompok_id) return
+    if (!jamaahKelompokDapukanId || !form.wilayah_fung_kelompok_id) return
     setForm((prev) => {
       const current = normalizeDapukanIds(prev.dapukan_ids)
       if (current.includes(jamaahKelompokDapukanId)) return prev
       return {
         ...prev,
-        dapukan_ids: withJamaahKelompokDapukan(current, prev.kelompok_id, jamaahKelompokDapukanId),
+        dapukan_ids: withJamaahKelompokDapukan(current, prev.wilayah_fung_kelompok_id, jamaahKelompokDapukanId),
       }
     })
-  }, [jamaahKelompokDapukanId, form.kelompok_id])
+  }, [jamaahKelompokDapukanId, form.wilayah_fung_kelompok_id])
 
   useEffect(() => {
     return () => {
@@ -169,9 +170,9 @@ export function JamaahFormPage() {
         if (id) {
           const jamaah = await jamaahService.get(Number(id))
           if (!active) return
-          const kelompokId = jamaah.kelompok_id ?? loadedKelompok[0]?.id ?? 0
+          const kelompokId = jamaah.wilayah_fung_kelompok_id ?? loadedKelompok[0]?.id ?? 0
           setForm({
-            kelompok_id: kelompokId,
+            wilayah_fung_kelompok_id: kelompokId,
             nik: jamaah.nik || '',
             nama: jamaah.nama,
             gender: jamaah.gender,
@@ -191,19 +192,19 @@ export function JamaahFormPage() {
             rw: jamaah.rw || '',
             no_hp: jamaah.no_hp,
             email: jamaah.email || '',
-            adm_desa_kelurahan_id: jamaah.adm_desa_kelurahan_id,
+            wilayah_adm_desa_id: jamaah.wilayah_adm_desa_id,
             kode_pos: jamaah.kode_pos || '',
             status: jamaah.status,
           })
 
-          if (jamaah.adm_desa_kelurahan_id) {
-            await resolveAdmChain(jamaah.adm_desa_kelurahan_id, active)
+          if (jamaah.wilayah_adm_desa_id) {
+            await resolveAdmChain(jamaah.wilayah_adm_desa_id, active)
           }
         } else if (loadedKelompok.length > 0) {
           const kelompokId = loadedKelompok[0].id
           setForm((prev) => ({
             ...prev,
-            kelompok_id: kelompokId,
+            wilayah_fung_kelompok_id: kelompokId,
             dapukan_ids: withJamaahKelompokDapukan(prev.dapukan_ids, kelompokId, lockedDapukanId),
           }))
         }
@@ -225,13 +226,13 @@ export function JamaahFormPage() {
   async function resolveAdmChain(desaKelurahanId: number, active: boolean) {
     try {
       const desaKelurahan = await admDesaKelurahanService.get(desaKelurahanId)
-      const kecamatan = await admKecamatanService.get(desaKelurahan.kecamatan_id)
-      const kabupatenKota = await admKabupatenKotaService.get(kecamatan.kabupaten_kota_id)
-      const provinsi = await admProvinsiService.get(kabupatenKota.provinsi_id)
+      const kecamatan = await admKecamatanService.get(desaKelurahan.wilayah_adm_kecamatan_id)
+      const kabupatenKota = await admKabupatenKotaService.get(kecamatan.wilayah_adm_kabupaten_kota_id)
+      const provinsi = await admProvinsiService.get(kabupatenKota.wilayah_adm_provinsi_id)
       if (!active) return
 
-      setSelectedNegaraId(provinsi.negara_id)
-      setProvinsiList(await loadProvinsiForNegara(provinsi.negara_id))
+      setSelectedNegaraId(provinsi.wilayah_adm_negara_id)
+      setProvinsiList(await loadProvinsiForNegara(provinsi.wilayah_adm_negara_id))
       setSelectedProvinsiId(provinsi.id)
       setKabupatenKotaList(await loadKabupatenKotaForProvinsi(provinsi.id))
       setSelectedKabupatenKotaId(kabupatenKota.id)
@@ -244,24 +245,24 @@ export function JamaahFormPage() {
   }
 
   async function loadProvinsiForNegara(negaraId: number) {
-    return (await admProvinsiService.list({ negara_id: negaraId || undefined, per_page: 100 })).items
+    return (await admProvinsiService.list({ wilayah_adm_negara_id: negaraId || undefined, per_page: 100 })).items
   }
 
   async function loadKabupatenKotaForProvinsi(provinsiId: number) {
     return (
-      await admKabupatenKotaService.list({ provinsi_id: provinsiId || undefined, per_page: 100 })
+      await admKabupatenKotaService.list({ wilayah_adm_provinsi_id: provinsiId || undefined, per_page: 100 })
     ).items
   }
 
   async function loadKecamatanForKabupatenKota(kabupatenKotaId: number) {
     return (
-      await admKecamatanService.list({ kabupaten_kota_id: kabupatenKotaId || undefined, per_page: 100 })
+      await admKecamatanService.list({ wilayah_adm_kabupaten_kota_id: kabupatenKotaId || undefined, per_page: 100 })
     ).items
   }
 
   async function loadDesaKelurahanForKecamatan(kecamatanId: number) {
     return (
-      await admDesaKelurahanService.list({ kecamatan_id: kecamatanId || undefined, per_page: 100 })
+      await admDesaKelurahanService.list({ wilayah_adm_kecamatan_id: kecamatanId || undefined, per_page: 100 })
     ).items
   }
 
@@ -273,7 +274,7 @@ export function JamaahFormPage() {
     setKabupatenKotaList([])
     setKecamatanList([])
     setDesaKelurahanList([])
-    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: null, kode_pos: '' }))
     setProvinsiList(negaraId > 0 ? await loadProvinsiForNegara(negaraId) : [])
   }
 
@@ -283,7 +284,7 @@ export function JamaahFormPage() {
     setSelectedKecamatanId(0)
     setKecamatanList([])
     setDesaKelurahanList([])
-    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: null, kode_pos: '' }))
     setKabupatenKotaList(provinsiId > 0 ? await loadKabupatenKotaForProvinsi(provinsiId) : [])
   }
 
@@ -291,13 +292,13 @@ export function JamaahFormPage() {
     setSelectedKabupatenKotaId(kabupatenKotaId)
     setSelectedKecamatanId(0)
     setDesaKelurahanList([])
-    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: null, kode_pos: '' }))
     setKecamatanList(kabupatenKotaId > 0 ? await loadKecamatanForKabupatenKota(kabupatenKotaId) : [])
   }
 
   async function handleKecamatanChange(kecamatanId: number) {
     setSelectedKecamatanId(kecamatanId)
-    setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: null, kode_pos: '' }))
     setDesaKelurahanList(kecamatanId > 0 ? await loadDesaKelurahanForKecamatan(kecamatanId) : [])
   }
 
@@ -329,28 +330,28 @@ export function JamaahFormPage() {
       const result = await profileService.wilayahFromNik(nikDigits)
       if (
         !result.found ||
-        !result.negara_id ||
-        !result.provinsi_id ||
-        !result.kabupaten_kota_id ||
-        !result.kecamatan_id
+        !result.wilayah_adm_negara_id ||
+        !result.wilayah_adm_provinsi_id ||
+        !result.wilayah_adm_kabupaten_kota_id ||
+        !result.wilayah_adm_kecamatan_id
       ) {
         setNikWilayahHint('Kode wilayah NIK (6 digit awal) tidak ditemukan di master administrasi.')
         return
       }
 
-      setSelectedNegaraId(result.negara_id)
-      setProvinsiList(await loadProvinsiForNegara(result.negara_id))
-      setSelectedProvinsiId(result.provinsi_id)
-      setKabupatenKotaList(await loadKabupatenKotaForProvinsi(result.provinsi_id))
-      setSelectedKabupatenKotaId(result.kabupaten_kota_id)
-      setKecamatanList(await loadKecamatanForKabupatenKota(result.kabupaten_kota_id))
-      setSelectedKecamatanId(result.kecamatan_id)
-      setDesaKelurahanList(await loadDesaKelurahanForKecamatan(result.kecamatan_id))
-      setForm((prev) => ({ ...prev, adm_desa_kelurahan_id: null, kode_pos: '' }))
+      setSelectedNegaraId(result.wilayah_adm_negara_id)
+      setProvinsiList(await loadProvinsiForNegara(result.wilayah_adm_negara_id))
+      setSelectedProvinsiId(result.wilayah_adm_provinsi_id)
+      setKabupatenKotaList(await loadKabupatenKotaForProvinsi(result.wilayah_adm_provinsi_id))
+      setSelectedKabupatenKotaId(result.wilayah_adm_kabupaten_kota_id)
+      setKecamatanList(await loadKecamatanForKabupatenKota(result.wilayah_adm_kabupaten_kota_id))
+      setSelectedKecamatanId(result.wilayah_adm_kecamatan_id)
+      setDesaKelurahanList(await loadDesaKelurahanForKecamatan(result.wilayah_adm_kecamatan_id))
+      setForm((prev) => ({ ...prev, wilayah_adm_desa_id: null, kode_pos: '' }))
 
-      const kecamatanNama = result.kecamatan?.nama || 'Kecamatan'
-      const kabNama = result.kabupaten_kota?.nama || 'Kab/Kota'
-      const provNama = result.provinsi?.nama || 'Provinsi'
+      const kecamatanNama = result.wilayah_adm_kecamatan?.nama || 'Kecamatan'
+      const kabNama = result.wilayah_adm_kabupaten_kota?.nama || 'Kab/Kota'
+      const provNama = result.wilayah_adm_provinsi?.nama || 'Provinsi'
       setNikWilayahHint(
         `Wilayah terisi otomatis: ${kecamatanNama}, ${kabNama}, ${provNama}. Pilih desa/kelurahan manual.`,
       )
@@ -403,7 +404,7 @@ export function JamaahFormPage() {
         : [...current, id]
       return {
         ...prev,
-        dapukan_ids: withJamaahKelompokDapukan(next, prev.kelompok_id, jamaahKelompokDapukanId),
+        dapukan_ids: withJamaahKelompokDapukan(next, prev.wilayah_fung_kelompok_id, jamaahKelompokDapukanId),
       }
     })
   }
@@ -417,7 +418,7 @@ export function JamaahFormPage() {
     const assignableDapukanIds = new Set(dapukanList.map((item) => item.id))
     const dapukanIds = withJamaahKelompokDapukan(
       form.dapukan_ids,
-      form.kelompok_id,
+      form.wilayah_fung_kelompok_id,
       jamaahKelompokDapukanId,
     ).filter((id) => assignableDapukanIds.has(id))
     const payload: JamaahInput = {
@@ -434,7 +435,7 @@ export function JamaahFormPage() {
       rt: form.rt || null,
       rw: form.rw || null,
       email: form.email || null,
-      adm_desa_kelurahan_id: form.adm_desa_kelurahan_id || null,
+      wilayah_adm_desa_id: form.wilayah_adm_desa_id || null,
       kode_pos: form.kode_pos || null,
     }
 
@@ -459,7 +460,13 @@ export function JamaahFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat data jamaah…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit jamaah' : 'Tambah jamaah'}
+        description="Lengkapi identitas jamaah untuk keperluan administrasi."
+        message="Memuat data jamaah…"
+      />
+    )
   }
 
   return (
@@ -497,7 +504,7 @@ export function JamaahFormPage() {
           onKelompokChange={(kelompokId) => {
             setForm((prev) => ({
               ...prev,
-              kelompok_id: kelompokId,
+              wilayah_fung_kelompok_id: kelompokId,
               dapukan_ids: withJamaahKelompokDapukan(
                 prev.dapukan_ids,
                 kelompokId,
@@ -505,9 +512,9 @@ export function JamaahFormPage() {
               ),
             }))
             setFieldErrors((prev) => {
-              if (!prev.kelompok_id) return prev
+              if (!prev.wilayah_fung_kelompok_id) return prev
               const nextErrors = { ...prev }
-              delete nextErrors.kelompok_id
+              delete nextErrors.wilayah_fung_kelompok_id
               return nextErrors
             })
           }}

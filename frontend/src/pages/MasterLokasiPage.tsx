@@ -27,7 +27,7 @@ function jenisLabel(jenis: string): string {
 
 function wilayahLabel(item: Lokasi): string {
   return (
-    [item.adm_desa_kelurahan?.nama, item.adm_kecamatan?.nama, item.adm_kabupaten_kota?.nama]
+    [item.wilayah_adm_desa?.nama, item.wilayah_adm_kecamatan?.nama, item.wilayah_adm_kabupaten_kota?.nama]
       .filter(Boolean)
       .join(', ') ||
     item.kota ||

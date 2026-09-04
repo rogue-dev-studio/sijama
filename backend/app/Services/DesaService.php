@@ -19,13 +19,13 @@ class DesaService
     public function list(
         User $user,
         ?string $query = null,
-        ?int $daerahId = null,
+        ?int $wilayah_fung_daerah_id = null,
         ?int $perPage = null,
         ?int $page = null,
         ?string $sortBy = null,
         ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = Desa::query()->with('daerah');
+        $builder = Desa::query()->with('wilayahFungDaerah');
         SortHelper::apply(
             $builder,
             $sortBy,
@@ -35,8 +35,8 @@ class DesaService
         );
         $this->scopeService->applyDesaScope($builder, $user);
 
-        if ($daerahId !== null) {
-            $builder->where('daerah_id', $daerahId);
+        if ($wilayah_fung_daerah_id !== null) {
+            $builder->where('wilayah_fung_daerah_id', $wilayah_fung_daerah_id);
         }
 
         if ($query) {
@@ -51,12 +51,12 @@ class DesaService
 
     public function create(array $data, User $user): DesaResource
     {
-        $daerah = Daerah::findOrFail($data['daerah_id']);
+        $daerah = Daerah::findOrFail($data['wilayah_fung_daerah_id']);
         $this->scopeService->assertDaerahInScope($user, $daerah);
 
         $desa = Desa::create($data);
 
-        return new DesaResource($desa->load('daerah'));
+        return new DesaResource($desa->load('wilayahFungDaerah'));
     }
 
     public function find(int $id, User $user): DesaResource
@@ -64,7 +64,7 @@ class DesaService
         $desa = $this->findModel($id);
         $this->scopeService->assertDesaInScope($user, $desa);
 
-        return new DesaResource($desa->load('daerah'));
+        return new DesaResource($desa->load('wilayahFungDaerah'));
     }
 
     public function update(int $id, array $data, User $user): DesaResource
@@ -72,14 +72,14 @@ class DesaService
         $desa = $this->findModel($id);
         $this->scopeService->assertDesaInScope($user, $desa);
 
-        if (isset($data['daerah_id'])) {
-            $daerah = Daerah::findOrFail($data['daerah_id']);
+        if (isset($data['wilayah_fung_daerah_id'])) {
+            $daerah = Daerah::findOrFail($data['wilayah_fung_daerah_id']);
             $this->scopeService->assertDaerahInScope($user, $daerah);
         }
 
         $desa->update($data);
 
-        return new DesaResource($desa->fresh()->load('daerah'));
+        return new DesaResource($desa->fresh()->load('wilayahFungDaerah'));
     }
 
     public function delete(int $id, User $user): void
@@ -87,7 +87,7 @@ class DesaService
         $desa = $this->findModel($id);
         $this->scopeService->assertDesaInScope($user, $desa);
 
-        if ($desa->kelompok()->exists()) {
+        if ($desa->wilayahFungKelompok()->exists()) {
             throw ValidationException::withMessages([
                 'desa' => ['Desa masih memiliki kelompok terkait.'],
             ]);

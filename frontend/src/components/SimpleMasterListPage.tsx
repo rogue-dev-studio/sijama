@@ -25,7 +25,8 @@ import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
 
 export type SimpleMasterListItem = {
   id: number
-  nama: string
+  nama?: string
+  name?: string
   is_active?: boolean
 }
 
@@ -92,6 +93,7 @@ type SimpleMasterListPageProps<T extends SimpleMasterListItem> = {
   onClearExtraFilters?: () => void
   requireParentOptionsForCreate?: boolean
   canDeleteItem?: (item: T) => boolean
+  canEditItem?: (item: T) => boolean
   columns?: GatedColumn<T>[]
   renderLeadingHeaders?: () => ReactNode
   renderLeadingCells?: (item: T) => ReactNode
@@ -107,6 +109,16 @@ type SimpleMasterListPageProps<T extends SimpleMasterListItem> = {
   getExportPayload?: (items: T[], meta: PaginationMeta) => ExportTablePayload
   sortColumns?: SortColumnsConfig
   defaultSortBy?: string
+  defaultSortDir?: 'asc' | 'desc'
+  renderRowActions?: (item: T) => ReactNode
+  getRowKey?: (item: T) => string | number
+  headerActions?: ReactNode
+  hideCreateButton?: boolean
+  showActionsColumn?: boolean
+  editItemPath?: (item: T) => string
+  filterPrimary?: ReactNode[]
+  filterSecondary?: ReactNode
+  filterSecondaryActive?: boolean
 }
 
 export function SimpleMasterListPage<T extends SimpleMasterListItem>({
@@ -129,6 +141,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   onClearExtraFilters,
   requireParentOptionsForCreate = false,
   canDeleteItem,
+  canEditItem,
   columns,
   renderLeadingHeaders,
   renderLeadingCells,
@@ -142,6 +155,16 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   getExportPayload,
   sortColumns,
   defaultSortBy = 'nama',
+  defaultSortDir = 'asc',
+  renderRowActions,
+  getRowKey,
+  headerActions,
+  hideCreateButton = false,
+  showActionsColumn,
+  editItemPath,
+  filterPrimary,
+  filterSecondary,
+  filterSecondaryActive = false,
 }: SimpleMasterListPageProps<T>) {
   const { can } = useAuth()
   const { notifyDeleted } = useToast()
@@ -156,7 +179,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   const [parentOptions, setParentOptions] = useState<Array<{ id: number; nama: string }>>([])
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
-  const [sort, setSort] = useState<ListSortState>({ sortBy: defaultSortBy, sortDir: 'asc' })
+  const [sort, setSort] = useState<ListSortState>({ sortBy: defaultSortBy, sortDir: defaultSortDir })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -168,9 +191,11 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
   const createAccess = listButtonAccess(can, permissionPrefix, 'create')
   const updateAccess = listButtonAccess(can, permissionPrefix, 'update')
   const deleteAccess = listButtonAccess(can, permissionPrefix, 'delete')
-  const showActions = useGatedColumns
-    ? updateAccess.visible || deleteAccess.visible
-    : true
+  const showActions =
+    showActionsColumn ??
+    (useGatedColumns
+      ? updateAccess.visible || deleteAccess.visible || renderRowActions !== undefined
+      : true)
 
   const namaColumn =
     sortColumns?.nama === false ? null : (sortColumns?.nama ?? { key: 'nama', label: 'Nama' })
@@ -241,7 +266,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     list,
     entityLabel,
     showStatusFilter,
-    parentFilter,
+    parentFilter?.paramKey,
     parentId,
     selectFilter,
     selectValue,
@@ -252,6 +277,18 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
     void load()
   }, [load])
 
+  const extraFilterKey = useMemo(() => {
+    if (!extraFilterParams) return ''
+    return JSON.stringify(
+      Object.fromEntries(Object.entries(extraFilterParams).filter(([key]) => key !== '_reload')),
+    )
+  }, [extraFilterParams])
+
+  useEffect(() => {
+    if (!extraFilterKey) return
+    setPage(1)
+  }, [extraFilterKey])
+
   function handleSort(column: string) {
     setSort((current) => toggleSort(current, column))
     setPage(1)
@@ -259,8 +296,12 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
 
   const sortBind = bindSortableTh(sort, handleSort)
 
+  function resolveItemLabel(item: T): string {
+    return itemLabel?.(item) ?? item.nama ?? item.name ?? String(item.id)
+  }
+
   async function handleDelete(item: T) {
-    const label = itemLabel?.(item) ?? item.nama
+    const label = resolveItemLabel(item)
     const ok = await confirm({
       title: 'Konfirmasi hapus',
       message: `Hapus ${entityLabel} "${label}"? Tindakan ini tidak bisa dibatalkan.`,
@@ -389,7 +430,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
             {extra}
           </>
         ) : undefined,
-      secondaryActive: overflow.length > 0 || hasExtraFilters,
+      secondaryActive: hasExtraFilters,
     }
   }, [
     parentFilter,
@@ -428,7 +469,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
       columnKeys: buildExportColumnKeys(legacyColumns),
       rows: items.map((item, index) => {
         const no = String(rowNumber(meta, index))
-        const nama = itemLabel?.(item) ?? item.nama
+        const nama = resolveItemLabel(item)
         if (!showStatusColumn) return [no, nama]
         return [no, nama, item.is_active !== false ? 'Aktif' : 'Nonaktif']
       }),
@@ -464,6 +505,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
             <p>{description}</p>
           </div>
           <div className="page-header__actions">
+            {headerActions}
             {enableExport && (
               <ExportPrintActions
                 title={title}
@@ -481,7 +523,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
                 }}
               />
             )}
-            {createAccess.visible && (
+            {!hideCreateButton && createAccess.visible && (
               <PermissionLink
                 to={`${basePath}/new`}
                 enabled={createEnabled}
@@ -494,7 +536,11 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
         </div>
       </header>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && (
+        <div className="alert alert--error" role="alert">
+          {error}
+        </div>
+      )}
 
       <ListFilterBar
         search={{
@@ -504,9 +550,9 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
           placeholder: searchPlaceholder,
           ariaLabel: `Cari ${entityLabel}`,
         }}
-        primaryFilters={primaryFilters}
-        secondaryContent={secondaryContent}
-        secondaryActive={secondaryActive}
+        primaryFilters={filterPrimary ?? primaryFilters}
+        secondaryContent={filterSecondary ?? secondaryContent}
+        secondaryActive={filterSecondary ? filterSecondaryActive : secondaryActive}
         hasActiveFilters={hasActiveFilters}
         onReset={clearFilters}
       />
@@ -590,7 +636,7 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
               </thead>
               <tbody>
                 {items.map((item, index) => (
-                  <tr key={item.id}>
+                  <tr key={getRowKey?.(item) ?? item.id}>
                     <td className="col-no">{rowNumber(meta, index)}</td>
                     {useGatedColumns ? (
                       <>
@@ -599,30 +645,34 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
                         ))}
                         {showActions && (
                           <td>
-                            <div className="data-table__actions">
-                              {updateAccess.visible && (
-                                <PermissionLink
-                                  to={`${basePath}/${item.id}/edit`}
-                                  enabled={updateAccess.enabled}
-                                  className="btn btn--secondary btn--small"
-                                >
-                                  Edit
-                                </PermissionLink>
-                              )}
-                              {deleteAccess.visible && (
-                                <button
-                                  type="button"
-                                  className="btn btn--danger btn--small"
-                                  disabled={
-                                    !deleteAccess.enabled ||
-                                    (canDeleteItem ? !canDeleteItem(item) : false)
-                                  }
-                                  onClick={() => void handleDelete(item)}
-                                >
-                                  Hapus
-                                </button>
-                              )}
-                            </div>
+                            {renderRowActions ? (
+                              renderRowActions(item)
+                            ) : (
+                              <div className="data-table__actions">
+                                {updateAccess.visible && (canEditItem ? canEditItem(item) : true) && (
+                                  <PermissionLink
+                                    to={editItemPath?.(item) ?? `${basePath}/${item.id}/edit`}
+                                    enabled={updateAccess.enabled}
+                                    className="btn btn--secondary btn--small"
+                                  >
+                                    Edit
+                                  </PermissionLink>
+                                )}
+                                {deleteAccess.visible && (
+                                  <button
+                                    type="button"
+                                    className="btn btn--danger btn--small"
+                                    disabled={
+                                      !deleteAccess.enabled ||
+                                      (canDeleteItem ? !canDeleteItem(item) : false)
+                                    }
+                                    onClick={() => void handleDelete(item)}
+                                  >
+                                    Hapus
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </td>
                         )}
                       </>
@@ -643,9 +693,9 @@ export function SimpleMasterListPage<T extends SimpleMasterListItem>({
                         )}
                         <td>
                           <div className="data-table__actions">
-                            {updateAccess.visible && (
+                            {updateAccess.visible && (canEditItem ? canEditItem(item) : true) && (
                               <PermissionLink
-                                to={`${basePath}/${item.id}/edit`}
+                                to={editItemPath?.(item) ?? `${basePath}/${item.id}/edit`}
                                 enabled={updateAccess.enabled}
                                 className="btn btn--secondary btn--small"
                               >

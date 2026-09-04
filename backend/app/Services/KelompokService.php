@@ -19,15 +19,15 @@ class KelompokService
     public function list(
         User $user,
         ?string $query = null,
-        ?int $desaId = null,
-        ?int $daerahId = null,
+        ?int $wilayah_fung_desa_id = null,
+        ?int $wilayah_fung_daerah_id = null,
         ?bool $isActive = null,
         ?int $perPage = null,
         ?int $page = null,
         ?string $sortBy = null,
         ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = Kelompok::query()->with('desa');
+        $builder = Kelompok::query()->with('wilayahFungDesa');
         SortHelper::apply(
             $builder,
             $sortBy,
@@ -37,10 +37,10 @@ class KelompokService
         );
         $this->scopeService->applyKelompokScope($builder, $user);
 
-        if ($desaId !== null) {
-            $builder->where('desa_id', $desaId);
-        } elseif ($daerahId !== null) {
-            $builder->whereHas('desa', fn ($q) => $q->where('daerah_id', $daerahId));
+        if ($wilayah_fung_desa_id !== null) {
+            $builder->where('wilayah_fung_desa_id', $wilayah_fung_desa_id);
+        } elseif ($wilayah_fung_daerah_id !== null) {
+            $builder->whereHas('wilayahFungDesa', fn ($q) => $q->where('wilayah_fung_daerah_id', $wilayah_fung_daerah_id));
         }
 
         if ($isActive !== null) {
@@ -60,21 +60,21 @@ class KelompokService
     /**
      * @return list<array{
      *   id: int,
-     *   desa_id: int,
+     *   wilayah_fung_desa_id: int,
      *   kode: string|null,
      *   nama: string,
-     *   desa: array{id: int, kode: string, nama: string, daerah_id: int}|null
+     *   wilayah_fung_desa: array{id: int, kode: string, nama: string, wilayah_fung_daerah_id: int}|null
      * }>
      */
     public function listForJamaahForm(User $user): array
     {
         $builder = Kelompok::query()
-            ->with(['desa:id,kode,nama,daerah_id'])
+            ->with(['wilayahFungDesa:id,kode,nama,wilayah_fung_daerah_id'])
             ->where('is_active', true)
             ->orderBy(
                 Desa::query()
                     ->select('kode')
-                    ->whereColumn('desa.id', 'kelompok.desa_id')
+                    ->whereColumn('wilayah_fung_desa_m.id', 'wilayah_fung_kelompok_m.wilayah_fung_desa_id')
                     ->limit(1)
             )
             ->orderBy('nama');
@@ -82,17 +82,17 @@ class KelompokService
         $this->scopeService->applyKelompokScope($builder, $user);
 
         return $builder
-            ->get(['id', 'desa_id', 'kode', 'nama'])
+            ->get(['id', 'wilayah_fung_desa_id', 'kode', 'nama'])
             ->map(fn (Kelompok $item) => [
                 'id' => $item->id,
-                'desa_id' => $item->desa_id,
+                'wilayah_fung_desa_id' => $item->wilayah_fung_desa_id,
                 'kode' => $item->kode,
                 'nama' => $item->nama,
-                'desa' => $item->desa ? [
-                    'id' => $item->desa->id,
-                    'kode' => $item->desa->kode,
-                    'nama' => $item->desa->nama,
-                    'daerah_id' => $item->desa->daerah_id,
+                'wilayah_fung_desa' => $item->wilayahFungDesa ? [
+                    'id' => $item->wilayahFungDesa->id,
+                    'kode' => $item->wilayahFungDesa->kode,
+                    'nama' => $item->wilayahFungDesa->nama,
+                    'wilayah_fung_daerah_id' => $item->wilayahFungDesa->wilayah_fung_daerah_id,
                 ] : null,
             ])
             ->values()
@@ -101,12 +101,12 @@ class KelompokService
 
     public function create(array $data, User $user): KelompokResource
     {
-        $desa = Desa::findOrFail($data['desa_id']);
+        $desa = Desa::findOrFail($data['wilayah_fung_desa_id']);
         $this->scopeService->assertDesaInScope($user, $desa);
 
         $kelompok = Kelompok::create($data);
 
-        return new KelompokResource($kelompok->load('desa'));
+        return new KelompokResource($kelompok->load('wilayahFungDesa'));
     }
 
     public function find(int $id, User $user): KelompokResource
@@ -114,7 +114,7 @@ class KelompokService
         $kelompok = $this->findModel($id);
         $this->scopeService->assertKelompokInScope($user, $kelompok);
 
-        return new KelompokResource($kelompok->load('desa'));
+        return new KelompokResource($kelompok->load('wilayahFungDesa'));
     }
 
     public function update(int $id, array $data, User $user): KelompokResource
@@ -122,14 +122,14 @@ class KelompokService
         $kelompok = $this->findModel($id);
         $this->scopeService->assertKelompokInScope($user, $kelompok);
 
-        if (isset($data['desa_id'])) {
-            $desa = Desa::findOrFail($data['desa_id']);
+        if (isset($data['wilayah_fung_desa_id'])) {
+            $desa = Desa::findOrFail($data['wilayah_fung_desa_id']);
             $this->scopeService->assertDesaInScope($user, $desa);
         }
 
         $kelompok->update($data);
 
-        return new KelompokResource($kelompok->fresh()->load('desa'));
+        return new KelompokResource($kelompok->fresh()->load('wilayahFungDesa'));
     }
 
     public function delete(int $id, User $user): void

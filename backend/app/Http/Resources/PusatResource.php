@@ -20,6 +20,7 @@ class PusatResource extends JsonResource
             'id' => $this->id,
             'kode' => $this->kode,
             'nama' => $this->nama,
+            'singkatan' => $this->singkatan,
             'deskripsi' => $this->deskripsi,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

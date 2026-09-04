@@ -38,19 +38,19 @@ class LokasiService extends SimpleMasterService
     protected function withRelations(): array
     {
         return [
-            'admDesaKelurahan.kecamatan.kabupatenKota.provinsi',
+            'wilayahAdmDesa.wilayahAdmKecamatan.wilayahAdmKabupatenKota.wilayahAdmProvinsi',
         ];
     }
 
     protected function prepare(array $data): array
     {
-        if (! empty($data['adm_desa_kelurahan_id'])) {
+        if (! empty($data['wilayah_adm_desa_id'])) {
             $desa = AdmDesaKelurahan::query()
-                ->with('kecamatan.kabupatenKota')
-                ->find($data['adm_desa_kelurahan_id']);
+                ->with('wilayahAdmKecamatan.wilayahAdmKabupatenKota')
+                ->find($data['wilayah_adm_desa_id']);
 
-            if ($desa?->kecamatan?->kabupatenKota) {
-                $data['kota'] = $desa->kecamatan->kabupatenKota->nama;
+            if ($desa?->wilayahAdmKecamatan?->wilayahAdmKabupatenKota) {
+                $data['kota'] = $desa->wilayahAdmKecamatan->wilayahAdmKabupatenKota->nama;
             }
         }
 
@@ -59,7 +59,6 @@ class LokasiService extends SimpleMasterService
 
     protected function assertDeletable($model): void
     {
-        $this->denyDeleteIfRelated($model, 'pengajian', 'Lokasi masih dipakai pengajian.');
         $this->denyDeleteIfRelated($model, 'kegiatan', 'Lokasi masih dipakai kegiatan.');
     }
 }

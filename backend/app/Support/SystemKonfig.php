@@ -87,6 +87,12 @@ class SystemKonfig
             'color_muted' => $konfig->color_muted,
             'color_border' => $konfig->color_border,
             'theme_color' => $konfig->theme_color,
+            'font_family_display' => Schema::hasColumn('konfigsystem_k', 'font_family_display')
+                ? AppFontPresets::normalize($konfig->font_family_display)
+                : null,
+            'font_family_body' => Schema::hasColumn('konfigsystem_k', 'font_family_body')
+                ? AppFontPresets::normalize($konfig->font_family_body)
+                : null,
             'maintenance_mode' => (bool) $konfig->maintenance_mode,
             'maintenance_message' => $konfig->maintenance_message
                 ?: 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
@@ -151,7 +157,7 @@ class SystemKonfig
                 'mail.mailers.smtp.port' => $konfig->smtp_port ?: 587,
                 'mail.mailers.smtp.encryption' => $konfig->smtp_encryption ?: null,
                 'mail.mailers.smtp.username' => $konfig->smtp_username,
-                'mail.mailers.smtp.password' => $konfig->smtp_password,
+                'mail.mailers.smtp.password' => $konfig->decryptedSecret('smtp_password'),
                 'mail.mailers.smtp.timeout' => $konfig->smtp_timeout,
             ]);
         }
@@ -190,8 +196,9 @@ class SystemKonfig
             config(['sms.drivers.fonnte.endpoint' => $konfig->fonnte_endpoint]);
         }
 
-        if (filled($konfig->fonnte_token)) {
-            config(['sms.drivers.fonnte.token' => $konfig->fonnte_token]);
+        $fonnteToken = $konfig->decryptedSecret('fonnte_token');
+        if (filled($fonnteToken)) {
+            config(['sms.drivers.fonnte.token' => $fonnteToken]);
         }
 
         if (! Schema::hasColumn('konfigsystem_k', 'telegram_enabled')) {
@@ -203,8 +210,9 @@ class SystemKonfig
             'integrations.n8n.enabled' => (bool) $konfig->n8n_enabled,
         ]);
 
-        if (filled($konfig->telegram_bot_token)) {
-            config(['integrations.telegram.bot_token' => $konfig->telegram_bot_token]);
+        $telegramToken = $konfig->decryptedSecret('telegram_bot_token');
+        if (filled($telegramToken)) {
+            config(['integrations.telegram.bot_token' => $telegramToken]);
         }
 
         if (filled($konfig->telegram_bot_username)) {
@@ -223,8 +231,26 @@ class SystemKonfig
             config(['integrations.n8n.webhook_url' => $konfig->n8n_webhook_url]);
         }
 
-        if (filled($konfig->n8n_api_key)) {
-            config(['integrations.n8n.api_key' => $konfig->n8n_api_key]);
+        $n8nApiKey = $konfig->decryptedSecret('n8n_api_key');
+        if (filled($n8nApiKey)) {
+            config(['integrations.n8n.api_key' => $n8nApiKey]);
+        }
+
+        if (! Schema::hasColumn('konfigsystem_k', 'api_co_id_holiday_enabled')) {
+            return;
+        }
+
+        config([
+            'integrations.api_co_id.enabled' => (bool) ($konfig->api_co_id_holiday_enabled ?? true),
+        ]);
+
+        $apiCoIdKey = $konfig->decryptedSecret('api_co_id_api_key');
+        if (filled($apiCoIdKey)) {
+            config(['integrations.api_co_id.api_key' => $apiCoIdKey]);
+        }
+
+        if (filled($konfig->api_co_id_holiday_base_url)) {
+            config(['integrations.api_co_id.holiday_base_url' => rtrim((string) $konfig->api_co_id_holiday_base_url, '/')]);
         }
     }
 
@@ -260,6 +286,8 @@ class SystemKonfig
             'color_muted' => null,
             'color_border' => null,
             'theme_color' => null,
+            'font_family_display' => null,
+            'font_family_body' => null,
             'maintenance_mode' => false,
             'maintenance_message' => 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
             'maintenance_login_allowed' => false,

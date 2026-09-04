@@ -23,6 +23,8 @@ final class LookupTypes
 
     public const HUBUNGAN_KELUARGA = 'hubungan_keluarga';
 
+    public const HARI_MINGGU = 'hari_minggu';
+
     /** Master lookup tipe cetakan dokumen (nama + value = jenis cetakan). */
     public const KONFIG_DOKUMEN = 'konfig_dokumen';
 
@@ -38,6 +40,7 @@ final class LookupTypes
     public const OPTION_TYPES = [
         ...self::JAMAAH_FORM_TYPES,
         self::HUBUNGAN_KELUARGA,
+        self::HARI_MINGGU,
     ];
 
     public const LABELS = [
@@ -47,6 +50,7 @@ final class LookupTypes
         self::STATUS_PERNIKAHAN => 'Status pernikahan',
         self::PENDIDIKAN => 'Pendidikan',
         self::HUBUNGAN_KELUARGA => 'Hubungan keluarga',
+        self::HARI_MINGGU => 'Hari minggu',
         self::KONFIG_DOKUMEN => 'Konfigurasi dokumen',
     ];
 }

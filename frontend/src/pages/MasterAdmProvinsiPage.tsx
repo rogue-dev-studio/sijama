@@ -16,7 +16,7 @@ async function loadNegaraOptions() {
 
 const parentFilter = {
   label: 'Negara',
-  paramKey: 'negara_id',
+  paramKey: 'wilayah_adm_negara_id',
   loadOptions: loadNegaraOptions,
 }
 
@@ -26,6 +26,18 @@ const columns: GatedColumn<AdmProvinsi>[] = [
     label: 'Kode',
     cell: (item) => item.kode,
     exportValue: (item) => item.kode,
+  },
+  {
+    key: 'wilayah_adm_negara',
+    label: 'Negara',
+    cell: (item) => item.wilayah_adm_negara?.nama || '—',
+    exportValue: (item) => item.wilayah_adm_negara?.nama || '',
+  },
+  {
+    key: 'singkatan',
+    label: 'SNI',
+    cell: (item) => item.singkatan || '—',
+    exportValue: (item) => item.singkatan || '',
   },
   {
     key: 'nama',
@@ -51,8 +63,8 @@ export function MasterAdmProvinsiPage() {
       title="Master Provinsi"
       description="Kelola provinsi per negara dalam wilayah administrasi."
       entityLabel="provinsi"
-      basePath="/master/adm/provinsi"
-      permissionPrefix="adm_provinsi"
+      basePath="/master/wilayah-adm/provinsi"
+      permissionPrefix="wilayah_adm_provinsi"
       createLabel="Tambah provinsi"
       searchPlaceholder="Cari kode atau nama provinsi…"
       showStatusFilter={false}

@@ -26,12 +26,13 @@ import type {
 import { ApiError } from '../api/client'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 
 type KodePosForm = AdmKodePosInput
 
 const emptyForm: KodePosForm = {
   kode: '',
-  desa_kelurahan_id: 0,
+  wilayah_adm_desa_id: 0,
   is_active: true,
 }
 
@@ -69,11 +70,11 @@ export function MasterAdmKodePosFormPage() {
           if (!active) return
           setForm({
             kode: item.kode,
-            desa_kelurahan_id: item.desa_kelurahan_id || 0,
+            wilayah_adm_desa_id: item.wilayah_adm_desa_id || 0,
             is_active: item.is_active,
           })
-          if (item.desa_kelurahan_id) {
-            await resolveAdmChain(item.desa_kelurahan_id, active)
+          if (item.wilayah_adm_desa_id) {
+            await resolveAdmChain(item.wilayah_adm_desa_id, active)
           }
         }
       } catch (err) {
@@ -93,27 +94,27 @@ export function MasterAdmKodePosFormPage() {
 
   async function resolveAdmChain(desaKelurahanId: number, active: boolean) {
     const desaKelurahan = await admDesaKelurahanService.get(desaKelurahanId)
-    const kecamatan = await admKecamatanService.get(desaKelurahan.kecamatan_id)
-    const kabupatenKota = await admKabupatenKotaService.get(kecamatan.kabupaten_kota_id)
-    const provinsi = await admProvinsiService.get(kabupatenKota.provinsi_id)
+    const kecamatan = await admKecamatanService.get(desaKelurahan.wilayah_adm_kecamatan_id)
+    const kabupatenKota = await admKabupatenKotaService.get(kecamatan.wilayah_adm_kabupaten_kota_id)
+    const provinsi = await admProvinsiService.get(kabupatenKota.wilayah_adm_provinsi_id)
     if (!active) return
 
-    setSelectedNegaraId(provinsi.negara_id)
+    setSelectedNegaraId(provinsi.wilayah_adm_negara_id)
     setProvinsiList(
-      (await admProvinsiService.list({ negara_id: provinsi.negara_id, per_page: 100 })).items,
+      (await admProvinsiService.list({ wilayah_adm_negara_id: provinsi.wilayah_adm_negara_id, per_page: 100 })).items,
     )
     setSelectedProvinsiId(provinsi.id)
     setKabupatenKotaList(
-      (await admKabupatenKotaService.list({ provinsi_id: provinsi.id, per_page: 100 })).items,
+      (await admKabupatenKotaService.list({ wilayah_adm_provinsi_id: provinsi.id, per_page: 100 })).items,
     )
     setSelectedKabupatenKotaId(kabupatenKota.id)
     setKecamatanList(
-      (await admKecamatanService.list({ kabupaten_kota_id: kabupatenKota.id, per_page: 100 }))
+      (await admKecamatanService.list({ wilayah_adm_kabupaten_kota_id: kabupatenKota.id, per_page: 100 }))
         .items,
     )
     setSelectedKecamatanId(kecamatan.id)
     setDesaKelurahanList(
-      (await admDesaKelurahanService.list({ kecamatan_id: kecamatan.id, per_page: 100 })).items,
+      (await admDesaKelurahanService.list({ wilayah_adm_kecamatan_id: kecamatan.id, per_page: 100 })).items,
     )
   }
 
@@ -125,10 +126,10 @@ export function MasterAdmKodePosFormPage() {
     setKabupatenKotaList([])
     setKecamatanList([])
     setDesaKelurahanList([])
-    setForm((prev) => ({ ...prev, desa_kelurahan_id: 0 }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: 0 }))
     setProvinsiList(
       negaraId > 0
-        ? (await admProvinsiService.list({ negara_id: negaraId, per_page: 100 })).items
+        ? (await admProvinsiService.list({ wilayah_adm_negara_id: negaraId, per_page: 100 })).items
         : [],
     )
   }
@@ -139,10 +140,10 @@ export function MasterAdmKodePosFormPage() {
     setSelectedKecamatanId(0)
     setKecamatanList([])
     setDesaKelurahanList([])
-    setForm((prev) => ({ ...prev, desa_kelurahan_id: 0 }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: 0 }))
     setKabupatenKotaList(
       provinsiId > 0
-        ? (await admKabupatenKotaService.list({ provinsi_id: provinsiId, per_page: 100 })).items
+        ? (await admKabupatenKotaService.list({ wilayah_adm_provinsi_id: provinsiId, per_page: 100 })).items
         : [],
     )
   }
@@ -151,10 +152,10 @@ export function MasterAdmKodePosFormPage() {
     setSelectedKabupatenKotaId(kabupatenKotaId)
     setSelectedKecamatanId(0)
     setDesaKelurahanList([])
-    setForm((prev) => ({ ...prev, desa_kelurahan_id: 0 }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: 0 }))
     setKecamatanList(
       kabupatenKotaId > 0
-        ? (await admKecamatanService.list({ kabupaten_kota_id: kabupatenKotaId, per_page: 100 }))
+        ? (await admKecamatanService.list({ wilayah_adm_kabupaten_kota_id: kabupatenKotaId, per_page: 100 }))
             .items
         : [],
     )
@@ -162,10 +163,10 @@ export function MasterAdmKodePosFormPage() {
 
   async function handleKecamatanChange(kecamatanId: number) {
     setSelectedKecamatanId(kecamatanId)
-    setForm((prev) => ({ ...prev, desa_kelurahan_id: 0 }))
+    setForm((prev) => ({ ...prev, wilayah_adm_desa_id: 0 }))
     setDesaKelurahanList(
       kecamatanId > 0
-        ? (await admDesaKelurahanService.list({ kecamatan_id: kecamatanId, per_page: 100 })).items
+        ? (await admDesaKelurahanService.list({ wilayah_adm_kecamatan_id: kecamatanId, per_page: 100 })).items
         : [],
     )
   }
@@ -177,7 +178,7 @@ export function MasterAdmKodePosFormPage() {
 
     const payload: AdmKodePosInput = {
       kode: form.kode.trim(),
-      desa_kelurahan_id: form.desa_kelurahan_id,
+      wilayah_adm_desa_id: form.wilayah_adm_desa_id,
       is_active: form.is_active,
     }
 
@@ -188,7 +189,7 @@ export function MasterAdmKodePosFormPage() {
         await admKodePosService.create(payload)
       }
       notifySaved('Kode pos')
-      navigate('/master/adm/kode-pos')
+      navigate('/master/wilayah-adm/kode-pos')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan kode pos')
     } finally {
@@ -197,7 +198,13 @@ export function MasterAdmKodePosFormPage() {
   }
 
   if (loading) {
-    return <p className="page-loading">Memuat…</p>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Ubah kode pos' : 'Tambah kode pos'}
+        description="Pilih wilayah administrasi dari negara hingga desa/kelurahan, lalu isi kode pos 5 digit."
+        message="Memuat…"
+      />
+    )
   }
 
   return (
@@ -209,7 +216,7 @@ export function MasterAdmKodePosFormPage() {
             Pilih wilayah administrasi dari negara hingga desa/kelurahan, lalu isi kode pos 5 digit.
           </p>
         </div>
-        <Link to="/master/adm/kode-pos" className="btn btn--ghost">
+        <Link to="/master/wilayah-adm/kode-pos" className="btn btn--ghost">
           Kembali
         </Link>
       </div>
@@ -219,9 +226,9 @@ export function MasterAdmKodePosFormPage() {
       <form className="card card--form" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
           <div className="field">
-            <label htmlFor="negara_id">Negara</label>
+            <label htmlFor="wilayah_adm_negara_id">Negara</label>
             <SearchableSelect
-              id="negara_id"
+              id="wilayah_adm_negara_id"
               value={selectedNegaraId ? String(selectedNegaraId) : ''}
               onChange={(next) => void handleNegaraChange(Number(next) || 0)}
               placeholder="Pilih negara"
@@ -232,9 +239,9 @@ export function MasterAdmKodePosFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="provinsi_id">Provinsi</label>
+            <label htmlFor="wilayah_adm_provinsi_id">Provinsi</label>
             <SearchableSelect
-              id="provinsi_id"
+              id="wilayah_adm_provinsi_id"
               value={selectedProvinsiId ? String(selectedProvinsiId) : ''}
               onChange={(next) => void handleProvinsiChange(Number(next) || 0)}
               disabled={provinsiList.length === 0}
@@ -246,9 +253,9 @@ export function MasterAdmKodePosFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="kabupaten_kota_id">Kabupaten/Kota</label>
+            <label htmlFor="wilayah_adm_kabupaten_kota_id">Kabupaten/Kota</label>
             <SearchableSelect
-              id="kabupaten_kota_id"
+              id="wilayah_adm_kabupaten_kota_id"
               value={selectedKabupatenKotaId ? String(selectedKabupatenKotaId) : ''}
               onChange={(next) => void handleKabupatenKotaChange(Number(next) || 0)}
               disabled={kabupatenKotaList.length === 0}
@@ -260,9 +267,9 @@ export function MasterAdmKodePosFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="kecamatan_id">Kecamatan</label>
+            <label htmlFor="wilayah_adm_kecamatan_id">Kecamatan</label>
             <SearchableSelect
-              id="kecamatan_id"
+              id="wilayah_adm_kecamatan_id"
               value={selectedKecamatanId ? String(selectedKecamatanId) : ''}
               onChange={(next) => void handleKecamatanChange(Number(next) || 0)}
               disabled={kecamatanList.length === 0}
@@ -274,12 +281,12 @@ export function MasterAdmKodePosFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="desa_kelurahan_id">Desa/Kelurahan</label>
+            <label htmlFor="wilayah_adm_desa_id">Desa/Kelurahan</label>
             <SearchableSelect
-              id="desa_kelurahan_id"
-              value={form.desa_kelurahan_id ? String(form.desa_kelurahan_id) : ''}
+              id="wilayah_adm_desa_id"
+              value={form.wilayah_adm_desa_id ? String(form.wilayah_adm_desa_id) : ''}
               onChange={(next) =>
-                setForm({ ...form, desa_kelurahan_id: Number(next) || 0 })
+                setForm({ ...form, wilayah_adm_desa_id: Number(next) || 0 })
               }
               disabled={desaKelurahanList.length === 0}
               placeholder="Pilih desa/kelurahan"

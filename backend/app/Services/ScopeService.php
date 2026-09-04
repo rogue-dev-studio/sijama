@@ -31,10 +31,10 @@ class ScopeService
         }
 
         return match ($this->tingkat($user)) {
-            'pusat' => $query->whereHas('kelompok.desa.daerah', fn (Builder $q) => $q->where('pusat_id', $user->pusat_id)),
-            'daerah' => $query->whereHas('kelompok.desa', fn (Builder $q) => $q->where('daerah_id', $user->daerah_id)),
-            'desa' => $query->whereHas('kelompok', fn (Builder $q) => $q->where('desa_id', $user->desa_id)),
-            'kelompok' => $query->where('keluarga.kelompok_id', $user->kelompok_id),
+            'pusat' => $query->whereHas('wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah', fn (Builder $q) => $q->where('wilayah_fung_pusat_id', $user->wilayah_fung_pusat_id)),
+            'daerah' => $query->whereHas('wilayahFungKelompok.wilayahFungDesa', fn (Builder $q) => $q->where('wilayah_fung_daerah_id', $user->wilayah_fung_daerah_id)),
+            'desa' => $query->whereHas('wilayahFungKelompok', fn (Builder $q) => $q->where('wilayah_fung_desa_id', $user->wilayah_fung_desa_id)),
+            'kelompok' => $query->where('keluarga.wilayah_fung_kelompok_id', $user->wilayah_fung_kelompok_id),
             default => $query->whereKey([]),
         };
     }
@@ -45,13 +45,13 @@ class ScopeService
             return;
         }
 
-        $keluarga->loadMissing('kelompok.desa.daerah');
+        $keluarga->loadMissing('wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah');
 
         $inScope = match ($this->tingkat($user)) {
-            'pusat' => $keluarga->kelompok?->desa?->daerah?->pusat_id === $user->pusat_id,
-            'daerah' => $keluarga->kelompok?->desa?->daerah_id === $user->daerah_id,
-            'desa' => $keluarga->kelompok?->desa_id === $user->desa_id,
-            'kelompok' => $keluarga->kelompok_id === $user->kelompok_id,
+            'pusat' => $keluarga->wilayahFungKelompok?->wilayahFungDesa?->wilayahFungDaerah?->wilayah_fung_pusat_id === $user->wilayah_fung_pusat_id,
+            'daerah' => $keluarga->wilayahFungKelompok?->wilayahFungDesa?->wilayah_fung_daerah_id === $user->wilayah_fung_daerah_id,
+            'desa' => $keluarga->wilayahFungKelompok?->wilayah_fung_desa_id === $user->wilayah_fung_desa_id,
+            'kelompok' => $keluarga->wilayah_fung_kelompok_id === $user->wilayah_fung_kelompok_id,
             default => false,
         };
 
@@ -67,10 +67,10 @@ class ScopeService
         }
 
         return match ($this->tingkat($user)) {
-            'pusat' => $query->whereHas('kelompok.desa.daerah', fn (Builder $q) => $q->where('pusat_id', $user->pusat_id)),
-            'daerah' => $query->whereHas('kelompok.desa', fn (Builder $q) => $q->where('daerah_id', $user->daerah_id)),
-            'desa' => $query->whereHas('kelompok', fn (Builder $q) => $q->where('desa_id', $user->desa_id)),
-            'kelompok' => $query->where('jamaah.kelompok_id', $user->kelompok_id),
+            'pusat' => $query->whereHas('wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah', fn (Builder $q) => $q->where('wilayah_fung_pusat_id', $user->wilayah_fung_pusat_id)),
+            'daerah' => $query->whereHas('wilayahFungKelompok.wilayahFungDesa', fn (Builder $q) => $q->where('wilayah_fung_daerah_id', $user->wilayah_fung_daerah_id)),
+            'desa' => $query->whereHas('wilayahFungKelompok', fn (Builder $q) => $q->where('wilayah_fung_desa_id', $user->wilayah_fung_desa_id)),
+            'kelompok' => $query->where($query->getModel()->getTable().'.wilayah_fung_kelompok_id', $user->wilayah_fung_kelompok_id),
             default => $query->whereKey([]),
         };
     }
@@ -81,13 +81,13 @@ class ScopeService
             return;
         }
 
-        $jamaah->loadMissing('kelompok.desa.daerah');
+        $jamaah->loadMissing('wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah');
 
         $inScope = match ($this->tingkat($user)) {
-            'pusat' => $jamaah->kelompok?->desa?->daerah?->pusat_id === $user->pusat_id,
-            'daerah' => $jamaah->kelompok?->desa?->daerah_id === $user->daerah_id,
-            'desa' => $jamaah->kelompok?->desa_id === $user->desa_id,
-            'kelompok' => $jamaah->kelompok_id === $user->kelompok_id,
+            'pusat' => $jamaah->wilayahFungKelompok?->wilayahFungDesa?->wilayahFungDaerah?->wilayah_fung_pusat_id === $user->wilayah_fung_pusat_id,
+            'daerah' => $jamaah->wilayahFungKelompok?->wilayahFungDesa?->wilayah_fung_daerah_id === $user->wilayah_fung_daerah_id,
+            'desa' => $jamaah->wilayahFungKelompok?->wilayah_fung_desa_id === $user->wilayah_fung_desa_id,
+            'kelompok' => $jamaah->wilayah_fung_kelompok_id === $user->wilayah_fung_kelompok_id,
             default => false,
         };
 
@@ -103,10 +103,10 @@ class ScopeService
         }
 
         return match ($this->tingkat($user)) {
-            'pusat' => $query->whereHas('desa.daerah', fn (Builder $q) => $q->where('pusat_id', $user->pusat_id)),
-            'daerah' => $query->whereHas('desa', fn (Builder $q) => $q->where('daerah_id', $user->daerah_id)),
-            'desa' => $query->where('desa_id', $user->desa_id),
-            'kelompok' => $query->where('id', $user->kelompok_id),
+            'pusat' => $query->whereHas('wilayahFungDesa.wilayahFungDaerah', fn (Builder $q) => $q->where('wilayah_fung_pusat_id', $user->wilayah_fung_pusat_id)),
+            'daerah' => $query->whereHas('wilayahFungDesa', fn (Builder $q) => $q->where('wilayah_fung_daerah_id', $user->wilayah_fung_daerah_id)),
+            'desa' => $query->where('wilayah_fung_desa_id', $user->wilayah_fung_desa_id),
+            'kelompok' => $query->where('id', $user->wilayah_fung_kelompok_id),
             default => $query->whereKey([]),
         };
     }
@@ -118,9 +118,9 @@ class ScopeService
         }
 
         return match ($this->tingkat($user)) {
-            'pusat' => $query->whereHas('daerah', fn (Builder $q) => $q->where('pusat_id', $user->pusat_id)),
-            'daerah' => $query->where('daerah_id', $user->daerah_id),
-            'desa', 'kelompok' => $query->where('id', $user->desa_id),
+            'pusat' => $query->whereHas('wilayahFungDaerah', fn (Builder $q) => $q->where('wilayah_fung_pusat_id', $user->wilayah_fung_pusat_id)),
+            'daerah' => $query->where('wilayah_fung_daerah_id', $user->wilayah_fung_daerah_id),
+            'desa', 'kelompok' => $query->where('id', $user->wilayah_fung_desa_id),
             default => $query->whereKey([]),
         };
     }
@@ -132,8 +132,8 @@ class ScopeService
         }
 
         return match ($this->tingkat($user)) {
-            'pusat' => $query->where('pusat_id', $user->pusat_id),
-            'daerah', 'desa', 'kelompok' => $query->where('id', $user->daerah_id),
+            'pusat' => $query->where('wilayah_fung_pusat_id', $user->wilayah_fung_pusat_id),
+            'daerah', 'desa', 'kelompok' => $query->where('id', $user->wilayah_fung_daerah_id),
             default => $query->whereKey([]),
         };
     }
@@ -145,7 +145,7 @@ class ScopeService
         }
 
         return match ($this->tingkat($user)) {
-            'pusat' => $query->where('id', $user->pusat_id),
+            'pusat' => $query->where('id', $user->wilayah_fung_pusat_id),
             default => $query->whereKey([]),
         };
     }
@@ -156,13 +156,13 @@ class ScopeService
             return;
         }
 
-        $kelompok->loadMissing('desa.daerah');
+        $kelompok->loadMissing('wilayahFungDesa.wilayahFungDaerah');
 
         $inScope = match ($this->tingkat($user)) {
-            'pusat' => $kelompok->desa?->daerah?->pusat_id === $user->pusat_id,
-            'daerah' => $kelompok->desa?->daerah_id === $user->daerah_id,
-            'desa' => $kelompok->desa_id === $user->desa_id,
-            'kelompok' => $kelompok->id === $user->kelompok_id,
+            'pusat' => $kelompok->wilayahFungDesa?->wilayahFungDaerah?->wilayah_fung_pusat_id === $user->wilayah_fung_pusat_id,
+            'daerah' => $kelompok->wilayahFungDesa?->wilayah_fung_daerah_id === $user->wilayah_fung_daerah_id,
+            'desa' => $kelompok->wilayah_fung_desa_id === $user->wilayah_fung_desa_id,
+            'kelompok' => $kelompok->id === $user->wilayah_fung_kelompok_id,
             default => false,
         };
 
@@ -177,12 +177,12 @@ class ScopeService
             return;
         }
 
-        $desa->loadMissing('daerah');
+        $desa->loadMissing('wilayahFungDaerah');
 
         $inScope = match ($this->tingkat($user)) {
-            'pusat' => $desa->daerah?->pusat_id === $user->pusat_id,
-            'daerah' => $desa->daerah_id === $user->daerah_id,
-            'desa', 'kelompok' => $desa->id === $user->desa_id,
+            'pusat' => $desa->wilayahFungDaerah?->wilayah_fung_pusat_id === $user->wilayah_fung_pusat_id,
+            'daerah' => $desa->wilayah_fung_daerah_id === $user->wilayah_fung_daerah_id,
+            'desa', 'kelompok' => $desa->id === $user->wilayah_fung_desa_id,
             default => false,
         };
 
@@ -198,8 +198,8 @@ class ScopeService
         }
 
         $inScope = match ($this->tingkat($user)) {
-            'pusat' => $daerah->pusat_id === $user->pusat_id,
-            default => $daerah->id === $user->daerah_id,
+            'pusat' => $daerah->wilayah_fung_pusat_id === $user->wilayah_fung_pusat_id,
+            default => $daerah->id === $user->wilayah_fung_daerah_id,
         };
 
         if (! $inScope) {
@@ -213,7 +213,7 @@ class ScopeService
             return;
         }
 
-        if ($this->tingkat($user) !== 'pusat' || $pusat->id !== $user->pusat_id) {
+        if ($this->tingkat($user) !== 'pusat' || $pusat->id !== $user->wilayah_fung_pusat_id) {
             throw new AccessDeniedHttpException('Pusat di luar cakupan akses Anda.');
         }
     }
@@ -226,22 +226,22 @@ class ScopeService
     public function resolveKelompokIdForCreate(User $user, ?int $requestedKelompokId): int
     {
         if ($this->resolvesKelompokFromUser($user)) {
-            if ($requestedKelompokId !== null && $requestedKelompokId !== $user->kelompok_id) {
+            if ($requestedKelompokId !== null && $requestedKelompokId !== $user->wilayah_fung_kelompok_id) {
                 throw new AccessDeniedHttpException('Kelompok jamaah harus sesuai kelompok Anda.');
             }
 
-            if (! $user->kelompok_id) {
+            if (! $user->wilayah_fung_kelompok_id) {
                 throw new AccessDeniedHttpException('Pengguna belum memiliki kelompok.');
             }
 
-            return $user->kelompok_id;
+            return $user->wilayah_fung_kelompok_id;
         }
 
         if ($requestedKelompokId === null) {
             throw new AccessDeniedHttpException('Kelompok wajib dipilih.');
         }
 
-        $kelompok = Kelompok::with('desa')->find($requestedKelompokId);
+        $kelompok = Kelompok::with('wilayahFungDesa')->find($requestedKelompokId);
 
         if (! $kelompok) {
             throw new AccessDeniedHttpException('Kelompok tidak ditemukan.');

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class HariLibur extends Model
 {
-    protected $table = 'hari_libur';
+    protected $table = 'hari_libur_m';
 
     protected $fillable = [
         'tanggal',

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Support\JamaahKategoriUmur;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,10 +11,10 @@ class Jamaah extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'jamaah';
+    protected $table = 'jamaah_r';
 
     protected $fillable = [
-        'kelompok_id',
+        'wilayah_fung_kelompok_id',
         'nik',
         'nama',
         'gender',
@@ -34,7 +33,7 @@ class Jamaah extends Model
         'status',
         'foto_path',
         'enrolled_at',
-        'adm_desa_kelurahan_id',
+        'wilayah_adm_desa_id',
         'kode_pos',
     ];
 
@@ -47,33 +46,9 @@ class Jamaah extends Model
         ];
     }
 
-    protected static function booted(): void
+    public function wilayahFungKelompok(): BelongsTo
     {
-        static::saving(function (Jamaah $jamaah) {
-            if ($jamaah->no_hp === '') {
-                $jamaah->no_hp = null;
-            }
-            if ($jamaah->email === '') {
-                $jamaah->email = null;
-            }
-
-            $jamaah->kategori_umur = JamaahKategoriUmur::classify(
-                $jamaah->tanggal_lahir,
-                $jamaah->status_pernikahan
-            );
-
-            if ($jamaah->pekerjaan_id) {
-                $nama = LookupM::query()->whereKey($jamaah->pekerjaan_id)->value('lookup_name');
-                if ($nama) {
-                    $jamaah->pekerjaan = $nama;
-                }
-            }
-        });
-    }
-
-    public function kelompok(): BelongsTo
-    {
-        return $this->belongsTo(Kelompok::class);
+        return $this->belongsTo(Kelompok::class, 'wilayah_fung_kelompok_id');
     }
 
     public function pekerjaanRef(): BelongsTo
@@ -81,9 +56,9 @@ class Jamaah extends Model
         return $this->belongsTo(LookupM::class, 'pekerjaan_id', 'lookup_id');
     }
 
-    public function admDesaKelurahan(): BelongsTo
+    public function wilayahAdmDesa(): BelongsTo
     {
-        return $this->belongsTo(AdmDesaKelurahan::class, 'adm_desa_kelurahan_id');
+        return $this->belongsTo(AdmDesaKelurahan::class, 'wilayah_adm_desa_id');
     }
 
     public function attendances(): HasMany
@@ -98,7 +73,7 @@ class Jamaah extends Model
 
     public function dapukan(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Dapukan::class, 'jamaah_dapukan')->withTimestamps();
+        return $this->belongsToMany(Dapukan::class, 'jamaah_dapukan_mp')->withTimestamps();
     }
 
     public function user(): \Illuminate\Database\Eloquent\Relations\HasOne
@@ -113,7 +88,7 @@ class Jamaah extends Model
 
     public function keluarga(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Keluarga::class, 'jamaah_keluarga')
+        return $this->belongsToMany(Keluarga::class, 'jamaah_keluarga_mp')
             ->withPivot(['hubungan_keluarga', 'is_kepala_keluarga', 'catatan'])
             ->withTimestamps();
     }

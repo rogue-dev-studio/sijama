@@ -53,21 +53,21 @@ class AdmNegaraController extends Controller
         return ApiResponse::success($negara, 'Negara berhasil ditambahkan', 201);
     }
 
-    public function show(int $adm_negara): JsonResponse
+    public function show(int $wilayah_adm_negara): JsonResponse
     {
-        return ApiResponse::success($this->admNegaraService->find($adm_negara));
+        return ApiResponse::success($this->admNegaraService->find($wilayah_adm_negara));
     }
 
-    public function update(UpdateAdmNegaraRequest $request, int $adm_negara): JsonResponse
+    public function update(UpdateAdmNegaraRequest $request, int $wilayah_adm_negara): JsonResponse
     {
-        $updated = $this->admNegaraService->update($adm_negara, $request->validated());
+        $updated = $this->admNegaraService->update($wilayah_adm_negara, $request->validated());
 
         return ApiResponse::success($updated, 'Negara berhasil diperbarui');
     }
 
-    public function destroy(int $adm_negara): JsonResponse
+    public function destroy(int $wilayah_adm_negara): JsonResponse
     {
-        $this->admNegaraService->delete($adm_negara);
+        $this->admNegaraService->delete($wilayah_adm_negara);
 
         return ApiResponse::success(null, 'Negara berhasil dihapus');
     }

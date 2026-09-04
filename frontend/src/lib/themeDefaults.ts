@@ -147,6 +147,8 @@ export const DEFAULT_THEME_FORM = {
   color_muted: '',
   color_border: '',
   theme_color: '',
+  font_family_display: '',
+  font_family_body: '',
 } as const
 
 export const THEME_COLOR_FIELDS = [

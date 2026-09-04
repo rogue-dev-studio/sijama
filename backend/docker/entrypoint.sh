@@ -11,7 +11,7 @@ if [ ! -f .env ]; then
   fi
 fi
 
-mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
+mkdir -p storage/framework/{cache/data,sessions,views} storage/logs bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
@@ -42,11 +42,20 @@ fi
 ROLE="${CONTAINER_ROLE:-web}"
 
 if [ "$ROLE" = "scheduler" ]; then
+  chown -R www-data:www-data storage bootstrap/cache
+  chmod -R 775 storage bootstrap/cache
   echo "Starting Laravel scheduler..."
   exec php artisan schedule:work
 fi
 
-php artisan migrate --force
+# Squash / remigrate: set MIGRATE_FRESH_ON_DEPLOY=true once (wipes DB), then unset.
+if [ "${MIGRATE_FRESH_ON_DEPLOY:-false}" = "true" ]; then
+  echo "MIGRATE_FRESH_ON_DEPLOY=true — running migrate:fresh (DATA WIPE)..."
+  php artisan migrate:fresh --force
+  echo "migrate:fresh done. Remove MIGRATE_FRESH_ON_DEPLOY from env after this deploy."
+else
+  php artisan migrate --force
+fi
 
 UPLOAD_DISK="${FILESYSTEM_UPLOAD_DISK:-}"
 if [ -z "$UPLOAD_DISK" ]; then
@@ -62,6 +71,9 @@ if [ "$UPLOAD_DISK" != "s3" ]; then
 else
   echo "Upload disk is s3 — skipping storage:link (media served via /storage proxy)."
 fi
+
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 
 # Render free tier: no Shell — set SEED_ON_DEPLOY=true once in Dashboard, redeploy, then unset.
 if [ "${SEED_ON_DEPLOY:-false}" = "true" ]; then

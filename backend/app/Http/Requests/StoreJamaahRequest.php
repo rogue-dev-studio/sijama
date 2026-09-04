@@ -23,14 +23,14 @@ class StoreJamaahRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nik' => ['nullable', 'string', 'max:16', 'unique:jamaah,nik'],
+            'nik' => ['nullable', 'string', 'max:16', 'unique:jamaah_r,nik'],
             'nama' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'string', 'max:20', LookupRules::activeValue(LookupTypes::JENIS_KELAMIN)],
             'tanggal_lahir' => ['nullable', 'date'],
             'pekerjaan' => ['nullable', 'string', 'max:100'],
             'pekerjaan_id' => ['nullable', 'integer', LookupRules::activeId(LookupTypes::PEKERJAAN)],
             'dapukan_ids' => ['nullable', 'array'],
-            'dapukan_ids.*' => ['integer', 'exists:dapukan,id'],
+            'dapukan_ids.*' => ['integer', 'exists:dapukan_m,id'],
             'pendidikan' => ['nullable', 'string', 'max:50', LookupRules::activeValue(LookupTypes::PENDIDIKAN)],
             'golongan_darah' => ['nullable', 'string', 'max:20', LookupRules::activeValue(LookupTypes::GOLONGAN_DARAH)],
             'status_pernikahan' => ['nullable', 'string', 'max:32', LookupRules::activeValue(LookupTypes::STATUS_PERNIKAHAN)],
@@ -41,8 +41,8 @@ class StoreJamaahRequest extends FormRequest
             'email' => JamaahContactRules::email(),
             'status' => ['nullable', Rule::in(['aktif', 'nonaktif'])],
             'foto_path' => ['nullable', 'string', 'max:500'],
-            'kelompok_id' => ['nullable', 'integer', 'exists:kelompok,id'],
-            'adm_desa_kelurahan_id' => ['nullable', 'integer', 'exists:adm_desa_kelurahan,id'],
+            'wilayah_fung_kelompok_id' => ['nullable', 'integer', 'exists:wilayah_fung_kelompok_m,id'],
+            'wilayah_adm_desa_id' => ['nullable', 'integer', 'exists:wilayah_adm_desa_m,id'],
             'kode_pos' => ['nullable', 'string', 'regex:/^\d{5}$/'],
         ];
     }

@@ -6,10 +6,10 @@
  */
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { ApiError } from '../api/client'
+import { ApiError, fetchAuthenticatedMediaBlob } from '../api/client'
 import { profileService } from '../api/services'
 import type { ProfileResult } from '../api/types'
-import { isStoredKonfigAsset, resolveKonfigAssetUrl } from '../lib/konfigAsset'
+import { isProtectedStoragePath, isStoredKonfigAsset, resolveKonfigAssetUrl } from '../lib/konfigAsset'
 import { MenuIcon } from './MenuIcon'
 
 type ProfilePhotoUploadProps = {
@@ -49,12 +49,50 @@ export function ProfilePhotoUpload({
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [protectedSrc, setProtectedSrc] = useState<string | null>(null)
 
   useEffect(() => {
     setPreviewUrl(null)
   }, [fotoPath])
 
-  const photoSrc = previewUrl ?? resolvePhotoSrc(fotoPath)
+  useEffect(() => {
+    let active = true
+    let objectUrl: string | null = null
+
+    if (!fotoPath?.trim() || !isProtectedStoragePath(fotoPath)) {
+      setProtectedSrc(null)
+      return () => {
+        active = false
+      }
+    }
+
+    void (async () => {
+      const blob = await fetchAuthenticatedMediaBlob(fotoPath)
+      if (!active) {
+        return
+      }
+
+      if (!blob) {
+        setProtectedSrc(null)
+        return
+      }
+
+      objectUrl = URL.createObjectURL(blob)
+      setProtectedSrc(objectUrl)
+    })()
+
+    return () => {
+      active = false
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+      }
+    }
+  }, [fotoPath])
+
+  const photoSrc =
+    previewUrl ??
+    protectedSrc ??
+    (isProtectedStoragePath(fotoPath) ? null : resolvePhotoSrc(fotoPath))
 
   async function handleFileChange(file: File | undefined) {
     if (!file || disabled || busy) {

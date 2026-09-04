@@ -19,24 +19,24 @@ class Keluarga extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'keluarga';
+    protected $table = 'keluarga_r';
 
     protected $fillable = [
-        'kelompok_id',
+        'wilayah_fung_kelompok_id',
         'kepala_jamaah_id',
         'no_kk',
         'alamat',
         'rt',
         'rw',
-        'adm_desa_kelurahan_id',
+        'wilayah_adm_desa_id',
         'kode_pos',
         'catatan',
         'status',
     ];
 
-    public function kelompok(): BelongsTo
+    public function wilayahFungKelompok(): BelongsTo
     {
-        return $this->belongsTo(Kelompok::class);
+        return $this->belongsTo(Kelompok::class, 'wilayah_fung_kelompok_id');
     }
 
     public function kepalaJamaah(): BelongsTo
@@ -44,9 +44,9 @@ class Keluarga extends Model
         return $this->belongsTo(Jamaah::class, 'kepala_jamaah_id');
     }
 
-    public function admDesaKelurahan(): BelongsTo
+    public function wilayahAdmDesa(): BelongsTo
     {
-        return $this->belongsTo(AdmDesaKelurahan::class, 'adm_desa_kelurahan_id');
+        return $this->belongsTo(AdmDesaKelurahan::class, 'wilayah_adm_desa_id');
     }
 
     public function anggotaPivot(): HasMany
@@ -56,7 +56,7 @@ class Keluarga extends Model
 
     public function anggota(): BelongsToMany
     {
-        return $this->belongsToMany(Jamaah::class, 'jamaah_keluarga')
+        return $this->belongsToMany(Jamaah::class, 'jamaah_keluarga_mp')
             ->withPivot(['hubungan_keluarga', 'is_kepala_keluarga', 'catatan'])
             ->withTimestamps();
     }

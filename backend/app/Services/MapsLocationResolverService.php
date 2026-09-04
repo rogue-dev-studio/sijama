@@ -12,6 +12,7 @@ namespace App\Services;
 use App\Models\Lokasi;
 use App\Support\GoogleMapsLocationParser;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class MapsLocationResolverService
@@ -389,7 +390,10 @@ class MapsLocationResolverService
                 if ($results !== []) {
                     return $results;
                 }
-            } catch (\Throwable) {
+            } catch (\Throwable $exception) {
+                Log::warning('maps_location_resolver.photon_search_failed', [
+                    'message' => $exception->getMessage(),
+                ]);
                 continue;
             }
         }
@@ -455,7 +459,11 @@ class MapsLocationResolverService
             }
 
             return $results;
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            Log::warning('maps_location_resolver.google_search_failed', [
+                'message' => $exception->getMessage(),
+            ]);
+
             return [];
         }
     }
@@ -553,7 +561,11 @@ class MapsLocationResolverService
             }
 
             return (string) $response->effectiveUri();
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            Log::warning('maps_location_resolver.expand_url_failed', [
+                'message' => $exception->getMessage(),
+            ]);
+
             return null;
         }
     }
@@ -689,7 +701,11 @@ class MapsLocationResolverService
                 'place_name' => $place,
                 'address' => $address,
             ];
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            Log::warning('maps_location_resolver.reverse_geocode_failed', [
+                'message' => $exception->getMessage(),
+            ]);
+
             return null;
         }
     }
@@ -697,11 +713,11 @@ class MapsLocationResolverService
     /**
      * @param  array<string, string>  $address
      * @return array{
-     *   negara_id: int|null,
-     *   provinsi_id: int|null,
-     *   kabupaten_kota_id: int|null,
-     *   kecamatan_id: int|null,
-     *   desa_kelurahan_id: int|null,
+     *   wilayah_adm_negara_id: int|null,
+     *   wilayah_adm_provinsi_id: int|null,
+     *   wilayah_adm_kabupaten_kota_id: int|null,
+     *   wilayah_adm_kecamatan_id: int|null,
+     *   wilayah_adm_desa_id: int|null,
      *   labels: array<string, string|null>
      * }|null
      */
@@ -713,14 +729,14 @@ class MapsLocationResolverService
         }
 
         $provinsi = $this->findNamedAdm(
-            \App\Models\AdmProvinsi::query()->where('negara_id', $negara->id)->where('is_active', true),
+            \App\Models\AdmProvinsi::query()->where('wilayah_adm_negara_id', $negara->id)->where('is_active', true),
             $this->candidateNames($address, ['state', 'region', 'province']),
         );
 
         $kabupaten = null;
         if ($provinsi) {
             $kabupaten = $this->findNamedAdm(
-                \App\Models\AdmKabupatenKota::query()->where('provinsi_id', $provinsi->id)->where('is_active', true),
+                \App\Models\AdmKabupatenKota::query()->where('wilayah_adm_provinsi_id', $provinsi->id)->where('is_active', true),
                 $this->candidateNames($address, ['city', 'county', 'municipality', 'city_district', 'state_district']),
             );
         }
@@ -728,7 +744,7 @@ class MapsLocationResolverService
         $kecamatan = null;
         if ($kabupaten) {
             $kecamatan = $this->findNamedAdm(
-                \App\Models\AdmKecamatan::query()->where('kabupaten_kota_id', $kabupaten->id)->where('is_active', true),
+                \App\Models\AdmKecamatan::query()->where('wilayah_adm_kabupaten_kota_id', $kabupaten->id)->where('is_active', true),
                 $this->candidateNames($address, ['municipality', 'city_district', 'suburb', 'district', 'borough']),
             );
         }
@@ -736,23 +752,23 @@ class MapsLocationResolverService
         $desa = null;
         if ($kecamatan) {
             $desa = $this->findNamedAdm(
-                \App\Models\AdmDesaKelurahan::query()->where('kecamatan_id', $kecamatan->id)->where('is_active', true),
+                \App\Models\AdmDesaKelurahan::query()->where('wilayah_adm_kecamatan_id', $kecamatan->id)->where('is_active', true),
                 $this->candidateNames($address, ['village', 'suburb', 'neighbourhood', 'quarter', 'hamlet', 'residential']),
             );
         }
 
         return [
-            'negara_id' => $negara->id,
-            'provinsi_id' => $provinsi?->id,
-            'kabupaten_kota_id' => $kabupaten?->id,
-            'kecamatan_id' => $kecamatan?->id,
-            'desa_kelurahan_id' => $desa?->id,
+            'wilayah_adm_negara_id' => $negara->id,
+            'wilayah_adm_provinsi_id' => $provinsi?->id,
+            'wilayah_adm_kabupaten_kota_id' => $kabupaten?->id,
+            'wilayah_adm_kecamatan_id' => $kecamatan?->id,
+            'wilayah_adm_desa_id' => $desa?->id,
             'labels' => [
-                'negara' => $negara->nama,
-                'provinsi' => $provinsi?->nama,
-                'kabupaten_kota' => $kabupaten?->nama,
-                'kecamatan' => $kecamatan?->nama,
-                'desa_kelurahan' => $desa?->nama,
+                'wilayah_adm_negara' => $negara->nama,
+                'wilayah_adm_provinsi' => $provinsi?->nama,
+                'wilayah_adm_kabupaten_kota' => $kabupaten?->nama,
+                'wilayah_adm_kecamatan' => $kecamatan?->nama,
+                'wilayah_adm_desa' => $desa?->nama,
             ],
         ];
     }

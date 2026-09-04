@@ -14,6 +14,7 @@ import { buildAppShellBrand } from '../lib/appBrand'
 import { BrandMark } from '../components/BrandMark'
 import { DeveloperFooter } from '../components/DeveloperFooter'
 import { PasswordInput } from '../components/PasswordInput'
+import { PublicGateShell } from '../components/PublicGateShell'
 
 type ResetLocationState = {
   masked?: string
@@ -55,9 +56,8 @@ export function ResetPasswordPage() {
 
   if (channel === 'phone' && !phoneResetEnabled) {
     return (
-      <div className="login-page">
-        <div className="login-panel">
-          <div className="login-panel__brand">
+      <PublicGateShell settings={settings}>
+        <div className="login-panel__brand">
             <BrandMark size={56} src={logo} className="login-panel__brand-mark" alt={brandName} />
             <h1>{brandName}</h1>
           </div>
@@ -77,16 +77,14 @@ export function ResetPasswordPage() {
             </Link>
           </div>
           <DeveloperFooter />
-        </div>
-      </div>
+    </PublicGateShell>
     )
   }
 
   if (channel === 'email' && !emailResetEnabled) {
     return (
-      <div className="login-page">
-        <div className="login-panel">
-          <div className="login-panel__brand">
+      <PublicGateShell settings={settings}>
+        <div className="login-panel__brand">
             <BrandMark size={56} src={logo} className="login-panel__brand-mark" alt={brandName} />
             <h1>{brandName}</h1>
           </div>
@@ -106,8 +104,7 @@ export function ResetPasswordPage() {
             </Link>
           </div>
           <DeveloperFooter />
-        </div>
-      </div>
+    </PublicGateShell>
     )
   }
 
@@ -159,8 +156,7 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-panel">
+    <PublicGateShell settings={settings}>
         <div className="login-panel__brand">
           <BrandMark size={56} src={logo} className="login-panel__brand-mark" alt={brandName} />
           <h1>{brandName}</h1>
@@ -231,7 +227,6 @@ export function ResetPasswordPage() {
         </form>
 
         <DeveloperFooter />
-      </div>
-    </div>
+    </PublicGateShell>
   )
 }

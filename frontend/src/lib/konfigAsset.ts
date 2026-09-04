@@ -11,6 +11,19 @@ const LEGACY_DEFAULT_PATHS = new Set(['/logo.svg', '/favicon.svg'])
 
 const STORAGE_PREFIXES = ['konfig/', 'jamaah/', 'users/', 'share/']
 
+export function isProtectedStoragePath(path?: string | null): boolean {
+  const value = path?.trim()
+  if (!value) {
+    return false
+  }
+
+  const relative = value.startsWith('/storage/')
+    ? value.slice('/storage/'.length)
+    : value.replace(/^\/+/, '')
+
+  return relative.startsWith('users/')
+}
+
 function normalizeStoragePath(path: string): string {
   const trimmed = path.replace(/^\/+/, '')
   if (trimmed.startsWith('storage/')) {

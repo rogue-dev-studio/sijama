@@ -32,26 +32,27 @@ class KodePosSeeder extends Seeder
             return;
         }
 
-        $existing = (int) DB::table('adm_kode_pos')->count();
+        $existing = (int) DB::table('wilayah_adm_kode_pos_m')->count();
         if ($existing > 1000 && ! filter_var(env('FORCE_KODE_POS_SEED', false), FILTER_VALIDATE_BOOLEAN)) {
             $this->command?->info("Kode pos sudah ada ({$existing} baris). Skip. Set FORCE_KODE_POS_SEED=1 untuk impor ulang.");
 
             return;
         }
 
-        if ((int) DB::table('adm_desa_kelurahan')->count() < 1000) {
+        if ((int) DB::table('wilayah_adm_desa_m')->count() < 1000) {
             throw new RuntimeException('Jalankan WilayahAdministrasiSeeder terlebih dahulu.');
         }
 
         $desaMap = [];
-        foreach (DB::table('adm_desa_kelurahan')->get(['id', 'kode', 'kecamatan_id']) as $row) {
+        $desaQuery = DB::table('wilayah_adm_desa_m')->select(['id', 'kode', 'wilayah_adm_kecamatan_id'])->orderBy('id');
+        foreach ($desaQuery->cursor() as $row) {
             $desaMap[$this->fromDotted((string) $row->kode)] = [
                 'id' => (int) $row->id,
-                'kecamatan_id' => (int) $row->kecamatan_id,
+                'kecamatan_id' => (int) $row->wilayah_adm_kecamatan_id,
             ];
         }
 
-        DB::table('adm_kode_pos')->delete();
+        DB::table('wilayah_adm_kode_pos_m')->delete();
 
         $now = now();
         $buffer = [];
@@ -78,22 +79,22 @@ class KodePosSeeder extends Seeder
             $desa = $desaMap[$villageCode];
             $buffer[] = [
                 'kode' => $postalCode,
-                'desa_kelurahan_id' => $desa['id'],
-                'kecamatan_id' => $desa['kecamatan_id'],
+                'wilayah_adm_desa_id' => $desa['id'],
+                'wilayah_adm_kecamatan_id' => $desa['kecamatan_id'],
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
 
             if (count($buffer) >= self::CHUNK) {
-                DB::table('adm_kode_pos')->insert($buffer);
+                DB::table('wilayah_adm_kode_pos_m')->insert($buffer);
                 $inserted += count($buffer);
                 $buffer = [];
             }
         }
 
         if ($buffer !== []) {
-            DB::table('adm_kode_pos')->insert($buffer);
+            DB::table('wilayah_adm_kode_pos_m')->insert($buffer);
             $inserted += count($buffer);
         }
 

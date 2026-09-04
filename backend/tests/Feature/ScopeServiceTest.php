@@ -38,31 +38,31 @@ class ScopeServiceTest extends TestCase
             'is_active' => true,
         ]);
         $daerahA = Daerah::query()->create([
-            'pusat_id' => $pusatA->id,
+            'wilayah_fung_pusat_id' => $pusatA->id,
             'kode' => 'D-A',
             'nama' => 'Daerah A',
             'is_active' => true,
         ]);
         $daerahB = Daerah::query()->create([
-            'pusat_id' => $pusatB->id,
+            'wilayah_fung_pusat_id' => $pusatB->id,
             'kode' => 'D-B',
             'nama' => 'Daerah B',
             'is_active' => true,
         ]);
         $desaA = Desa::query()->create([
-            'daerah_id' => $daerahA->id,
+            'wilayah_fung_daerah_id' => $daerahA->id,
             'kode' => 'DES-A',
             'nama' => 'Desa A',
             'is_active' => true,
         ]);
         $kelompokA = Kelompok::query()->create([
-            'desa_id' => $desaA->id,
+            'wilayah_fung_desa_id' => $desaA->id,
             'kode' => 'KEL-A',
             'nama' => 'Kelompok A',
             'is_active' => true,
         ]);
         $jamaahA = Jamaah::query()->create([
-            'kelompok_id' => $kelompokA->id,
+            'wilayah_fung_kelompok_id' => $kelompokA->id,
             'nik' => '1111222233334444',
             'nama' => 'Jamaah A',
             'gender' => 'L',
@@ -86,16 +86,16 @@ class ScopeServiceTest extends TestCase
             'is_active' => true,
         ]);
 
-        return User::query()->create([
+        return User::createManaged([
             'name' => $slug,
             'username' => $slug,
             'email' => $slug.'@sijama.test',
             'password' => 'password',
             'dapukan_id' => $dapukan->id,
-            'pusat_id' => $scopeIds['pusat_id'] ?? null,
-            'daerah_id' => $scopeIds['daerah_id'] ?? null,
-            'desa_id' => $scopeIds['desa_id'] ?? null,
-            'kelompok_id' => $scopeIds['kelompok_id'] ?? null,
+            'wilayah_fung_pusat_id' => $scopeIds['wilayah_fung_pusat_id'] ?? null,
+            'wilayah_fung_daerah_id' => $scopeIds['wilayah_fung_daerah_id'] ?? null,
+            'wilayah_fung_desa_id' => $scopeIds['wilayah_fung_desa_id'] ?? null,
+            'wilayah_fung_kelompok_id' => $scopeIds['wilayah_fung_kelompok_id'] ?? null,
             'is_active' => true,
         ]);
     }
@@ -105,10 +105,10 @@ class ScopeServiceTest extends TestCase
         $tree = $this->makeHierarchy();
         $scope = app(ScopeService::class);
         $user = $this->userWithTingkat('scope_kelompok', 'kelompok', [
-            'kelompok_id' => $tree['kelompokA']->id,
-            'desa_id' => $tree['desaA']->id,
-            'daerah_id' => $tree['daerahA']->id,
-            'pusat_id' => $tree['pusatA']->id,
+            'wilayah_fung_kelompok_id' => $tree['kelompokA']->id,
+            'wilayah_fung_desa_id' => $tree['desaA']->id,
+            'wilayah_fung_daerah_id' => $tree['daerahA']->id,
+            'wilayah_fung_pusat_id' => $tree['pusatA']->id,
         ]);
 
         $scope->assertJamaahInScope($user, $tree['jamaahA']);
@@ -132,8 +132,8 @@ class ScopeServiceTest extends TestCase
         $tree = $this->makeHierarchy();
         $scope = app(ScopeService::class);
         $user = $this->userWithTingkat('scope_daerah', 'daerah', [
-            'daerah_id' => $tree['daerahA']->id,
-            'pusat_id' => $tree['pusatA']->id,
+            'wilayah_fung_daerah_id' => $tree['daerahA']->id,
+            'wilayah_fung_pusat_id' => $tree['pusatA']->id,
         ]);
 
         $scope->assertDaerahInScope($user, $tree['daerahA']);
@@ -147,7 +147,7 @@ class ScopeServiceTest extends TestCase
         $tree = $this->makeHierarchy();
         $scope = app(ScopeService::class);
         $user = $this->userWithTingkat('scope_pusat', 'pusat', [
-            'pusat_id' => $tree['pusatA']->id,
+            'wilayah_fung_pusat_id' => $tree['pusatA']->id,
         ]);
 
         $ids = $scope->applyPusatScope(Pusat::query(), $user)->pluck('id')->all();

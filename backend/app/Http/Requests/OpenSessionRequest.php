@@ -15,7 +15,7 @@ class OpenSessionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', Rule::in(['pengajian', 'kegiatan'])],
+            'type' => ['required', Rule::in(['kegiatan'])],
             'ref_id' => ['required', 'integer', 'min:1'],
             'title' => ['required', 'string', 'max:255'],
         ];

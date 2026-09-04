@@ -10,7 +10,7 @@ import { DeveloperFooter } from '../components/DeveloperFooter'
 import { MenuIcon } from '../components/MenuIcon'
 import { UserMenu } from '../components/UserMenu'
 
-const BOTTOM_PATHS = ['/', '/jamaah', '/pengajian', '/kegiatan', '/absensi']
+const BOTTOM_PATHS = ['/', '/jamaah', '/kegiatan', '/absensi']
 const SIDEBAR_COLLAPSED_KEY = 'sijama.sidebar.collapsed'
 
 function readSidebarCollapsed(): boolean {
@@ -40,9 +40,17 @@ function NavBranch({
   depth: number
   onNavigate?: () => void
 }) {
+  const location = useLocation()
   const children = node.children ?? []
   const hasChildren = children.length > 0
-  const [open, setOpen] = useState(false)
+  const branchActive = nodeIsActive(node, location.pathname)
+  const [open, setOpen] = useState(branchActive)
+
+  useEffect(() => {
+    if (branchActive) {
+      setOpen(true)
+    }
+  }, [branchActive])
 
   if (hasChildren) {
     const visibleChildren = children.filter(
@@ -367,7 +375,7 @@ function NavMenu({
   )
 }
 
-function BottomNav({ onMore }: { onMore: () => void }) {
+function BottomNav({ onMore, moreOpen }: { onMore: () => void; moreOpen: boolean }) {
   const { menus } = useAuth()
   const primary = flattenMenuLinks(menus).filter(
     (item) => item.path && BOTTOM_PATHS.includes(item.path),
@@ -377,8 +385,14 @@ function BottomNav({ onMore }: { onMore: () => void }) {
     primary.find((item) => item.path === path),
   ).filter(Boolean) as MenuNode[]
 
+  const columnCount = ordered.length + 1
+
   return (
-    <nav className="bottom-nav" aria-label="Navigasi cepat">
+    <nav
+      className="bottom-nav"
+      aria-label="Navigasi cepat"
+      style={{ '--bottom-nav-cols': String(columnCount) } as CSSProperties}
+    >
       {ordered.map((item) => (
         <NavLink
           key={item.id}
@@ -387,12 +401,21 @@ function BottomNav({ onMore }: { onMore: () => void }) {
           className={({ isActive }) =>
             `bottom-nav__item${isActive ? ' bottom-nav__item--active' : ''}`
           }
+          title={item.nama}
         >
           <MenuIcon name={item.icon} size={18} className="bottom-nav__icon" />
           <span className="bottom-nav__label">{item.nama}</span>
         </NavLink>
       ))}
-      <button type="button" className="bottom-nav__item" onClick={onMore}>
+      <button
+        type="button"
+        className={`bottom-nav__item${moreOpen ? ' bottom-nav__item--active' : ''}`}
+        onClick={onMore}
+        aria-expanded={moreOpen}
+        aria-haspopup="dialog"
+        aria-controls="app-shell-more-menu"
+        title="Lainnya"
+      >
         <MenuIcon name="menu" size={18} className="bottom-nav__icon" />
         <span className="bottom-nav__label">Lainnya</span>
       </button>
@@ -403,6 +426,7 @@ function BottomNav({ onMore }: { onMore: () => void }) {
 export function AppShell() {
   const { settings } = useAppSettings()
   const [moreOpen, setMoreOpen] = useState(false)
+  const moreSheetRef = useRef<HTMLDivElement>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
   const { title: brandName, subtitle: brandTagline } = buildAppShellBrand(settings)
   const brandLogo = settings.path_logoheader
@@ -415,14 +439,38 @@ export function AppShell() {
     }
   }, [sidebarCollapsed])
 
+  useEffect(() => {
+    if (!moreOpen) {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMoreOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    const closeButton = moreSheetRef.current?.querySelector<HTMLButtonElement>('button[data-more-close]')
+    closeButton?.focus()
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [moreOpen])
+
   return (
     <div className={`app-shell${sidebarCollapsed ? ' app-shell--sidebar-collapsed' : ''}`}>
       <header className="app-shell__mobile-header">
         <Link to="/" className="app-shell__brand">
           <BrandMark src={brandLogo} className="app-shell__brand-mark" alt={brandName} />
-          {brandName}
+          <span className="app-shell__brand-text">{brandName}</span>
         </Link>
-        <UserMenu compact />
+        <UserMenu compact iconOnly />
       </header>
 
       <aside
@@ -474,14 +522,34 @@ export function AppShell() {
         <DeveloperFooter className="developer-footer--main" />
       </div>
 
-      <BottomNav onMore={() => setMoreOpen(true)} />
+      <BottomNav moreOpen={moreOpen} onMore={() => setMoreOpen(true)} />
 
       {moreOpen && (
-        <div className="app-shell__more-sheet" role="dialog" aria-modal="true" aria-label="Menu lainnya">
+        <div
+          className="app-shell__more-backdrop"
+          role="presentation"
+          onClick={() => setMoreOpen(false)}
+        />
+      )}
+
+      {moreOpen && (
+        <div
+          ref={moreSheetRef}
+          id="app-shell-more-menu"
+          className="app-shell__more-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu lainnya"
+        >
           <div className="app-shell__more-sheet-inner">
             <div className="app-shell__more-sheet-head">
               <strong>Menu</strong>
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setMoreOpen(false)}>
+              <button
+                type="button"
+                className="btn btn--ghost btn--small"
+                data-more-close
+                onClick={() => setMoreOpen(false)}
+              >
                 Tutup
               </button>
             </div>

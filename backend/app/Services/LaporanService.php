@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-27 15:39:06
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-27 15:39:06
+ * @Last Modified time: 2026-08-31 19:05:00
  */
 
 namespace App\Services;
@@ -19,11 +19,12 @@ class LaporanService
 {
     public function __construct(
         private readonly JamaahService $jamaahService,
-        private readonly PengajianService $pengajianService,
         private readonly KegiatanService $kegiatanService,
+        private readonly ScopeService $scopeService,
     ) {}
 
     public function kehadiran(
+        User $user,
         ?string $dateFrom = null,
         ?string $dateTo = null,
         ?string $type = null,
@@ -36,8 +37,8 @@ class LaporanService
     ): LengthAwarePaginator {
         $builder = Attendance::query()
             ->with([
-                'jamaah:id,nama,kelompok_id',
-                'jamaah.kelompok:id,nama',
+                'jamaah:id,nama,wilayah_fung_kelompok_id',
+                'jamaah.wilayahFungKelompok:id,nama',
                 'session:id,type,ref_id,title,status,opened_at',
             ]);
 
@@ -66,6 +67,8 @@ class LaporanService
             $builder->whereHas('jamaah', fn ($q) => $q->where('nama', 'ilike', "%{$query}%"));
         }
 
+        $builder->whereHas('jamaah', fn ($q) => $this->scopeService->applyJamaahScope($q, $user));
+
         return PaginationHelper::paginate($builder, $perPage, $page);
     }
 
@@ -74,7 +77,7 @@ class LaporanService
         ?string $query = null,
         ?string $status = null,
         ?string $face = null,
-        ?int $kelompokId = null,
+        ?int $wilayah_fung_kelompokId = null,
         ?string $kategoriUmur = null,
         ?int $perPage = null,
         ?int $page = null,
@@ -86,31 +89,9 @@ class LaporanService
             $query,
             false,
             $status,
-            $kelompokId,
+            $wilayah_fung_kelompokId,
             $face,
             $kategoriUmur,
-            $perPage,
-            $page,
-            $sortBy,
-            $sortDir,
-        );
-    }
-
-    public function pengajian(
-        ?string $query = null,
-        ?string $status = null,
-        ?string $dateFrom = null,
-        ?string $dateTo = null,
-        ?int $perPage = null,
-        ?int $page = null,
-        ?string $sortBy = null,
-        ?string $sortDir = null,
-    ): LengthAwarePaginator {
-        return $this->pengajianService->list(
-            $query,
-            $status,
-            $dateFrom,
-            $dateTo,
             $perPage,
             $page,
             $sortBy,
@@ -123,6 +104,7 @@ class LaporanService
         ?string $status = null,
         ?string $dateFrom = null,
         ?string $dateTo = null,
+        ?int $kategoriKegiatanId = null,
         ?int $perPage = null,
         ?int $page = null,
         ?string $sortBy = null,
@@ -133,6 +115,7 @@ class LaporanService
             $status,
             $dateFrom,
             $dateTo,
+            $kategoriKegiatanId,
             $perPage,
             $page,
             $sortBy,
@@ -154,7 +137,7 @@ class LaporanService
                 'method' => $row->method,
                 'jamaah_id' => $row->jamaah_id,
                 'jamaah_nama' => $row->jamaah?->nama,
-                'kelompok_nama' => $row->jamaah?->kelompok?->nama,
+                'kelompok_nama' => $row->jamaah?->wilayahFungKelompok?->nama,
                 'session_id' => $row->session_id,
                 'session_title' => $row->session?->title,
                 'session_type' => $row->session?->type,

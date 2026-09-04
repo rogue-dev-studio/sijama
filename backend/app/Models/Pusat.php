@@ -14,11 +14,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pusat extends Model
 {
-    protected $table = 'pusat';
+    protected $table = 'wilayah_fung_pusat_m';
 
     protected $fillable = [
         'kode',
         'nama',
+        'singkatan',
         'deskripsi',
         'is_active',
     ];
@@ -30,13 +31,13 @@ class Pusat extends Model
         ];
     }
 
-    public function daerah(): HasMany
+    public function wilayahFungDaerah(): HasMany
     {
-        return $this->hasMany(Daerah::class);
+        return $this->hasMany(Daerah::class, 'wilayah_fung_pusat_id');
     }
 
     public function users(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'wilayah_fung_pusat_id');
     }
 }

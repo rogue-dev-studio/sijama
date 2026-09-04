@@ -19,6 +19,7 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'email' => $this->email,
             'is_active' => $this->is_active,
+            'is_demo' => (bool) $this->is_demo,
             'jamaah_id' => $this->jamaah_id,
             'foto_path' => $this->when(
                 $this->relationLoaded('jamaah') && $this->jamaah,
@@ -63,10 +64,10 @@ class UserResource extends JsonResource
                     'tingkat' => $this->dapukan->tingkat,
                 ]] : []),
             'scope' => [
-                'pusat' => $this->formatWilayahSummary('pusat'),
-                'daerah' => $this->formatWilayahSummary('daerah'),
-                'desa' => $this->formatWilayahSummary('desa'),
-                'kelompok' => $this->formatWilayahSummary('kelompok'),
+                'wilayah_fung_pusat' => $this->formatWilayahSummary('wilayahFungPusat'),
+                'wilayah_fung_daerah' => $this->formatWilayahSummary('wilayahFungDaerah'),
+                'wilayah_fung_desa' => $this->formatWilayahSummary('wilayahFungDesa'),
+                'wilayah_fung_kelompok' => $this->formatWilayahSummary('wilayahFungKelompok'),
             ],
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

@@ -33,7 +33,7 @@ class JamaahController extends Controller
             $request->query('q'),
             $request->boolean('enrolled'),
             $request->query('status') ?: null,
-            $request->filled('kelompok_id') ? $request->integer('kelompok_id') : null,
+            $request->filled('wilayah_fung_kelompok_id') ? $request->integer('wilayah_fung_kelompok_id') : null,
             $request->query('face') ?: null,
             $request->query('kategori_umur') ?: null,
             $request->filled('per_page') ? $request->integer('per_page') : null,

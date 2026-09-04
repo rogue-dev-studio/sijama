@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PasswordResetRequest extends Model
 {
+    protected $table = 'password_reset_request_t';
+
     public const UPDATED_AT = null;
 
     public const CHANNEL_EMAIL = 'email';

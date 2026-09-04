@@ -29,7 +29,7 @@ class AdmKabupatenKotaController extends Controller
 
         $paginator = $this->admKabupatenKotaService->list(
             $request->query('q'),
-            $request->filled('provinsi_id') ? $request->integer('provinsi_id') : null,
+            $request->filled('wilayah_adm_provinsi_id') ? $request->integer('wilayah_adm_provinsi_id') : null,
             $request->query('jenis') ?: null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
@@ -50,26 +50,26 @@ class AdmKabupatenKotaController extends Controller
 
     public function store(StoreAdmKabupatenKotaRequest $request): JsonResponse
     {
-        $kabupatenKota = $this->admKabupatenKotaService->create($request->validated());
+        $wilayahAdmKabupatenKota = $this->admKabupatenKotaService->create($request->validated());
 
-        return ApiResponse::success($kabupatenKota, 'Kabupaten/kota berhasil ditambahkan', 201);
+        return ApiResponse::success($wilayahAdmKabupatenKota, 'Kabupaten/kota berhasil ditambahkan', 201);
     }
 
-    public function show(int $adm_kabupaten_kota): JsonResponse
+    public function show(int $wilayah_adm_kabupaten_kota): JsonResponse
     {
-        return ApiResponse::success($this->admKabupatenKotaService->find($adm_kabupaten_kota));
+        return ApiResponse::success($this->admKabupatenKotaService->find($wilayah_adm_kabupaten_kota));
     }
 
-    public function update(UpdateAdmKabupatenKotaRequest $request, int $adm_kabupaten_kota): JsonResponse
+    public function update(UpdateAdmKabupatenKotaRequest $request, int $wilayah_adm_kabupaten_kota): JsonResponse
     {
-        $updated = $this->admKabupatenKotaService->update($adm_kabupaten_kota, $request->validated());
+        $updated = $this->admKabupatenKotaService->update($wilayah_adm_kabupaten_kota, $request->validated());
 
         return ApiResponse::success($updated, 'Kabupaten/kota berhasil diperbarui');
     }
 
-    public function destroy(int $adm_kabupaten_kota): JsonResponse
+    public function destroy(int $wilayah_adm_kabupaten_kota): JsonResponse
     {
-        $this->admKabupatenKotaService->delete($adm_kabupaten_kota);
+        $this->admKabupatenKotaService->delete($wilayah_adm_kabupaten_kota);
 
         return ApiResponse::success(null, 'Kabupaten/kota berhasil dihapus');
     }

@@ -29,18 +29,18 @@ class StoreKeluargaRequest extends FormRequest
     protected function baseRules(): array
     {
         return [
-            'kelompok_id' => ['nullable', 'integer', 'exists:kelompok,id'],
-            'kepala_jamaah_id' => ['required', 'integer', 'exists:jamaah,id'],
+            'wilayah_fung_kelompok_id' => ['nullable', 'integer', 'exists:wilayah_fung_kelompok_m,id'],
+            'kepala_jamaah_id' => ['required', 'integer', 'exists:jamaah_r,id'],
             'no_kk' => ['nullable', 'string', 'max:16'],
             'alamat' => ['nullable', 'string'],
             'rt' => ['nullable', 'string', 'max:10'],
             'rw' => ['nullable', 'string', 'max:10'],
-            'adm_desa_kelurahan_id' => ['nullable', 'integer', 'exists:adm_desa_kelurahan,id'],
+            'wilayah_adm_desa_id' => ['nullable', 'integer', 'exists:wilayah_adm_desa_m,id'],
             'kode_pos' => ['nullable', 'string', 'regex:/^\d{5}$/'],
             'catatan' => ['nullable', 'string'],
             'status' => ['nullable', Rule::in(['aktif', 'nonaktif'])],
             'anggota' => ['nullable', 'array'],
-            'anggota.*.jamaah_id' => ['required', 'integer', 'exists:jamaah,id', 'distinct'],
+            'anggota.*.jamaah_id' => ['required', 'integer', 'exists:jamaah_r,id', 'distinct'],
             'anggota.*.hubungan_keluarga' => [
                 'required',
                 'string',

@@ -24,7 +24,7 @@ final class UserLoginResolver
         $phoneVariants = self::phoneVariants($identifier);
 
         return User::query()
-            ->with(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok'])
+            ->with(['dapukan', 'jamaah.dapukan', 'wilayahFungPusat', 'wilayahFungDaerah', 'wilayahFungDesa', 'wilayahFungKelompok'])
             ->where(function ($query) use ($identifier, $phoneVariants) {
                 $query->where('username', $identifier)
                     ->orWhere('email', $identifier);

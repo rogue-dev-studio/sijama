@@ -21,6 +21,7 @@ class AdmNegaraResource extends JsonResource
             'kode' => $this->kode,
             'nama' => $this->nama,
             'iso3' => $this->iso3,
+            'singkatan' => $this->singkatan,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

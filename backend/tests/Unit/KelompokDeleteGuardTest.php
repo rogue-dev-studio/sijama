@@ -40,25 +40,25 @@ class KelompokDeleteGuardTest extends TestCase
             'is_active' => true,
         ]);
         $daerah = Daerah::query()->create([
-            'pusat_id' => $pusat->id,
+            'wilayah_fung_pusat_id' => $pusat->id,
             'kode' => 'd-1',
             'nama' => 'Daerah 1',
             'is_active' => true,
         ]);
         $desa = Desa::query()->create([
-            'daerah_id' => $daerah->id,
+            'wilayah_fung_daerah_id' => $daerah->id,
             'kode' => 'desa-1',
             'nama' => 'Desa 1',
             'is_active' => true,
         ]);
         $kelompok = Kelompok::query()->create([
-            'desa_id' => $desa->id,
+            'wilayah_fung_desa_id' => $desa->id,
             'kode' => 'kel-1',
             'nama' => 'Kelompok 1',
             'is_active' => true,
         ]);
         $jamaah = Jamaah::query()->create([
-            'kelompok_id' => $kelompok->id,
+            'wilayah_fung_kelompok_id' => $kelompok->id,
             'nik' => '1234567890123456',
             'nama' => 'Test Jamaah',
             'gender' => 'L',

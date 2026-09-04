@@ -45,45 +45,45 @@ class NikWilayahResolver
             ->where('kode', $kecamatanKode)
             ->where('is_active', true)
             ->with([
-                'kabupatenKota.provinsi.negara',
+                'wilayahAdmKabupatenKota.wilayahAdmProvinsi.wilayahAdmNegara',
             ])
             ->first();
 
-        if (! $kecamatan || ! $kecamatan->kabupatenKota || ! $kecamatan->kabupatenKota->provinsi) {
+        if (! $kecamatan || ! $kecamatan->wilayahAdmKabupatenKota || ! $kecamatan->wilayahAdmKabupatenKota->wilayahAdmProvinsi) {
             return [
                 'found' => false,
                 'kecamatan_kode' => $kecamatanKode,
             ];
         }
 
-        $kabupaten = $kecamatan->kabupatenKota;
-        $provinsi = $kabupaten->provinsi;
-        $negara = $provinsi->negara;
+        $kabupaten = $kecamatan->wilayahAdmKabupatenKota;
+        $provinsi = $kabupaten->wilayahAdmProvinsi;
+        $negara = $provinsi->wilayahAdmNegara;
 
         return [
             'found' => true,
             'kecamatan_kode' => $kecamatanKode,
-            'negara_id' => $negara?->id,
-            'provinsi_id' => $provinsi->id,
-            'kabupaten_kota_id' => $kabupaten->id,
-            'kecamatan_id' => $kecamatan->id,
-            'negara' => $negara ? [
+            'wilayah_adm_negara_id' => $negara?->id,
+            'wilayah_adm_provinsi_id' => $provinsi->id,
+            'wilayah_adm_kabupaten_kota_id' => $kabupaten->id,
+            'wilayah_adm_kecamatan_id' => $kecamatan->id,
+            'wilayah_adm_negara' => $negara ? [
                 'id' => $negara->id,
                 'kode' => $negara->kode,
                 'nama' => $negara->nama,
             ] : null,
-            'provinsi' => [
+            'wilayah_adm_provinsi' => [
                 'id' => $provinsi->id,
                 'kode' => $provinsi->kode,
                 'nama' => $provinsi->nama,
             ],
-            'kabupaten_kota' => [
+            'wilayah_adm_kabupaten_kota' => [
                 'id' => $kabupaten->id,
                 'kode' => $kabupaten->kode,
                 'nama' => $kabupaten->nama,
                 'jenis' => $kabupaten->jenis,
             ],
-            'kecamatan' => [
+            'wilayah_adm_kecamatan' => [
                 'id' => $kecamatan->id,
                 'kode' => $kecamatan->kode,
                 'nama' => $kecamatan->nama,

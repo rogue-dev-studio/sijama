@@ -28,6 +28,7 @@ class MasterUserController extends Controller
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,
             $sortDir,
+            $request->user(),
         );
 
         return ApiResponse::success([
@@ -43,14 +44,14 @@ class MasterUserController extends Controller
 
     public function store(StoreMasterUserRequest $request): JsonResponse
     {
-        $user = $this->masterUserService->create($request->validated());
+        $user = $this->masterUserService->create($request->validated(), $request->user());
 
         return ApiResponse::success($user, 'Pengguna berhasil ditambahkan', 201);
     }
 
-    public function show(int $user): JsonResponse
+    public function show(Request $request, int $user): JsonResponse
     {
-        return ApiResponse::success($this->masterUserService->find($user));
+        return ApiResponse::success($this->masterUserService->find($user, $request->user()));
     }
 
     public function update(UpdateMasterUserRequest $request, int $user): JsonResponse

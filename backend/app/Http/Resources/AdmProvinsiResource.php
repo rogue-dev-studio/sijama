@@ -18,14 +18,15 @@ class AdmProvinsiResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'negara_id' => $this->negara_id,
-            'negara' => $this->whenLoaded('negara', fn () => [
-                'id' => $this->negara->id,
-                'kode' => $this->negara->kode,
-                'nama' => $this->negara->nama,
+            'wilayah_adm_negara_id' => $this->wilayah_adm_negara_id,
+            'wilayah_adm_negara' => $this->whenLoaded('wilayahAdmNegara', fn () => [
+                'id' => $this->wilayahAdmNegara->id,
+                'kode' => $this->wilayahAdmNegara->kode,
+                'nama' => $this->wilayahAdmNegara->nama,
             ]),
             'kode' => $this->kode,
             'nama' => $this->nama,
+            'singkatan' => $this->singkatan,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

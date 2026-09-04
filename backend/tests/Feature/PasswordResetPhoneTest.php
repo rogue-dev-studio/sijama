@@ -43,7 +43,7 @@ class PasswordResetPhoneTest extends TestCase
             'email' => 'reset.phone@sijama.test',
             'status' => 'aktif',
         ]);
-        $user->update(['jamaah_id' => Jamaah::query()->where('no_hp', $phone)->value('id')]);
+        $user->updateAttributes(['jamaah_id' => Jamaah::query()->where('no_hp', $phone)->value('id')]);
 
         $response = $this->postJson('/api/forgot-password', [
             'identifier' => $phone,
@@ -53,7 +53,7 @@ class PasswordResetPhoneTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.channel', 'phone');
 
-        $this->assertDatabaseHas('password_reset_requests', [
+        $this->assertDatabaseHas('password_reset_request_t', [
             'user_id' => $user->id,
             'channel' => PasswordResetRequest::CHANNEL_PHONE,
         ]);
@@ -85,7 +85,7 @@ class PasswordResetPhoneTest extends TestCase
             'email' => 'reset.otp@sijama.test',
             'status' => 'aktif',
         ]);
-        $user->update(['jamaah_id' => Jamaah::query()->where('no_hp', $phone)->value('id')]);
+        $user->updateAttributes(['jamaah_id' => Jamaah::query()->where('no_hp', $phone)->value('id')]);
 
         $this->postJson('/api/forgot-password', ['identifier' => $phone])->assertOk();
 
@@ -103,7 +103,7 @@ class PasswordResetPhoneTest extends TestCase
 
         $response->assertOk()->assertJsonPath('success', true);
 
-        $this->assertDatabaseMissing('password_reset_requests', [
+        $this->assertDatabaseMissing('password_reset_request_t', [
             'user_id' => $user->id,
         ]);
 
@@ -137,7 +137,7 @@ class PasswordResetPhoneTest extends TestCase
             'email' => 'reset.fonnte@sijama.test',
             'status' => 'aktif',
         ]);
-        $user->update(['jamaah_id' => Jamaah::query()->where('no_hp', $phone)->value('id')]);
+        $user->updateAttributes(['jamaah_id' => Jamaah::query()->where('no_hp', $phone)->value('id')]);
 
         $this->postJson('/api/forgot-password', ['identifier' => $phone])
             ->assertOk()

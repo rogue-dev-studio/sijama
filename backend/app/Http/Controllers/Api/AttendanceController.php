@@ -28,9 +28,9 @@ class AttendanceController extends Controller
         return ApiResponse::success($session, 'Sesi absensi dibuka', 201);
     }
 
-    public function closeSession(int $session): JsonResponse
+    public function closeSession(Request $request, int $session): JsonResponse
     {
-        $result = $this->attendanceService->closeSession($session);
+        $result = $this->attendanceService->closeSession($session, $request->user());
 
         return ApiResponse::success($result, 'Sesi absensi ditutup');
     }
@@ -54,9 +54,12 @@ class AttendanceController extends Controller
     public function listSessions(Request $request): JsonResponse
     {
         $paginator = $this->attendanceService->listSessions(
+            $request->user(),
             $request->query('status') ?: null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
+            $request->query('date_from') ?: null,
+            $request->query('date_to') ?: null,
         );
 
         return ApiResponse::success(

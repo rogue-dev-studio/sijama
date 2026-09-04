@@ -27,8 +27,8 @@ readonly class JamaahData
         public ?string $email,
         public ?string $status = null,
         public ?string $fotoPath = null,
-        public ?int $kelompokId = null,
-        public ?int $admDesaKelurahanId = null,
+        public ?int $wilayah_fung_kelompokId = null,
+        public ?int $wilayahAdmDesaId = null,
         public ?string $kodePos = null,
         public bool $hasPekerjaanId = false,
         public ?array $dapukanIds = null,
@@ -66,8 +66,8 @@ readonly class JamaahData
             email: isset($data['email']) && $data['email'] !== '' ? (string) $data['email'] : null,
             status: $data['status'] ?? null,
             fotoPath: $data['foto_path'] ?? null,
-            kelompokId: isset($data['kelompok_id']) ? (int) $data['kelompok_id'] : null,
-            admDesaKelurahanId: isset($data['adm_desa_kelurahan_id']) ? (int) $data['adm_desa_kelurahan_id'] : null,
+            wilayah_fung_kelompokId: isset($data['wilayah_fung_kelompok_id']) ? (int) $data['wilayah_fung_kelompok_id'] : null,
+            wilayahAdmDesaId: isset($data['wilayah_adm_desa_id']) ? (int) $data['wilayah_adm_desa_id'] : null,
             kodePos: $data['kode_pos'] ?? null,
             hasPekerjaanId: array_key_exists('pekerjaan_id', $data),
             dapukanIds: $dapukanIds,
@@ -108,12 +108,12 @@ readonly class JamaahData
             $attributes['foto_path'] = $this->fotoPath;
         }
 
-        if ($this->kelompokId !== null) {
-            $attributes['kelompok_id'] = $this->kelompokId;
+        if ($this->wilayah_fung_kelompokId !== null) {
+            $attributes['wilayah_fung_kelompok_id'] = $this->wilayah_fung_kelompokId;
         }
 
-        if ($this->admDesaKelurahanId !== null) {
-            $attributes['adm_desa_kelurahan_id'] = $this->admDesaKelurahanId;
+        if ($this->wilayahAdmDesaId !== null) {
+            $attributes['wilayah_adm_desa_id'] = $this->wilayahAdmDesaId;
         }
 
         if ($this->kodePos !== null) {

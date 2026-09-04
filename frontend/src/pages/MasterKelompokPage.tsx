@@ -10,16 +10,16 @@ import type { Kelompok } from '../api/types'
 import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
 
 async function loadDesaOptions() {
-  const result = await masterDesaService.list({ per_page: 10000 })
+  const result = await masterDesaService.list({ per_page: 500 })
   return result.items.map((item) => ({
     id: item.id,
-    nama: item.daerah ? `${item.nama} · ${item.daerah.nama}` : item.nama,
+    nama: item.wilayah_fung_daerah ? `${item.nama} · ${item.wilayah_fung_daerah.nama}` : item.nama,
   }))
 }
 
 const parentFilter = {
   label: 'Desa',
-  paramKey: 'desa_id',
+  paramKey: 'wilayah_fung_desa_id',
   loadOptions: loadDesaOptions,
 }
 
@@ -31,10 +31,28 @@ const columns: GatedColumn<Kelompok>[] = [
     exportValue: (item) => item.kode,
   },
   {
+    key: 'wilayah_fung_desa',
+    label: 'Desa',
+    cell: (item) => item.wilayah_fung_desa?.nama || '—',
+    exportValue: (item) => item.wilayah_fung_desa?.nama || '',
+  },
+  {
+    key: 'singkatan',
+    label: 'Singkatan',
+    cell: (item) => item.singkatan || '—',
+    exportValue: (item) => item.singkatan || '',
+  },
+  {
     key: 'nama',
     label: 'Nama',
     cell: (item) => item.nama,
     exportValue: (item) => item.nama,
+  },
+  {
+    key: 'deskripsi',
+    label: 'Deskripsi',
+    cell: (item) => item.deskripsi || '—',
+    exportValue: (item) => item.deskripsi || '',
   },
   {
     key: 'is_active',
@@ -54,8 +72,8 @@ export function MasterKelompokPage() {
       title="Master Kelompok"
       description="Kelola kelompok jamaah per desa."
       entityLabel="kelompok"
-      basePath="/master/kelompok"
-      permissionPrefix="kelompok"
+      basePath="/master/wilayah-fung/kelompok"
+      permissionPrefix="wilayah_fung_kelompok"
       createLabel="Tambah kelompok"
       searchPlaceholder="Cari kode atau nama kelompok…"
       showStatusFilter

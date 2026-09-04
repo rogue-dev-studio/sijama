@@ -15,7 +15,7 @@ class UpdateMatriksRequest extends FormRequest
     {
         return [
             'hak_akses_ids' => ['required', 'array'],
-            'hak_akses_ids.*' => ['integer', 'exists:hak_akses,id'],
+            'hak_akses_ids.*' => ['integer', 'exists:hak_akses_m,id'],
         ];
     }
 }

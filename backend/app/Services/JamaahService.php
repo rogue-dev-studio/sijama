@@ -7,6 +7,7 @@ use App\Http\Resources\JamaahResource;
 use App\Models\Dapukan;
 use App\Models\Jamaah;
 use App\Models\User;
+use App\Support\JamaahDerivedAttributes;
 use App\Support\PaginationHelper;
 use App\Support\SearchHelper;
 use App\Support\SortHelper;
@@ -21,6 +22,7 @@ class JamaahService
     public function __construct(
         private readonly ScopeService $scopeService,
         private readonly DapukanService $dapukanService,
+        private readonly AuditActivityService $auditActivityService,
     ) {}
 
     public function list(
@@ -28,7 +30,7 @@ class JamaahService
         ?string $query = null,
         bool $enrolled = false,
         ?string $status = null,
-        ?int $kelompokId = null,
+        ?int $wilayah_fung_kelompokId = null,
         ?string $face = null,
         ?string $kategoriUmur = null,
         ?int $perPage = null,
@@ -40,7 +42,7 @@ class JamaahService
 
         $columns = [
             'id',
-            'kelompok_id',
+            'wilayah_fung_kelompok_id',
             'nik',
             'nama',
             'gender',
@@ -59,7 +61,7 @@ class JamaahService
             'status',
             'foto_path',
             'enrolled_at',
-            'adm_desa_kelurahan_id',
+            'wilayah_adm_desa_id',
             'kode_pos',
             'created_at',
             'updated_at',
@@ -72,7 +74,7 @@ class JamaahService
 
         $builder = Jamaah::query()
             ->select($columns)
-            ->with(['kelompok:id,kode,nama', 'pekerjaanRef:lookup_id,lookup_name,lookup_value', 'dapukan:id,slug,nama,tingkat']);
+            ->with(['wilayahFungKelompok:id,kode,nama', 'pekerjaanRef:lookup_id,lookup_name,lookup_value', 'dapukan:id,slug,nama,tingkat']);
 
         SortHelper::apply(
             $builder,
@@ -83,7 +85,7 @@ class JamaahService
                 'nik',
                 'status',
                 'kategori_umur',
-                'kelompok' => 'kelompok_id',
+                'wilayah_fung_kelompok' => 'wilayah_fung_kelompok_id',
                 'face' => 'enrolled_at',
                 'kontak' => 'no_hp',
             ],
@@ -99,8 +101,8 @@ class JamaahService
             $builder->where('status', $status);
         }
 
-        if ($kelompokId !== null) {
-            $builder->where('kelompok_id', $kelompokId);
+        if ($wilayah_fung_kelompokId !== null) {
+            $builder->where('wilayah_fung_kelompok_id', $wilayah_fung_kelompokId);
         }
 
         if ($face === 'enrolled') {
@@ -125,17 +127,30 @@ class JamaahService
     public function create(JamaahData $data, User $user): JamaahResource
     {
         $attributes = $data->toModelAttributes();
-        $attributes['kelompok_id'] = $this->scopeService->resolveKelompokIdForCreate(
+        $attributes['wilayah_fung_kelompok_id'] = $this->scopeService->resolveKelompokIdForCreate(
             $user,
-            $data->kelompokId
+            $data->wilayah_fung_kelompokId
         );
+
+        $attributes = JamaahDerivedAttributes::enrich($attributes);
 
         $jamaah = Jamaah::create($attributes);
         $this->syncDapukan($jamaah, $data, $user);
 
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_JAMAAH,
+            'action' => 'jamaah_create',
+            'entity_type' => 'jamaah',
+            'entity_id' => $jamaah->id,
+            'entity_label' => $jamaah->nama,
+            'summary' => sprintf('Tambah jamaah %s', $jamaah->nama),
+            'meta' => $this->jamaahAuditSnapshot($jamaah),
+            'actor' => $user,
+        ]);
+
         return new JamaahResource($jamaah->load([
-            'kelompok.desa.daerah',
-            'admDesaKelurahan',
+            'wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah',
+            'wilayahAdmDesa',
             'pekerjaanRef',
             'dapukan:id,slug,nama,tingkat',
         ]));
@@ -144,8 +159,8 @@ class JamaahService
     public function find(int $id, User $user): JamaahResource
     {
         return new JamaahResource($this->findModel($id, $user)->load([
-            'kelompok.desa.daerah',
-            'admDesaKelurahan',
+            'wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah',
+            'wilayahAdmDesa',
             'pekerjaanRef',
             'dapukan:id,slug,nama,tingkat',
         ]));
@@ -154,22 +169,39 @@ class JamaahService
     public function update(int $id, JamaahData $data, User $user): JamaahResource
     {
         $jamaah = $this->findModel($id, $user);
+        $before = $this->jamaahAuditSnapshot($jamaah);
         $attributes = $data->toModelAttributes();
 
-        if ($data->kelompokId !== null) {
-            $attributes['kelompok_id'] = $this->scopeService->resolveKelompokIdForCreate(
+        if ($data->wilayah_fung_kelompokId !== null) {
+            $attributes['wilayah_fung_kelompok_id'] = $this->scopeService->resolveKelompokIdForCreate(
                 $user,
-                $data->kelompokId
+                $data->wilayah_fung_kelompokId
             );
         }
+
+        $attributes = JamaahDerivedAttributes::enrich($attributes, $jamaah);
 
         $jamaah->update($attributes);
         $this->syncDapukan($jamaah, $data, $user);
         app(MasterUserService::class)->syncFromJamaahModel($jamaah->fresh());
 
-        return new JamaahResource($jamaah->fresh()->load([
-            'kelompok.desa.daerah',
-            'admDesaKelurahan',
+        $fresh = $jamaah->fresh();
+        $after = $this->jamaahAuditSnapshot($fresh);
+        $diff = $this->auditActivityService->diff($before, $after);
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_JAMAAH,
+            'action' => 'jamaah_update',
+            'entity_type' => 'jamaah',
+            'entity_id' => $fresh->id,
+            'entity_label' => $fresh->nama,
+            'summary' => sprintf('Ubah jamaah %s', $fresh->nama),
+            'meta' => $diff,
+            'actor' => $user,
+        ]);
+
+        return new JamaahResource($fresh->load([
+            'wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah',
+            'wilayahAdmDesa',
             'pekerjaanRef',
             'dapukan:id,slug,nama,tingkat',
         ]));
@@ -178,6 +210,7 @@ class JamaahService
     public function updatePartial(int $id, array $attributes, User $user): JamaahResource
     {
         $jamaah = $this->findModel($id, $user);
+        $before = $this->jamaahAuditSnapshot($jamaah);
 
         $dapukanIds = null;
         $hasDapukanIds = array_key_exists('dapukan_ids', $attributes);
@@ -190,12 +223,14 @@ class JamaahService
             unset($attributes['dapukan_ids']);
         }
 
-        if (array_key_exists('kelompok_id', $attributes)) {
-            $attributes['kelompok_id'] = $this->scopeService->resolveKelompokIdForCreate(
+        if (array_key_exists('wilayah_fung_kelompok_id', $attributes)) {
+            $attributes['wilayah_fung_kelompok_id'] = $this->scopeService->resolveKelompokIdForCreate(
                 $user,
-                $attributes['kelompok_id']
+                $attributes['wilayah_fung_kelompok_id']
             );
         }
+
+        $attributes = JamaahDerivedAttributes::enrich($attributes, $jamaah);
 
         $jamaah->update($attributes);
 
@@ -206,9 +241,27 @@ class JamaahService
             $this->ensureJamaahKelompokDapukan($jamaah->fresh());
         }
 
-        return new JamaahResource($jamaah->fresh()->load([
-            'kelompok.desa.daerah',
-            'admDesaKelurahan',
+        $fresh = $jamaah->fresh();
+        $after = $this->jamaahAuditSnapshot($fresh);
+        $diff = $this->auditActivityService->diff($before, $after);
+        if ($hasDapukanIds) {
+            $diff['changed'][] = 'dapukan_ids';
+            $diff['after']['dapukan_ids'] = $dapukanIds;
+        }
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_JAMAAH,
+            'action' => 'jamaah_update',
+            'entity_type' => 'jamaah',
+            'entity_id' => $fresh->id,
+            'entity_label' => $fresh->nama,
+            'summary' => sprintf('Ubah sebagian jamaah %s', $fresh->nama),
+            'meta' => $diff,
+            'actor' => $user,
+        ]);
+
+        return new JamaahResource($fresh->load([
+            'wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah',
+            'wilayahAdmDesa',
             'pekerjaanRef',
             'dapukan:id,slug,nama,tingkat',
         ]));
@@ -216,19 +269,49 @@ class JamaahService
 
     public function delete(int $id, User $user): void
     {
-        $this->findModel($id, $user)->delete();
+        $jamaah = $this->findModel($id, $user);
+        $snapshot = $this->jamaahAuditSnapshot($jamaah);
+        $label = $jamaah->nama;
+        $jamaahId = $jamaah->id;
+        $jamaah->delete();
+
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_JAMAAH,
+            'action' => 'jamaah_delete',
+            'entity_type' => 'jamaah',
+            'entity_id' => $jamaahId,
+            'entity_label' => $label,
+            'summary' => sprintf('Hapus jamaah %s', $label),
+            'meta' => ['before' => $snapshot],
+            'actor' => $user,
+        ]);
     }
 
     public function enrollFace(int $id, array $faceDescriptor, User $user): JamaahResource
     {
         $jamaah = $this->findModel($id, $user);
+        $hadFace = $jamaah->face_descriptor !== null;
         $this->assertFaceDescriptorUnique($id, $faceDescriptor);
 
         $jamaah->face_descriptor = $faceDescriptor;
         $jamaah->enrolled_at = now();
         $jamaah->save();
 
-        return new JamaahResource($jamaah->fresh()->load('kelompok.desa.daerah'));
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_JAMAAH,
+            'action' => 'face_enroll',
+            'entity_type' => 'jamaah',
+            'entity_id' => $jamaah->id,
+            'entity_label' => $jamaah->nama,
+            'summary' => sprintf('%s wajah jamaah %s', $hadFace ? 'Perbarui' : 'Enroll', $jamaah->nama),
+            'meta' => [
+                'had_face_before' => $hadFace,
+                'enrolled_at' => $jamaah->enrolled_at?->toIso8601String(),
+            ],
+            'actor' => $user,
+        ]);
+
+        return new JamaahResource($jamaah->fresh()->load('wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah'));
     }
 
     public function resetFace(int $id, User $user): JamaahResource
@@ -245,7 +328,34 @@ class JamaahService
         $jamaah->enrolled_at = null;
         $jamaah->save();
 
-        return new JamaahResource($jamaah->fresh()->load('kelompok.desa.daerah'));
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_JAMAAH,
+            'action' => 'face_reset',
+            'entity_type' => 'jamaah',
+            'entity_id' => $jamaah->id,
+            'entity_label' => $jamaah->nama,
+            'summary' => sprintf('Reset wajah jamaah %s', $jamaah->nama),
+            'meta' => ['has_face' => false],
+            'actor' => $user,
+        ]);
+
+        return new JamaahResource($jamaah->fresh()->load('wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah'));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function jamaahAuditSnapshot(Jamaah $jamaah): array
+    {
+        return [
+            'nama' => $jamaah->nama,
+            'nik_set' => filled($jamaah->nik),
+            'gender' => $jamaah->gender,
+            'status' => $jamaah->status ?? null,
+            'wilayah_fung_kelompok_id' => $jamaah->wilayah_fung_kelompok_id,
+            'has_face' => $jamaah->face_descriptor !== null,
+            'enrolled_at' => optional($jamaah->enrolled_at)?->toIso8601String(),
+        ];
     }
 
     private function syncDapukan(Jamaah $jamaah, JamaahData $data, User $user): void
@@ -321,7 +431,7 @@ class JamaahService
 
         $finalIds = $protectedIds->merge($requestedIds)->unique()->values();
 
-        if ($jamaahKelompokId && $jamaah->kelompok_id) {
+        if ($jamaahKelompokId && $jamaah->wilayah_fung_kelompok_id) {
             $finalIds = $finalIds->push($jamaahKelompokId)->unique()->values();
         }
 
@@ -331,7 +441,7 @@ class JamaahService
     private function ensureJamaahKelompokDapukan(Jamaah $jamaah): void
     {
         $jamaahKelompokId = $this->resolveJamaahKelompokDapukanId();
-        if (! $jamaahKelompokId || ! $jamaah->kelompok_id) {
+        if (! $jamaahKelompokId || ! $jamaah->wilayah_fung_kelompok_id) {
             return;
         }
 
@@ -358,15 +468,21 @@ class JamaahService
             ]);
         }
 
-        $enrolled = Jamaah::query()
+        $subject = Jamaah::query()->find($jamaahId);
+
+        $builder = Jamaah::query()
             ->whereNotNull('face_descriptor')
             ->whereKeyNot($jamaahId)
-            ->get(['id', 'nama', 'face_descriptor']);
+            ->select(['id', 'nama', 'face_descriptor', 'wilayah_fung_kelompok_id']);
+
+        if ($subject?->wilayah_fung_kelompok_id) {
+            $builder->where('wilayah_fung_kelompok_id', $subject->wilayah_fung_kelompok_id);
+        }
 
         $bestName = null;
         $bestDistance = PHP_FLOAT_MAX;
 
-        foreach ($enrolled as $other) {
+        foreach ($builder->lazyById(200) as $other) {
             $candidate = $other->face_descriptor;
             if (! is_array($candidate) || count($candidate) !== count($probe)) {
                 continue;
@@ -376,6 +492,10 @@ class JamaahService
             if ($distance < $bestDistance) {
                 $bestDistance = $distance;
                 $bestName = $other->nama;
+            }
+
+            if ($bestDistance <= self::FACE_MATCH_THRESHOLD) {
+                break;
             }
         }
 

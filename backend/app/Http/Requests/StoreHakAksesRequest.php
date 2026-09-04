@@ -15,8 +15,8 @@ class StoreHakAksesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'fitur_id' => ['required', 'integer', 'exists:fiturs,id'],
-            'slug' => ['required', 'string', 'max:100', 'unique:hak_akses,slug'],
+            'fitur_id' => ['required', 'integer', 'exists:fitur_m,id'],
+            'slug' => ['required', 'string', 'max:100', 'unique:hak_akses_m,slug'],
             'nama' => ['required', 'string', 'max:255'],
             'aksi' => ['required', 'string', Rule::in(['view', 'create', 'update', 'delete', 'execute'])],
         ];

@@ -34,20 +34,20 @@ class JamaahContactValidationTest extends TestCase
             'is_active' => true,
         ]);
         $daerah = Daerah::query()->create([
-            'pusat_id' => $pusat->id,
+            'wilayah_fung_pusat_id' => $pusat->id,
             'kode' => 'D-TEST',
             'nama' => 'Daerah Test',
             'is_active' => true,
         ]);
         $desa = Desa::query()->create([
-            'daerah_id' => $daerah->id,
+            'wilayah_fung_daerah_id' => $daerah->id,
             'kode' => 'DES-TEST',
             'nama' => 'Desa Test',
             'is_active' => true,
         ]);
 
         return Kelompok::query()->create([
-            'desa_id' => $desa->id,
+            'wilayah_fung_desa_id' => $desa->id,
             'kode' => 'KEL-TEST',
             'nama' => 'Kelompok Test',
             'is_active' => true,
@@ -56,12 +56,12 @@ class JamaahContactValidationTest extends TestCase
 
     private function assignKelompokScope(User $user, Kelompok $kelompok): void
     {
-        $kelompok->loadMissing('desa.daerah');
-        $user->update([
-            'kelompok_id' => $kelompok->id,
-            'desa_id' => $kelompok->desa_id,
-            'daerah_id' => $kelompok->desa->daerah_id,
-            'pusat_id' => $kelompok->desa->daerah->pusat_id,
+        $kelompok->loadMissing('wilayahFungDesa.wilayahFungDaerah');
+        $user->updateAttributes([
+            'wilayah_fung_kelompok_id' => $kelompok->id,
+            'wilayah_fung_desa_id' => $kelompok->wilayah_fung_desa_id,
+            'wilayah_fung_daerah_id' => $kelompok->wilayahFungDesa->wilayah_fung_daerah_id,
+            'wilayah_fung_pusat_id' => $kelompok->wilayahFungDesa->wilayahFungDaerah->wilayah_fung_pusat_id,
         ]);
     }
 
@@ -79,7 +79,7 @@ class JamaahContactValidationTest extends TestCase
         ]);
 
         $response->assertCreated();
-        $this->assertDatabaseHas('jamaah', [
+        $this->assertDatabaseHas('jamaah_r', [
             'nama' => 'Tanpa Kontak',
             'no_hp' => null,
             'email' => null,

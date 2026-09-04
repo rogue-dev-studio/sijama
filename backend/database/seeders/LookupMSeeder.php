@@ -74,6 +74,15 @@ class LookupMSeeder extends Seeder
                 ['lookup_value' => 'tidak_bekerja', 'lookup_name' => 'Tidak bekerja', 'lookup_kode' => 'TB'],
                 ['lookup_value' => 'lainnya', 'lookup_name' => 'Lainnya', 'lookup_kode' => 'LL'],
             ],
+            LookupTypes::HARI_MINGGU => [
+                ['lookup_value' => '1', 'lookup_name' => 'Senin', 'lookup_kode' => 'SN'],
+                ['lookup_value' => '2', 'lookup_name' => 'Selasa', 'lookup_kode' => 'SL'],
+                ['lookup_value' => '3', 'lookup_name' => 'Rabu', 'lookup_kode' => 'RB'],
+                ['lookup_value' => '4', 'lookup_name' => 'Kamis', 'lookup_kode' => 'KM'],
+                ['lookup_value' => '5', 'lookup_name' => 'Jumat', 'lookup_kode' => 'JM'],
+                ['lookup_value' => '6', 'lookup_name' => 'Sabtu', 'lookup_kode' => 'SB'],
+                ['lookup_value' => '7', 'lookup_name' => 'Minggu', 'lookup_kode' => 'MG'],
+            ],
         ];
 
         foreach ($groups as $type => $items) {

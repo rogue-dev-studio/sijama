@@ -27,13 +27,14 @@ export function MasterMateriFormPage() {
   return (
     <SimpleMasterNamaFormPage
       entityLabel="materi"
-      description="Kelola materi pengajian yang dapat dipilih pada jadwal."
+      description="Kelola materi yang dapat dipilih pada kegiatan atau jadwal rutin."
       listPath="/master/materi"
       emptyForm={emptyForm}
       get={masterMateriService.get}
       create={masterMateriService.create}
       update={masterMateriService.update}
       toForm={toForm}
+      permissionPrefix="materi"
     />
   )
 }

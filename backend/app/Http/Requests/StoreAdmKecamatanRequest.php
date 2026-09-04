@@ -21,8 +21,8 @@ class StoreAdmKecamatanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kabupaten_kota_id' => ['required', 'integer', 'exists:adm_kabupaten_kota,id'],
-            'kode' => ['required', 'string', 'max:24', 'unique:adm_kecamatan,kode'],
+            'wilayah_adm_kabupaten_kota_id' => ['required', 'integer', 'exists:wilayah_adm_kabupaten_kota_m,id'],
+            'kode' => ['required', 'string', 'max:24', 'unique:wilayah_adm_kecamatan_m,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ];

@@ -17,6 +17,7 @@ class AuthService
     public function __construct(
         private readonly RbacMenuService $rbacMenuService,
         private readonly TrustedAdminDeviceService $trustedAdminDeviceService,
+        private readonly AuditLoginService $auditLoginService,
     ) {}
 
     public function login(string $username, string $password, ?Request $request = null): array
@@ -25,18 +26,38 @@ class AuthService
         $user = UserLoginResolver::findByIdentifier($login);
 
         if (! $user) {
+            $this->auditLoginService->record([
+                'success' => false,
+                'username' => $login,
+                'failure_reason' => AuditLoginService::REASON_USER_NOT_FOUND,
+            ], $request);
+
             throw ValidationException::withMessages([
                 'username' => [UserLoginResolver::failureMessage($login) ?? 'Kredensial tidak valid.'],
             ]);
         }
 
         if (! Hash::check($password, $user->password)) {
+            $this->auditLoginService->record([
+                'success' => false,
+                'username' => $login,
+                'user_id' => $user->id,
+                'failure_reason' => AuditLoginService::REASON_INVALID_CREDENTIALS,
+            ], $request);
+
             throw ValidationException::withMessages([
                 'username' => ['Kredensial tidak valid.'],
             ]);
         }
 
         if (! $user->is_active) {
+            $this->auditLoginService->record([
+                'success' => false,
+                'username' => $login,
+                'user_id' => $user->id,
+                'failure_reason' => AuditLoginService::REASON_INACTIVE,
+            ], $request);
+
             throw ValidationException::withMessages([
                 'username' => ['Akun tidak aktif.'],
             ]);
@@ -44,6 +65,13 @@ class AuthService
 
         $konfig = SystemKonfig::active();
         if ($konfig?->maintenance_mode && ! $user->isSuperAdmin()) {
+            $this->auditLoginService->record([
+                'success' => false,
+                'username' => $login,
+                'user_id' => $user->id,
+                'failure_reason' => AuditLoginService::REASON_MAINTENANCE,
+            ], $request);
+
             throw ValidationException::withMessages([
                 'username' => ['Aplikasi sedang dalam maintenance. Hanya Super Admin yang dapat masuk.'],
             ]);
@@ -81,6 +109,14 @@ class AuthService
             $request?->header('X-Device-Key'),
         );
 
+        $this->auditLoginService->record([
+            'success' => true,
+            'username' => $login,
+            'user_id' => $user->id,
+            'remember_me' => $rememberMe,
+            'personal_access_token_id' => $accessToken->id,
+        ], $request);
+
         return array_merge(
             [
                 'token' => $token,
@@ -90,18 +126,19 @@ class AuthService
         );
     }
 
-    public function logout(User $user): void
+    public function logout(User $user, ?Request $request = null): void
     {
+        $this->auditLoginService->recordLogout($user, $request);
         $user->currentAccessToken()?->delete();
     }
 
     public function buildAuthPayload(User $user): array
     {
-        $user->loadMissing(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok']);
+        $user->loadMissing(['dapukan', 'jamaah.dapukan', 'wilayahFungPusat', 'wilayahFungDaerah', 'wilayahFungDesa', 'wilayahFungKelompok']);
 
         return [
             'user' => (new UserResource($user))->resolve(),
-            'permissions' => $user->permissionCodes(),
+            'permissions' => $user->isSuperAdmin() ? ['*'] : $user->permissionCodes(),
             'menus' => $this->rbacMenuService->getAccessibleMenus($user),
             'app_settings' => SystemKonfig::publicSettings(),
         ];

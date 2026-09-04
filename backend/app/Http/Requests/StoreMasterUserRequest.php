@@ -17,7 +17,7 @@ class StoreMasterUserRequest extends FormRequest
         return [
             'username' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:users,username'],
             'password' => ['required', 'string', 'min:8'],
-            'jamaah_id' => ['required', 'integer', 'exists:jamaah,id', 'unique:users,jamaah_id'],
+            'jamaah_id' => ['required', 'integer', 'exists:jamaah_r,id', 'unique:users,jamaah_id'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

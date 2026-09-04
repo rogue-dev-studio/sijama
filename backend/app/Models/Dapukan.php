@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dapukan extends Model
 {
-    protected $table = 'dapukan';
+    protected $table = 'dapukan_m';
 
     protected $fillable = [
         'slug',
@@ -36,12 +36,12 @@ class Dapukan extends Model
 
     public function jamaah(): BelongsToMany
     {
-        return $this->belongsToMany(Jamaah::class, 'jamaah_dapukan')->withTimestamps();
+        return $this->belongsToMany(Jamaah::class, 'jamaah_dapukan_mp')->withTimestamps();
     }
 
     public function hakAkses(): BelongsToMany
     {
-        return $this->belongsToMany(HakAkses::class, 'dapukan_hak_akses')
+        return $this->belongsToMany(HakAkses::class, 'dapukan_hak_akses_mp')
             ->withTimestamps();
     }
 }

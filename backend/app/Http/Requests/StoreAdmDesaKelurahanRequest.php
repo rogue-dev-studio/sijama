@@ -22,8 +22,8 @@ class StoreAdmDesaKelurahanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kecamatan_id' => ['required', 'integer', 'exists:adm_kecamatan,id'],
-            'kode' => ['required', 'string', 'max:32', 'unique:adm_desa_kelurahan,kode'],
+            'wilayah_adm_kecamatan_id' => ['required', 'integer', 'exists:wilayah_adm_kecamatan_m,id'],
+            'kode' => ['required', 'string', 'max:32', 'unique:wilayah_adm_desa_m,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'jenis' => ['required', Rule::in(['desa', 'kelurahan', 'desa_adat'])],
             'is_active' => ['nullable', 'boolean'],

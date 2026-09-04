@@ -27,7 +27,7 @@ class UpdateMasterUserRequest extends FormRequest
                 'sometimes',
                 'required',
                 'integer',
-                'exists:jamaah,id',
+                'exists:jamaah_r,id',
                 Rule::unique('users', 'jamaah_id')->ignore($this->route('user')),
             ],
             'is_active' => ['sometimes', 'boolean'],

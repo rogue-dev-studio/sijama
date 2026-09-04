@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
+    protected $table = 'absensi_t';
+
     protected $fillable = [
         'session_id',
         'jamaah_id',

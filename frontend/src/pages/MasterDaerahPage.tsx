@@ -16,7 +16,7 @@ async function loadPusatOptions() {
 
 const parentFilter = {
   label: 'Pusat',
-  paramKey: 'pusat_id',
+  paramKey: 'wilayah_fung_pusat_id',
   loadOptions: loadPusatOptions,
 }
 
@@ -28,10 +28,22 @@ const columns: GatedColumn<Daerah>[] = [
     exportValue: (item) => item.kode,
   },
   {
+    key: 'wilayah_fung_pusat',
+    label: 'Pusat',
+    cell: (item) => item.wilayah_fung_pusat?.nama || '—',
+    exportValue: (item) => item.wilayah_fung_pusat?.nama || '',
+  },
+  {
     key: 'nama',
     label: 'Nama',
     cell: (item) => item.nama,
     exportValue: (item) => item.nama,
+  },
+  {
+    key: 'deskripsi',
+    label: 'Deskripsi',
+    cell: (item) => item.deskripsi || '—',
+    exportValue: (item) => item.deskripsi || '',
   },
   {
     key: 'is_active',
@@ -51,8 +63,8 @@ export function MasterDaerahPage() {
       title="Master Daerah"
       description="Kelola wilayah daerah per pusat dalam hierarki SIJAMA."
       entityLabel="daerah"
-      basePath="/master/daerah"
-      permissionPrefix="daerah"
+      basePath="/master/wilayah-fung/daerah"
+      permissionPrefix="wilayah_fung_daerah"
       createLabel="Tambah daerah"
       searchPlaceholder="Cari kode atau nama daerah…"
       showStatusFilter={false}

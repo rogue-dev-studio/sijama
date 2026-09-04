@@ -16,33 +16,33 @@ class LokasiResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $desa = $this->relationLoaded('admDesaKelurahan') ? $this->admDesaKelurahan : null;
-        $kecamatan = $desa?->kecamatan;
-        $kabupaten = $kecamatan?->kabupatenKota;
-        $provinsi = $kabupaten?->provinsi;
+        $desa = $this->relationLoaded('wilayahAdmDesa') ? $this->wilayahAdmDesa : null;
+        $kecamatan = $desa?->wilayahAdmKecamatan;
+        $kabupaten = $kecamatan?->wilayahAdmKabupatenKota;
+        $provinsi = $kabupaten?->wilayahAdmProvinsi;
 
         return [
             'id' => $this->id,
             'nama' => $this->nama,
             'jenis' => $this->jenis,
             'kota' => $this->kota,
-            'adm_desa_kelurahan_id' => $this->adm_desa_kelurahan_id,
-            'adm_desa_kelurahan' => $desa ? [
+            'wilayah_adm_desa_id' => $this->wilayah_adm_desa_id,
+            'wilayah_adm_desa' => $desa ? [
                 'id' => $desa->id,
                 'kode' => $desa->kode,
                 'nama' => $desa->nama,
             ] : null,
-            'adm_kecamatan' => $kecamatan ? [
+            'wilayah_adm_kecamatan' => $kecamatan ? [
                 'id' => $kecamatan->id,
                 'kode' => $kecamatan->kode,
                 'nama' => $kecamatan->nama,
             ] : null,
-            'adm_kabupaten_kota' => $kabupaten ? [
+            'wilayah_adm_kabupaten_kota' => $kabupaten ? [
                 'id' => $kabupaten->id,
                 'kode' => $kabupaten->kode,
                 'nama' => $kabupaten->nama,
             ] : null,
-            'adm_provinsi' => $provinsi ? [
+            'wilayah_adm_provinsi' => $provinsi ? [
                 'id' => $provinsi->id,
                 'kode' => $provinsi->kode,
                 'nama' => $provinsi->nama,

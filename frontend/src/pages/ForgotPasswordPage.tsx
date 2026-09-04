@@ -14,6 +14,7 @@ import { buildAppShellBrand } from '../lib/appBrand'
 import { BrandMark } from '../components/BrandMark'
 import { DeveloperFooter } from '../components/DeveloperFooter'
 import { MenuIcon } from '../components/MenuIcon'
+import { PublicGateShell } from '../components/PublicGateShell'
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate()
@@ -88,8 +89,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-panel">
+    <PublicGateShell settings={settings}>
         <div className="login-panel__brand">
           <BrandMark size={56} src={logo} className="login-panel__brand-mark" alt={brandName} />
           <h1>{brandName}</h1>
@@ -153,7 +153,6 @@ export function ForgotPasswordPage() {
         </form>
 
         <DeveloperFooter />
-      </div>
-    </div>
+    </PublicGateShell>
   )
 }

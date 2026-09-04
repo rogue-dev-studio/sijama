@@ -14,9 +14,10 @@ class StoreDesaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'daerah_id' => ['required', 'integer', 'exists:daerah,id'],
-            'kode' => ['required', 'string', 'max:50', 'unique:desa,kode'],
+            'wilayah_fung_daerah_id' => ['required', 'integer', 'exists:wilayah_fung_daerah_m,id'],
+            'kode' => ['required', 'string', 'max:50', 'unique:wilayah_fung_desa_m,kode'],
             'nama' => ['required', 'string', 'max:255'],
+            'singkatan' => ['nullable', 'string', 'max:8', 'alpha_num'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];

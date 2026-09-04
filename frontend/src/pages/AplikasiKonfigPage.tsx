@@ -14,9 +14,12 @@ import { useAppSettings } from '../auth/AppSettingsContext'
 import { SearchableSelect } from '../components/SearchableSelect'
 import { PasswordInput } from '../components/PasswordInput'
 import { KonfigImageUpload } from '../components/KonfigImageUpload'
+import { KonfigDatabaseSection } from '../components/KonfigDatabaseSection'
+import { KonfigIntegrasiSection } from '../components/KonfigIntegrasiSection'
 import { ThemeColorField } from '../components/ThemeColorField'
 import { ThemePalettePicker } from '../components/ThemePalettePicker'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import { KONFIG_ASSET_FIELD, type KonfigAssetKind } from '../lib/konfigAsset'
 import {
   DEFAULT_BACKGROUND_STYLE,
@@ -32,12 +35,14 @@ import {
   matchThemePaletteId,
   type ThemePalette,
 } from '../lib/themeDefaults'
+import { ensureAppFontsLoaded, fontPresetOptions, resolveFontPreset } from '../lib/appFonts'
 
-type KonfigTab = 'identitas' | 'email' | 'integrasi' | 'branding' | 'tema' | 'operasional'
+type KonfigTab = 'identitas' | 'email' | 'database' | 'integrasi' | 'branding' | 'tema' | 'operasional'
 
 const TABS: Array<{ id: KonfigTab; label: string; permission: string }> = [
   { id: 'identitas', label: 'Identitas', permission: 'konfig.identitas.view' },
   { id: 'email', label: 'Email / SMS', permission: 'konfig.email.view' },
+  { id: 'database', label: 'Database', permission: 'konfig.database.view' },
   { id: 'integrasi', label: 'Integrasi', permission: 'konfig.integrasi.view' },
   { id: 'branding', label: 'Branding', permission: 'konfig.branding.view' },
   { id: 'tema', label: 'Tema', permission: 'konfig.tema.view' },
@@ -76,6 +81,25 @@ const emptyForm: KonfigSystemInput = {
   n8n_base_url: '',
   n8n_webhook_url: '',
   n8n_api_key: '',
+  api_co_id_holiday_enabled: true,
+  api_co_id_api_key: '',
+  api_co_id_holiday_base_url: 'https://use.api.co.id/holidays/indonesia',
+  db_enabled: false,
+  db_driver: 'pgsql',
+  db_project: '',
+  db_service_name: '',
+  db_plan: '',
+  db_region: '',
+  db_host: '',
+  db_port: null,
+  db_database: '',
+  db_valid_until: '',
+  db_notes: '',
+  smtp_valid_until: '',
+  fonnte_valid_until: '',
+  telegram_valid_until: '',
+  n8n_valid_until: '',
+  api_co_id_valid_until: '',
   header: '',
   footer: '',
   website: '',
@@ -97,6 +121,8 @@ const emptyForm: KonfigSystemInput = {
   color_muted: '',
   color_border: '',
   theme_color: '',
+  font_family_display: '',
+  font_family_body: '',
   maintenance_mode: false,
   maintenance_message: '',
   path_maintenance_background: '',
@@ -119,6 +145,13 @@ export function AplikasiKonfigPage() {
   const [fonnteTokenSet, setFonnteTokenSet] = useState(false)
   const [telegramTokenSet, setTelegramTokenSet] = useState(false)
   const [n8nApiKeySet, setN8nApiKeySet] = useState(false)
+  const [apiCoIdKeySet, setApiCoIdKeySet] = useState(false)
+  const [lastHolidaySyncAt, setLastHolidaySyncAt] = useState<string | null>(null)
+  const [lastHolidaySyncCount, setLastHolidaySyncCount] = useState<number | null>(null)
+  const [dbLastCheckedAt, setDbLastCheckedAt] = useState<string | null>(null)
+  const [dbLastCheckStatus, setDbLastCheckStatus] = useState<string | null>(null)
+  const [dbLastCheckMessage, setDbLastCheckMessage] = useState<string | null>(null)
+  const [syncingHolidays, setSyncingHolidays] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -143,6 +176,12 @@ export function AplikasiKonfigPage() {
         setFonnteTokenSet(item.fonnte_token_set)
         setTelegramTokenSet(item.telegram_bot_token_set)
         setN8nApiKeySet(item.n8n_api_key_set)
+        setApiCoIdKeySet(item.api_co_id_api_key_set)
+        setLastHolidaySyncAt(item.api_co_id_holiday_last_synced_at)
+        setLastHolidaySyncCount(item.api_co_id_holiday_last_sync_count)
+        setDbLastCheckedAt(item.db_last_checked_at)
+        setDbLastCheckStatus(item.db_last_check_status)
+        setDbLastCheckMessage(item.db_last_check_message)
         setForm({
           app_nama: item.app_nama || '',
           nama_instansi: item.nama_instansi || '',
@@ -175,6 +214,25 @@ export function AplikasiKonfigPage() {
           n8n_base_url: item.n8n_base_url || '',
           n8n_webhook_url: item.n8n_webhook_url || '',
           n8n_api_key: '',
+          api_co_id_holiday_enabled: item.api_co_id_holiday_enabled ?? true,
+          api_co_id_api_key: '',
+          api_co_id_holiday_base_url: item.api_co_id_holiday_base_url || 'https://use.api.co.id/holidays/indonesia',
+          db_enabled: item.db_enabled ?? false,
+          db_driver: item.db_driver || 'pgsql',
+          db_project: item.db_project || '',
+          db_service_name: item.db_service_name || '',
+          db_plan: item.db_plan || '',
+          db_region: item.db_region || '',
+          db_host: item.db_host || '',
+          db_port: item.db_port ?? null,
+          db_database: item.db_database || '',
+          db_valid_until: item.db_valid_until || '',
+          db_notes: item.db_notes || '',
+          smtp_valid_until: item.smtp_valid_until || '',
+          fonnte_valid_until: item.fonnte_valid_until || '',
+          telegram_valid_until: item.telegram_valid_until || '',
+          n8n_valid_until: item.n8n_valid_until || '',
+          api_co_id_valid_until: item.api_co_id_valid_until || '',
           header: item.header || '',
           footer: item.footer || '',
           website: item.website || '',
@@ -196,6 +254,8 @@ export function AplikasiKonfigPage() {
           color_muted: item.color_muted || '',
           color_border: item.color_border || '',
           theme_color: item.theme_color || '',
+          font_family_display: item.font_family_display || '',
+          font_family_body: item.font_family_body || '',
           maintenance_mode: item.maintenance_mode,
           maintenance_message: item.maintenance_message || '',
           path_maintenance_background: item.path_maintenance_background || '',
@@ -221,6 +281,25 @@ export function AplikasiKonfigPage() {
 
   function setField<K extends keyof KonfigSystemInput>(key: K, value: KonfigSystemInput[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  async function handleSyncHariLibur() {
+    if (!canUpdate || syncingHolidays) return
+    setSyncingHolidays(true)
+    setError(null)
+
+    try {
+      const result = await aplikasiKonfigService.syncHariLibur({ next: true })
+      setLastHolidaySyncAt(result.last_synced_at)
+      setLastHolidaySyncCount(result.last_sync_count)
+      const total = result.results.reduce((sum, item) => sum + item.synced, 0)
+      const years = result.results.map((item) => item.year).join(', ')
+      notifySuccess(`Hari libur disinkronkan (${total} entri, tahun ${years}).`)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Gagal sinkron hari libur')
+    } finally {
+      setSyncingHolidays(false)
+    }
   }
 
   function setPendingAsset(asset: KonfigAssetKind, file: File | null) {
@@ -347,6 +426,25 @@ export function AplikasiKonfigPage() {
       n8n_base_url: form.n8n_base_url?.trim() || null,
       n8n_webhook_url: form.n8n_webhook_url?.trim() || null,
       n8n_api_key: form.n8n_api_key?.trim() || null,
+      api_co_id_holiday_enabled: Boolean(form.api_co_id_holiday_enabled),
+      api_co_id_api_key: form.api_co_id_api_key?.trim() || null,
+      api_co_id_holiday_base_url: form.api_co_id_holiday_base_url?.trim() || null,
+      db_enabled: Boolean(form.db_enabled),
+      db_driver: form.db_driver?.trim() || null,
+      db_project: form.db_project?.trim() || null,
+      db_service_name: form.db_service_name?.trim() || null,
+      db_plan: form.db_plan?.trim() || null,
+      db_region: form.db_region?.trim() || null,
+      db_host: form.db_host?.trim() || null,
+      db_port: form.db_port ?? null,
+      db_database: form.db_database?.trim() || null,
+      db_valid_until: form.db_valid_until?.trim() || null,
+      db_notes: form.db_notes?.trim() || null,
+      smtp_valid_until: form.smtp_valid_until?.trim() || null,
+      fonnte_valid_until: form.fonnte_valid_until?.trim() || null,
+      telegram_valid_until: form.telegram_valid_until?.trim() || null,
+      n8n_valid_until: form.n8n_valid_until?.trim() || null,
+      api_co_id_valid_until: form.api_co_id_valid_until?.trim() || null,
       header: form.header?.trim() || null,
       footer: form.footer?.trim() || null,
       website: form.website?.trim() || null,
@@ -368,6 +466,8 @@ export function AplikasiKonfigPage() {
       color_muted: form.color_muted?.trim() || null,
       color_border: form.color_border?.trim() || null,
       theme_color: form.theme_color?.trim() || null,
+      font_family_display: form.font_family_display?.trim() || null,
+      font_family_body: form.font_family_body?.trim() || null,
       maintenance_message: form.maintenance_message?.trim() || null,
       path_maintenance_background: form.path_maintenance_background?.trim() || null,
       maintenance_background_style: normalizeBackgroundStyle(form.maintenance_background_style),
@@ -397,10 +497,15 @@ export function AplikasiKonfigPage() {
       setFonnteTokenSet(saved.fonnte_token_set)
       setTelegramTokenSet(saved.telegram_bot_token_set)
       setN8nApiKeySet(saved.n8n_api_key_set)
+      setApiCoIdKeySet(saved.api_co_id_api_key_set)
+      setDbLastCheckedAt(saved.db_last_checked_at)
+      setDbLastCheckStatus(saved.db_last_check_status)
+      setDbLastCheckMessage(saved.db_last_check_message)
       setField('smtp_password', '')
       setField('fonnte_token', '')
       setField('telegram_bot_token', '')
       setField('n8n_api_key', '')
+      setField('api_co_id_api_key', '')
       setForm((prev) => ({
         ...prev,
         path_logoheader: saved.path_logoheader ?? '',
@@ -417,6 +522,8 @@ export function AplikasiKonfigPage() {
         color_muted: saved.color_muted ?? '',
         color_border: saved.color_border ?? '',
         theme_color: saved.theme_color ?? '',
+        font_family_display: saved.font_family_display ?? '',
+        font_family_body: saved.font_family_body ?? '',
         path_maintenance_background: saved.path_maintenance_background ?? '',
         maintenance_background_style: normalizeBackgroundStyle(saved.maintenance_background_style),
         maintenance_background_repeat_size: normalizeBackgroundRepeatSize(saved.maintenance_background_repeat_size),
@@ -451,8 +558,18 @@ export function AplikasiKonfigPage() {
     theme_color: form.theme_color,
   })
 
+  useEffect(() => {
+    ensureAppFontsLoaded(form.font_family_display, form.font_family_body)
+  }, [form.font_family_display, form.font_family_body])
+
   if (loading) {
-    return <div className="loading-state">Memuat konfigurasi…</div>
+    return (
+      <FormPageLoading
+        title="Konfigurasi Sistem"
+        description="Satu setelan global aplikasi — hanya Super Admin yang dapat mengakses."
+        message="Memuat konfigurasi…"
+      />
+    )
   }
 
   return (
@@ -729,105 +846,44 @@ export function AplikasiKonfigPage() {
 
           <div
             role="tabpanel"
+            id={`${tabsId}-panel-database`}
+            aria-labelledby={`${tabsId}-database`}
+            hidden={tab !== 'database' || !can('konfig.database.view')}
+          >
+            <KonfigDatabaseSection
+              form={form}
+              setField={setField}
+              canUpdate={canUpdate}
+              dbLastCheckedAt={dbLastCheckedAt}
+              dbLastCheckStatus={dbLastCheckStatus}
+              dbLastCheckMessage={dbLastCheckMessage}
+              onDbCheckMeta={({ at, status, message }) => {
+                setDbLastCheckedAt(at)
+                setDbLastCheckStatus(status)
+                setDbLastCheckMessage(message)
+              }}
+            />
+          </div>
+
+          <div
+            role="tabpanel"
             id={`${tabsId}-panel-integrasi`}
             aria-labelledby={`${tabsId}-integrasi`}
             hidden={tab !== 'integrasi' || !can('konfig.integrasi.view')}
           >
-            <h3 className="form-section-title form-section-title--first">Telegram Bot</h3>
-            <p className="field-hint field-hint--block">
-              Token dari @BotFather. Chat ID dipakai untuk notifikasi default (opsional).
-            </p>
-            <div className="form-grid form-grid--2">
-              <div className="field">
-                <label htmlFor="telegram_enabled">Status Telegram</label>
-                <SearchableSelect
-                  id="telegram_enabled"
-                  value={form.telegram_enabled ? '1' : '0'}
-                  onChange={(next) => setField('telegram_enabled', next === '1')}
-                  options={[
-                    { value: '0', label: 'Nonaktif' },
-                    { value: '1', label: 'Aktif' },
-                  ]}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="telegram_bot_username">Bot username</label>
-                <input
-                  id="telegram_bot_username"
-                  value={form.telegram_bot_username || ''}
-                  onChange={(e) => setField('telegram_bot_username', e.target.value)}
-                  placeholder="@nama_bot"
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="telegram_bot_token">Bot token</label>
-                <PasswordInput
-                  id="telegram_bot_token"
-                  autoComplete="new-password"
-                  placeholder={telegramTokenSet ? 'Kosongkan jika tidak diubah' : ''}
-                  value={form.telegram_bot_token || ''}
-                  onChange={(e) => setField('telegram_bot_token', e.target.value)}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="telegram_default_chat_id">Default chat ID</label>
-                <input
-                  id="telegram_default_chat_id"
-                  value={form.telegram_default_chat_id || ''}
-                  onChange={(e) => setField('telegram_default_chat_id', e.target.value)}
-                  placeholder="Contoh: 123456789"
-                />
-              </div>
-            </div>
-
-            <h3 className="form-section-title form-section-title--after-block">
-              n8n
-            </h3>
-            <p className="field-hint field-hint--block">
-              Base URL instance n8n dan webhook workflow. API key opsional untuk autentikasi.
-            </p>
-            <div className="form-grid form-grid--2">
-              <div className="field">
-                <label htmlFor="n8n_enabled">Status n8n</label>
-                <SearchableSelect
-                  id="n8n_enabled"
-                  value={form.n8n_enabled ? '1' : '0'}
-                  onChange={(next) => setField('n8n_enabled', next === '1')}
-                  options={[
-                    { value: '0', label: 'Nonaktif' },
-                    { value: '1', label: 'Aktif' },
-                  ]}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="n8n_base_url">Base URL</label>
-                <input
-                  id="n8n_base_url"
-                  value={form.n8n_base_url || ''}
-                  onChange={(e) => setField('n8n_base_url', e.target.value)}
-                  placeholder="https://n8n.domain.com"
-                />
-              </div>
-              <div className="field" style={{ gridColumn: '1 / -1' }}>
-                <label htmlFor="n8n_webhook_url">Webhook URL</label>
-                <input
-                  id="n8n_webhook_url"
-                  value={form.n8n_webhook_url || ''}
-                  onChange={(e) => setField('n8n_webhook_url', e.target.value)}
-                  placeholder="https://n8n.domain.com/webhook/..."
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="n8n_api_key">API key</label>
-                <PasswordInput
-                  id="n8n_api_key"
-                  autoComplete="new-password"
-                  placeholder={n8nApiKeySet ? 'Kosongkan jika tidak diubah' : ''}
-                  value={form.n8n_api_key || ''}
-                  onChange={(e) => setField('n8n_api_key', e.target.value)}
-                />
-              </div>
-            </div>
+            <KonfigIntegrasiSection
+              form={form}
+              setField={setField}
+              canUpdate={canUpdate}
+              telegramTokenSet={telegramTokenSet}
+              n8nApiKeySet={n8nApiKeySet}
+              apiCoIdKeySet={apiCoIdKeySet}
+              lastHolidaySyncAt={lastHolidaySyncAt}
+              lastHolidaySyncCount={lastHolidaySyncCount}
+              syncingHolidays={syncingHolidays}
+              submitting={submitting}
+              onSyncHariLibur={() => void handleSyncHariLibur()}
+            />
           </div>
 
           <div
@@ -966,7 +1022,8 @@ export function AplikasiKonfigPage() {
                 <div>
                   <h3 className="form-section-title konfig-theme-toolbar__title">Tema aplikasi</h3>
                   <p className="field-hint">
-                    Reset mengembalikan warna bawaan SIJAMA, menghapus background upload, dan style cover.
+                    Reset mengembalikan warna bawaan SIJAMA, font default, menghapus background upload, dan
+                    style cover.
                   </p>
                 </div>
                 <button
@@ -977,6 +1034,62 @@ export function AplikasiKonfigPage() {
                 >
                   Reset ke default
                 </button>
+              </div>
+              <div className="field" style={{ gridColumn: '1 / -1' }}>
+                <h3 className="form-section-title">Font aplikasi</h3>
+                <p className="field-hint">
+                  Font header dipakai judul/heading; font body untuk teks isi. Kosong = default Fraunces +
+                  Source Sans 3.
+                </p>
+              </div>
+              <div className="field">
+                <label htmlFor="font_family_display">Font header / judul</label>
+                <select
+                  id="font_family_display"
+                  value={form.font_family_display ?? ''}
+                  disabled={!canUpdate}
+                  onChange={(event) => setField('font_family_display', event.target.value)}
+                >
+                  {fontPresetOptions().map((option) => (
+                    <option key={`display-${option.value || 'default'}`} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p
+                  className="field-hint"
+                  style={{
+                    fontFamily: resolveFontPreset(form.font_family_display)?.stack ?? 'var(--font-display)',
+                    fontSize: '1.15rem',
+                    marginTop: '0.5rem',
+                  }}
+                >
+                  Pratinjau judul: Sistem Informasi Jamaah
+                </p>
+              </div>
+              <div className="field">
+                <label htmlFor="font_family_body">Font body / teks</label>
+                <select
+                  id="font_family_body"
+                  value={form.font_family_body ?? ''}
+                  disabled={!canUpdate}
+                  onChange={(event) => setField('font_family_body', event.target.value)}
+                >
+                  {fontPresetOptions().map((option) => (
+                    <option key={`body-${option.value || 'default'}`} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p
+                  className="field-hint"
+                  style={{
+                    fontFamily: resolveFontPreset(form.font_family_body)?.stack ?? 'var(--font-body)',
+                    marginTop: '0.5rem',
+                  }}
+                >
+                  Pratinjau body: Data jamaah, kehadiran, dan laporan ditampilkan dengan font ini.
+                </p>
               </div>
               <div className="field" style={{ gridColumn: '1 / -1' }}>
                 <KonfigImageUpload

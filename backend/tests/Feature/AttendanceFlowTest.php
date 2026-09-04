@@ -75,6 +75,29 @@ class AttendanceFlowTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.jamaah_id', $jamaah->id);
 
+        $jamaahFace = Jamaah::query()->create([
+            'nik' => '1313131313131313',
+            'nama' => 'Jamaah Face Check-in',
+            'gender' => 'P',
+            'rt' => '02',
+            'rw' => '02',
+            'no_hp' => '081234567891',
+            'status' => 'aktif',
+            'face_descriptor' => array_fill(0, 128, 0.2),
+            'enrolled_at' => now(),
+        ]);
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson('/api/attendance/sessions/'.$sessionId.'/check-in', [
+                'jamaah_id' => $jamaahFace->id,
+                'method' => 'face',
+                'matched_distance' => 0.38,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.jamaah_id', $jamaahFace->id)
+            ->assertJsonPath('data.method', 'face');
+
         $this->actingAs($user, 'sanctum')
             ->postJson('/api/attendance/sessions/'.$sessionId.'/close')
             ->assertOk()

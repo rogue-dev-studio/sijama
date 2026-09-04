@@ -7,6 +7,8 @@ use App\Models\Fitur;
 use App\Models\HakAkses;
 use App\Models\Menu;
 use App\Models\User;
+use App\Services\RbacMenuService;
+use App\Support\SuperAdminAccess;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -17,12 +19,20 @@ class RbacSeeder extends Seeder
     {
         $dapukan = $this->seedDapukan();
         $this->purgeObsoleteDapukan($dapukan);
-        $menus = $this->seedMenus();
-        $fiturs = $this->seedFiturs($menus);
-        $permissions = $this->seedHakAkses($fiturs);
+        [$menus, $fiturs, $permissions] = SuperAdminAccess::withoutAutoProvision(function () {
+            $menus = $this->seedMenus();
+            $fiturs = $this->seedFiturs($menus);
+            $permissions = HakAkses::withoutEvents(fn () => $this->seedHakAkses($fiturs));
+
+            return [$menus, $fiturs, $permissions];
+        });
         HakAkses::whereIn('slug', ['konfig.create', 'konfig.delete'])->delete();
         $this->purgeObsoletePekerjaanMaster();
+        $this->purgeObsoleteHakAkses(array_keys($permissions));
         $this->assignPermissions($dapukan, $permissions);
+        SuperAdminAccess::grantAll();
+        SuperAdminAccess::ensureReservedUser();
+        RbacMenuService::forgetFullMenuTreeCache();
     }
 
     private function purgeObsoletePekerjaanMaster(): void
@@ -41,8 +51,53 @@ class RbacSeeder extends Seeder
             return;
         }
 
-        DB::table('dapukan_hak_akses')->whereIn('hak_akses_id', $obsoleteIds)->delete();
+        DB::table('dapukan_hak_akses_mp')->whereIn('hak_akses_id', $obsoleteIds)->delete();
         HakAkses::whereIn('id', $obsoleteIds)->delete();
+    }
+
+    /**
+     * @param  list<string>  $keepSlugs
+     */
+    private function purgeObsoleteHakAkses(array $keepSlugs): void
+    {
+        $obsoleteIds = HakAkses::query()
+            ->where(function ($query) {
+                $query->where('slug', 'like', 'kategori_kegiatan_m.%')
+                    ->orWhere('slug', 'like', 'pengajian.%')
+                    ->orWhere('slug', 'like', 'laporan_pengajian.%')
+                    ->orWhereIn('slug', [
+                        'jamaah.col.kelompok.view',
+                        'keluarga.col.kelompok.view',
+                        'laporan_jamaah.col.kelompok.view',
+                        'laporan_kehadiran.col.kelompok.view',
+                        'wilayah_adm_kode_pos.col.nama.view',
+                        'wilayah_adm_kode_pos.col.negara.view',
+                    ]);
+            })
+            ->whereNotIn('slug', $keepSlugs)
+            ->pluck('id');
+
+        if ($obsoleteIds->isNotEmpty()) {
+            DB::table('dapukan_hak_akses_mp')->whereIn('hak_akses_id', $obsoleteIds)->delete();
+            HakAkses::whereIn('id', $obsoleteIds)->delete();
+        }
+
+        Fitur::query()
+            ->where(function ($query) {
+                $query->where('slug', 'like', 'kategori_kegiatan_m-%')
+                    ->orWhere('slug', 'like', 'pengajian-%')
+                    ->orWhere('slug', 'like', 'laporan_pengajian-%')
+                    ->orWhereIn('slug', [
+                        'jamaah-col-kelompok',
+                        'keluarga-col-kelompok',
+                        'laporan_jamaah-col-kelompok',
+                        'laporan_kehadiran-col-kelompok',
+                        'wilayah_adm_kode_pos-col-nama',
+                        'wilayah_adm_kode_pos-col-negara',
+                    ]);
+            })
+            ->whereDoesntHave('hakAkses')
+            ->delete();
     }
 
     private function purgeObsoleteDapukan(array $active): void
@@ -73,24 +128,24 @@ class RbacSeeder extends Seeder
                 if ($replacement) {
                     User::where('dapukan_id', $legacy->id)->update(['dapukan_id' => $replacement->id]);
 
-                    if (Schema::hasTable('jamaah_dapukan')) {
-                        $jamaahIds = DB::table('jamaah_dapukan')
+                    if (Schema::hasTable('jamaah_dapukan_mp')) {
+                        $jamaahIds = DB::table('jamaah_dapukan_mp')
                             ->where('dapukan_id', $legacy->id)
                             ->pluck('jamaah_id');
 
                         foreach ($jamaahIds as $jamaahId) {
-                            $exists = DB::table('jamaah_dapukan')
+                            $exists = DB::table('jamaah_dapukan_mp')
                                 ->where('jamaah_id', $jamaahId)
                                 ->where('dapukan_id', $replacement->id)
                                 ->exists();
 
                             if ($exists) {
-                                DB::table('jamaah_dapukan')
+                                DB::table('jamaah_dapukan_mp')
                                     ->where('jamaah_id', $jamaahId)
                                     ->where('dapukan_id', $legacy->id)
                                     ->delete();
                             } else {
-                                DB::table('jamaah_dapukan')
+                                DB::table('jamaah_dapukan_mp')
                                     ->where('jamaah_id', $jamaahId)
                                     ->where('dapukan_id', $legacy->id)
                                     ->update(['dapukan_id' => $replacement->id]);
@@ -99,8 +154,8 @@ class RbacSeeder extends Seeder
                     }
                 } else {
                     User::where('dapukan_id', $legacy->id)->update(['dapukan_id' => null]);
-                    if (Schema::hasTable('jamaah_dapukan')) {
-                        DB::table('jamaah_dapukan')->where('dapukan_id', $legacy->id)->delete();
+                    if (Schema::hasTable('jamaah_dapukan_mp')) {
+                        DB::table('jamaah_dapukan_mp')->where('dapukan_id', $legacy->id)->delete();
                     }
                 }
 
@@ -187,8 +242,7 @@ class RbacSeeder extends Seeder
             ['slug' => 'laporan', 'nama' => 'Laporan', 'path' => null, 'icon' => 'file-text', 'urutan' => 2, 'parent' => null],
             ['slug' => 'laporan-kehadiran', 'nama' => 'Kehadiran', 'path' => '/laporan/kehadiran', 'icon' => 'clipboard-check', 'urutan' => 1, 'parent' => 'laporan'],
             ['slug' => 'laporan-jamaah', 'nama' => 'Jamaah', 'path' => '/laporan/jamaah', 'icon' => 'users', 'urutan' => 2, 'parent' => 'laporan'],
-            ['slug' => 'laporan-pengajian', 'nama' => 'Pengajian', 'path' => '/laporan/pengajian', 'icon' => 'book-open', 'urutan' => 3, 'parent' => 'laporan'],
-            ['slug' => 'laporan-kegiatan', 'nama' => 'Kegiatan', 'path' => '/laporan/kegiatan', 'icon' => 'calendar', 'urutan' => 4, 'parent' => 'laporan'],
+            ['slug' => 'laporan-kegiatan', 'nama' => 'Kegiatan', 'path' => '/laporan/kegiatan', 'icon' => 'calendar', 'urutan' => 3, 'parent' => 'laporan'],
 
             ['slug' => 'transaksi', 'nama' => 'Transaksi', 'path' => null, 'icon' => 'arrow-left-right', 'urutan' => 3, 'parent' => null],
             ['slug' => 'master', 'nama' => 'Master', 'path' => null, 'icon' => 'database', 'urutan' => 4, 'parent' => null],
@@ -199,8 +253,8 @@ class RbacSeeder extends Seeder
             ['slug' => 'kategori-umur', 'nama' => 'Kategori Umur', 'path' => '/kategori-umur', 'icon' => 'users', 'urutan' => 3, 'parent' => 'informasi'],
             ['slug' => 'kalender', 'nama' => 'Kalender', 'path' => '/kalender', 'icon' => 'calendar', 'urutan' => 4, 'parent' => 'informasi'],
 
-            ['slug' => 'pengajian', 'nama' => 'Pengajian', 'path' => '/pengajian', 'icon' => 'book-open', 'urutan' => 1, 'parent' => 'transaksi'],
-            ['slug' => 'kegiatan', 'nama' => 'Kegiatan', 'path' => '/kegiatan', 'icon' => 'calendar', 'urutan' => 2, 'parent' => 'transaksi'],
+            ['slug' => 'kegiatan', 'nama' => 'Kegiatan', 'path' => '/kegiatan', 'icon' => 'calendar', 'urutan' => 1, 'parent' => 'transaksi'],
+            ['slug' => 'kegiatan-jadwal-rutin', 'nama' => 'Jadwal Rutin Kegiatan', 'path' => '/kegiatan/jadwal-rutin', 'icon' => 'calendar-clock', 'urutan' => 2, 'parent' => 'transaksi'],
             ['slug' => 'absensi', 'nama' => 'Absensi', 'path' => '/absensi', 'icon' => 'scan-face', 'urutan' => 3, 'parent' => 'transaksi'],
 
             ['slug' => 'jamaah', 'nama' => 'Jamaah', 'path' => '/jamaah', 'icon' => 'users', 'urutan' => 1, 'parent' => 'master'],
@@ -211,18 +265,18 @@ class RbacSeeder extends Seeder
             ['slug' => 'master-kategori-kegiatan', 'nama' => 'Kategori Kegiatan', 'path' => '/master/kategori-kegiatan', 'icon' => 'calendar', 'urutan' => 6, 'parent' => 'master'],
             ['slug' => 'master-lookup', 'nama' => 'Lookup', 'path' => '/master/lookup', 'icon' => 'list', 'urutan' => 7, 'parent' => 'master'],
             ['slug' => 'wilayah', 'nama' => 'Wilayah Fungsional', 'path' => null, 'icon' => 'map', 'urutan' => 8, 'parent' => 'master'],
-            ['slug' => 'master-pusat', 'nama' => 'Pusat', 'path' => '/master/pusat', 'icon' => 'building-2', 'urutan' => 1, 'parent' => 'wilayah'],
-            ['slug' => 'master-daerah', 'nama' => 'Daerah', 'path' => '/master/daerah', 'icon' => 'map', 'urutan' => 2, 'parent' => 'wilayah'],
-            ['slug' => 'master-desa', 'nama' => 'Desa', 'path' => '/master/desa', 'icon' => 'map-pin', 'urutan' => 3, 'parent' => 'wilayah'],
-            ['slug' => 'master-kelompok', 'nama' => 'Kelompok', 'path' => '/master/kelompok', 'icon' => 'users-round', 'urutan' => 4, 'parent' => 'wilayah'],
-            ['slug' => 'master-sub-kelompok', 'nama' => 'Sub Kelompok', 'path' => '/master/sub-kelompok', 'icon' => 'users', 'urutan' => 5, 'parent' => 'wilayah'],
-            ['slug' => 'wilayah-admin', 'nama' => 'Wilayah Administrasi', 'path' => null, 'icon' => 'globe', 'urutan' => 9, 'parent' => 'master'],
-            ['slug' => 'master-adm-negara', 'nama' => 'Negara', 'path' => '/master/adm/negara', 'icon' => 'flag', 'urutan' => 1, 'parent' => 'wilayah-admin'],
-            ['slug' => 'master-adm-provinsi', 'nama' => 'Provinsi', 'path' => '/master/adm/provinsi', 'icon' => 'map', 'urutan' => 2, 'parent' => 'wilayah-admin'],
-            ['slug' => 'master-adm-kabupaten-kota', 'nama' => 'Kabupaten/Kota', 'path' => '/master/adm/kabupaten-kota', 'icon' => 'building', 'urutan' => 3, 'parent' => 'wilayah-admin'],
-            ['slug' => 'master-adm-kecamatan', 'nama' => 'Kecamatan', 'path' => '/master/adm/kecamatan', 'icon' => 'map-pin', 'urutan' => 4, 'parent' => 'wilayah-admin'],
-            ['slug' => 'master-adm-desa-kelurahan', 'nama' => 'Desa/Kelurahan', 'path' => '/master/adm/desa-kelurahan', 'icon' => 'home', 'urutan' => 5, 'parent' => 'wilayah-admin'],
-            ['slug' => 'master-adm-kode-pos', 'nama' => 'Kode Pos', 'path' => '/master/adm/kode-pos', 'icon' => 'mail', 'urutan' => 6, 'parent' => 'wilayah-admin'],
+            ['slug' => 'master-wilayah-fung-pusat', 'nama' => 'Pusat', 'path' => '/master/wilayah-fung/pusat', 'icon' => 'building-2', 'urutan' => 1, 'parent' => 'wilayah'],
+            ['slug' => 'master-wilayah-fung-daerah', 'nama' => 'Daerah', 'path' => '/master/wilayah-fung/daerah', 'icon' => 'map', 'urutan' => 2, 'parent' => 'wilayah'],
+            ['slug' => 'master-wilayah-fung-desa', 'nama' => 'Desa', 'path' => '/master/wilayah-fung/desa', 'icon' => 'map-pin', 'urutan' => 3, 'parent' => 'wilayah'],
+            ['slug' => 'master-wilayah-fung-kelompok', 'nama' => 'Kelompok', 'path' => '/master/wilayah-fung/kelompok', 'icon' => 'users-round', 'urutan' => 4, 'parent' => 'wilayah'],
+            ['slug' => 'master-wilayah-fung-sub-kelompok', 'nama' => 'Sub Kelompok', 'path' => '/master/wilayah-fung/sub-kelompok', 'icon' => 'users', 'urutan' => 5, 'parent' => 'wilayah'],
+            ['slug' => 'wilayah-adm', 'nama' => 'Wilayah Administrasi', 'path' => null, 'icon' => 'globe', 'urutan' => 9, 'parent' => 'master'],
+            ['slug' => 'master-wilayah-adm-negara', 'nama' => 'Negara', 'path' => '/master/wilayah-adm/negara', 'icon' => 'flag', 'urutan' => 1, 'parent' => 'wilayah-adm'],
+            ['slug' => 'master-wilayah-adm-provinsi', 'nama' => 'Provinsi', 'path' => '/master/wilayah-adm/provinsi', 'icon' => 'map', 'urutan' => 2, 'parent' => 'wilayah-adm'],
+            ['slug' => 'master-wilayah-adm-kabupaten-kota', 'nama' => 'Kabupaten/Kota', 'path' => '/master/wilayah-adm/kabupaten-kota', 'icon' => 'building', 'urutan' => 3, 'parent' => 'wilayah-adm'],
+            ['slug' => 'master-wilayah-adm-kecamatan', 'nama' => 'Kecamatan', 'path' => '/master/wilayah-adm/kecamatan', 'icon' => 'map-pin', 'urutan' => 4, 'parent' => 'wilayah-adm'],
+            ['slug' => 'master-wilayah-adm-desa', 'nama' => 'Desa/Kelurahan', 'path' => '/master/wilayah-adm/desa', 'icon' => 'home', 'urutan' => 5, 'parent' => 'wilayah-adm'],
+            ['slug' => 'master-wilayah-adm-kode-pos', 'nama' => 'Kode Pos', 'path' => '/master/wilayah-adm/kode-pos', 'icon' => 'mail', 'urutan' => 6, 'parent' => 'wilayah-adm'],
             ['slug' => 'master-dapukan', 'nama' => 'Dapukan', 'path' => '/master/dapukan', 'icon' => 'shield', 'urutan' => 10, 'parent' => 'master'],
             ['slug' => 'master-menu', 'nama' => 'Menu', 'path' => '/master/menu', 'icon' => 'menu', 'urutan' => 11, 'parent' => 'master'],
             ['slug' => 'master-fitur', 'nama' => 'Fitur', 'path' => '/master/fitur', 'icon' => 'puzzle', 'urutan' => 12, 'parent' => 'master'],
@@ -232,6 +286,34 @@ class RbacSeeder extends Seeder
 
             ['slug' => 'aplikasi-konfig', 'nama' => 'Konfigurasi Sistem', 'path' => '/aplikasi/konfig', 'icon' => 'settings', 'urutan' => 1, 'parent' => 'aplikasi'],
             ['slug' => 'aplikasi-konfig-dokumen', 'nama' => 'Konfigurasi Dokumen', 'path' => '/aplikasi/konfig-dokumen', 'icon' => 'file-text', 'urutan' => 2, 'parent' => 'aplikasi'],
+            ['slug' => 'aplikasi-audit', 'nama' => 'Audit', 'path' => null, 'icon' => 'shield', 'urutan' => 3, 'parent' => 'aplikasi'],
+            ['slug' => 'aplikasi-audit-login', 'nama' => 'Audit Login', 'path' => '/aplikasi/audit/login', 'icon' => 'log-in', 'urutan' => 1, 'parent' => 'aplikasi-audit'],
+            ['slug' => 'aplikasi-audit-akses', 'nama' => 'Audit Akses', 'path' => '/aplikasi/audit/akses', 'icon' => 'key', 'urutan' => 2, 'parent' => 'aplikasi-audit'],
+            ['slug' => 'aplikasi-audit-konfig', 'nama' => 'Audit Konfigurasi', 'path' => '/aplikasi/audit/konfig', 'icon' => 'settings', 'urutan' => 3, 'parent' => 'aplikasi-audit'],
+            ['slug' => 'aplikasi-audit-jamaah', 'nama' => 'Audit Jamaah', 'path' => '/aplikasi/audit/jamaah', 'icon' => 'users', 'urutan' => 4, 'parent' => 'aplikasi-audit'],
+            ['slug' => 'aplikasi-log', 'nama' => 'Log', 'path' => null, 'icon' => 'scroll-text', 'urutan' => 4, 'parent' => 'aplikasi'],
+            ['slug' => 'aplikasi-log-error', 'nama' => 'Error Aplikasi', 'path' => '/aplikasi/log/error', 'icon' => 'alert-triangle', 'urutan' => 1, 'parent' => 'aplikasi-log'],
+            ['slug' => 'aplikasi-log-database', 'nama' => 'Log Database', 'path' => '/aplikasi/log/database', 'icon' => 'database', 'urutan' => 2, 'parent' => 'aplikasi-log'],
+            ['slug' => 'aplikasi-log-telegram', 'nama' => 'Log Telegram', 'path' => '/aplikasi/log/telegram', 'icon' => 'users', 'urutan' => 3, 'parent' => 'aplikasi-log'],
+            ['slug' => 'aplikasi-log-smtp', 'nama' => 'Log SMTP', 'path' => '/aplikasi/log/smtp', 'icon' => 'mail', 'urutan' => 4, 'parent' => 'aplikasi-log'],
+            ['slug' => 'aplikasi-log-fonnte', 'nama' => 'Log Fonnte', 'path' => '/aplikasi/log/fonnte', 'icon' => 'key', 'urutan' => 5, 'parent' => 'aplikasi-log'],
+            ['slug' => 'aplikasi-log-n8n', 'nama' => 'Log n8n', 'path' => '/aplikasi/log/n8n', 'icon' => 'puzzle', 'urutan' => 6, 'parent' => 'aplikasi-log'],
+            ['slug' => 'aplikasi-log-api-co-id', 'nama' => 'Log api.co.id', 'path' => '/aplikasi/log/api-co-id', 'icon' => 'calendar', 'urutan' => 7, 'parent' => 'aplikasi-log'],
+
+            ['slug' => 'aplikasi-laporkan', 'nama' => 'Laporkan Masalah', 'path' => null, 'icon' => 'alert-triangle', 'urutan' => 5, 'parent' => 'aplikasi'],
+            ['slug' => 'aplikasi-laporkan-teknis', 'nama' => 'Teknis & Sistem', 'path' => '/aplikasi/laporkan/teknis', 'icon' => 'settings', 'urutan' => 1, 'parent' => 'aplikasi-laporkan'],
+            ['slug' => 'aplikasi-laporkan-nonteknis', 'nama' => 'Non-Teknis / Layanan', 'path' => '/aplikasi/laporkan/nonteknis', 'icon' => 'users', 'urutan' => 2, 'parent' => 'aplikasi-laporkan'],
+            ['slug' => 'aplikasi-laporkan-status', 'nama' => 'Status Laporan Saya', 'path' => '/aplikasi/laporkan/status', 'icon' => 'clipboard-check', 'urutan' => 3, 'parent' => 'aplikasi-laporkan'],
+            ['slug' => 'aplikasi-laporkan-informasi', 'nama' => 'Informasi Laporan', 'path' => '/aplikasi/laporkan/informasi', 'icon' => 'info', 'urutan' => 4, 'parent' => 'aplikasi-laporkan'],
+
+            ['slug' => 'aplikasi-kotak-masukan', 'nama' => 'Kotak Masukan', 'path' => null, 'icon' => 'mail', 'urutan' => 6, 'parent' => 'aplikasi'],
+            ['slug' => 'aplikasi-kotak-ide', 'nama' => 'Ide & Saran', 'path' => '/aplikasi/kotak-masukan/ide', 'icon' => 'file-text', 'urutan' => 1, 'parent' => 'aplikasi-kotak-masukan'],
+            ['slug' => 'aplikasi-kotak-ide-status', 'nama' => 'Status Ide & Saran Saya', 'path' => '/aplikasi/kotak-masukan/ide/status', 'icon' => 'clipboard-check', 'urutan' => 2, 'parent' => 'aplikasi-kotak-masukan'],
+            ['slug' => 'aplikasi-kotak-testimoni', 'nama' => 'Testimoni & Apresiasi', 'path' => '/aplikasi/kotak-masukan/testimoni', 'icon' => 'flag', 'urutan' => 3, 'parent' => 'aplikasi-kotak-masukan'],
+            ['slug' => 'aplikasi-kotak-polling', 'nama' => 'Jajak Pendapat', 'path' => '/aplikasi/kotak-masukan/polling', 'icon' => 'grid-3x3', 'urutan' => 4, 'parent' => 'aplikasi-kotak-masukan', 'is_active' => false],
+            ['slug' => 'aplikasi-kotak-informasi', 'nama' => 'Informasi Masukan', 'path' => '/aplikasi/kotak-masukan/informasi', 'icon' => 'scroll-text', 'urutan' => 5, 'parent' => 'aplikasi-kotak-masukan'],
+            ['slug' => 'aplikasi-kotak-galeri-testimoni', 'nama' => 'Informasi Testimoni & Apresiasi', 'path' => '/aplikasi/kotak-masukan/galeri-testimoni', 'icon' => 'users-round', 'urutan' => 6, 'parent' => 'aplikasi-kotak-masukan'],
+            ['slug' => 'aplikasi-kotak-daftar-testimoni', 'nama' => 'Daftar Testimoni & Apresiasi', 'path' => '/aplikasi/kotak-masukan/daftar-testimoni', 'icon' => 'list', 'urutan' => 7, 'parent' => 'aplikasi-kotak-masukan'],
         ];
 
         $result = [];
@@ -251,12 +333,13 @@ class RbacSeeder extends Seeder
                     'path' => $definition['path'],
                     'icon' => $definition['icon'],
                     'urutan' => $definition['urutan'],
-                    'is_active' => true,
+                    'is_active' => $definition['is_active'] ?? true,
                 ]
             );
         }
 
         Menu::where('slug', 'rbac')->update(['is_active' => false]);
+        Menu::whereIn('slug', ['pengajian', 'laporan-pengajian'])->update(['is_active' => false]);
 
         return $result;
     }
@@ -270,7 +353,6 @@ class RbacSeeder extends Seeder
             'kalender',
             'laporan-kehadiran',
             'laporan-jamaah',
-            'laporan-pengajian',
             'laporan-kegiatan',
             'jamaah',
             'keluarga',
@@ -279,8 +361,8 @@ class RbacSeeder extends Seeder
             'master-materi',
             'master-kategori-kegiatan',
             'master-lookup',
-            'pengajian',
             'kegiatan',
+            'kegiatan-jadwal-rutin',
             'absensi',
             'master-dapukan',
             'master-menu',
@@ -288,19 +370,40 @@ class RbacSeeder extends Seeder
             'master-hak-akses',
             'master-matriks',
             'master-users',
-            'master-pusat',
-            'master-daerah',
-            'master-desa',
-            'master-kelompok',
-            'master-sub-kelompok',
-            'master-adm-negara',
-            'master-adm-provinsi',
-            'master-adm-kabupaten-kota',
-            'master-adm-kecamatan',
-            'master-adm-desa-kelurahan',
-            'master-adm-kode-pos',
+            'master-wilayah-fung-pusat',
+            'master-wilayah-fung-daerah',
+            'master-wilayah-fung-desa',
+            'master-wilayah-fung-kelompok',
+            'master-wilayah-fung-sub-kelompok',
+            'master-wilayah-adm-negara',
+            'master-wilayah-adm-provinsi',
+            'master-wilayah-adm-kabupaten-kota',
+            'master-wilayah-adm-kecamatan',
+            'master-wilayah-adm-desa',
+            'master-wilayah-adm-kode-pos',
             'aplikasi-konfig',
             'aplikasi-konfig-dokumen',
+            'aplikasi-audit-login',
+            'aplikasi-audit-akses',
+            'aplikasi-audit-konfig',
+            'aplikasi-audit-jamaah',
+            'aplikasi-log-error',
+            'aplikasi-log-database',
+            'aplikasi-log-telegram',
+            'aplikasi-log-smtp',
+            'aplikasi-log-fonnte',
+            'aplikasi-log-n8n',
+            'aplikasi-log-api-co-id',
+            'aplikasi-laporkan-teknis',
+            'aplikasi-laporkan-nonteknis',
+            'aplikasi-laporkan-status',
+            'aplikasi-laporkan-informasi',
+            'aplikasi-kotak-ide',
+            'aplikasi-kotak-ide-status',
+            'aplikasi-kotak-testimoni',
+            'aplikasi-kotak-informasi',
+            'aplikasi-kotak-galeri-testimoni',
+            'aplikasi-kotak-daftar-testimoni',
         ];
 
         $result = [];
@@ -360,6 +463,7 @@ class RbacSeeder extends Seeder
         $konfigSubFiturs = [
             'aplikasi-konfig-identitas' => 'Identitas',
             'aplikasi-konfig-email' => 'Email / SMTP',
+            'aplikasi-konfig-database' => 'Database',
             'aplikasi-konfig-integrasi' => 'Integrasi',
             'aplikasi-konfig-branding' => 'Branding',
             'aplikasi-konfig-tema' => 'Tema',
@@ -405,7 +509,7 @@ class RbacSeeder extends Seeder
                     [
                         'menu_id' => $menu->id,
                         'nama' => $nama,
-                        'deskripsi' => 'Kontrol UI list (tombol / kolom)',
+                        'deskripsi' => 'Kontrol UI list dan form (tombol / kolom)',
                         'is_active' => true,
                     ]
                 );
@@ -425,7 +529,7 @@ class RbacSeeder extends Seeder
                 'menu' => 'jamaah',
                 'columns' => [
                     'nama' => 'Kolom Nama',
-                    'kelompok' => 'Kolom Kelompok',
+                    'wilayah_fung_kelompok' => 'Kolom Kelompok',
                     'kategori' => 'Kolom Kategori',
                     'nik' => 'Kolom NIK',
                     'kontak' => 'Kolom Kontak',
@@ -440,17 +544,7 @@ class RbacSeeder extends Seeder
                     'no_kk' => 'Kolom No. KK',
                     'anggota' => 'Kolom Jumlah Anggota',
                     'alamat' => 'Kolom Alamat',
-                    'kelompok' => 'Kolom Kelompok',
-                    'status' => 'Kolom Status',
-                ],
-            ],
-            'pengajian' => [
-                'menu' => 'pengajian',
-                'columns' => [
-                    'judul' => 'Kolom Judul',
-                    'pemateri' => 'Kolom Pemateri',
-                    'lokasi' => 'Kolom Lokasi',
-                    'waktu' => 'Kolom Waktu',
+                    'wilayah_fung_kelompok' => 'Kolom Kelompok',
                     'status' => 'Kolom Status',
                 ],
             ],
@@ -458,10 +552,18 @@ class RbacSeeder extends Seeder
                 'menu' => 'kegiatan',
                 'columns' => [
                     'judul' => 'Kolom Judul',
-                    'jenis' => 'Kolom Jenis',
+                    'kategori' => 'Kolom Kategori',
+                    'pemateri' => 'Kolom Pemateri',
+                    'materi' => 'Kolom Materi',
                     'lokasi' => 'Kolom Lokasi',
                     'tanggal' => 'Kolom Tanggal',
+                    'waktu' => 'Kolom Waktu',
                     'status' => 'Kolom Status',
+                    'frekuensi' => 'Kolom Frekuensi',
+                    'pola' => 'Kolom Pola',
+                    'cakupan' => 'Kolom Cakupan',
+                    'effective_from' => 'Kolom Berlaku Dari',
+                    'is_active' => 'Kolom Status Jadwal',
                 ],
             ],
             'users' => [
@@ -496,7 +598,7 @@ class RbacSeeder extends Seeder
                 'columns' => [
                     'waktu' => 'Kolom Waktu',
                     'nama' => 'Kolom Nama',
-                    'kelompok' => 'Kolom Kelompok',
+                    'wilayah_fung_kelompok' => 'Kolom Kelompok',
                     'sesi' => 'Kolom Sesi',
                     'jenis' => 'Kolom Jenis',
                     'metode' => 'Kolom Metode',
@@ -506,7 +608,7 @@ class RbacSeeder extends Seeder
                 'menu' => 'laporan-jamaah',
                 'columns' => [
                     'nama' => 'Kolom Nama',
-                    'kelompok' => 'Kolom Kelompok',
+                    'wilayah_fung_kelompok' => 'Kolom Kelompok',
                     'kategori' => 'Kolom Kategori',
                     'nik' => 'Kolom NIK',
                     'kontak' => 'Kolom Kontak',
@@ -514,23 +616,15 @@ class RbacSeeder extends Seeder
                     'wajah' => 'Kolom Wajah',
                 ],
             ],
-            'laporan_pengajian' => [
-                'menu' => 'laporan-pengajian',
-                'columns' => [
-                    'judul' => 'Kolom Judul',
-                    'pemateri' => 'Kolom Pemateri',
-                    'lokasi' => 'Kolom Lokasi',
-                    'waktu' => 'Kolom Waktu',
-                    'status' => 'Kolom Status',
-                ],
-            ],
             'laporan_kegiatan' => [
                 'menu' => 'laporan-kegiatan',
                 'columns' => [
                     'judul' => 'Kolom Judul',
-                    'jenis' => 'Kolom Jenis',
+                    'kategori' => 'Kolom Kategori',
+                    'pemateri' => 'Kolom Pemateri',
                     'lokasi' => 'Kolom Lokasi',
                     'tanggal' => 'Kolom Tanggal',
+                    'waktu' => 'Kolom Waktu',
                     'status' => 'Kolom Status',
                 ],
             ],
@@ -542,6 +636,161 @@ class RbacSeeder extends Seeder
                     'header' => 'Kolom Header',
                     'media' => 'Kolom Media',
                     'status' => 'Kolom Status',
+                ],
+            ],
+            'audit_login' => [
+                'menu' => 'aplikasi-audit-login',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'event' => 'Kolom Event',
+                    'hasil' => 'Kolom Hasil',
+                    'username' => 'Kolom Username',
+                    'user' => 'Kolom Pengguna',
+                    'alasan' => 'Kolom Alasan',
+                    'ip' => 'Kolom IP',
+                    'perangkat' => 'Kolom Perangkat',
+                ],
+            ],
+            'audit_access' => [
+                'menu' => 'aplikasi-audit-akses',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'aksi' => 'Kolom Aksi',
+                    'entitas' => 'Kolom Entitas',
+                    'ringkasan' => 'Kolom Ringkasan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+            ],
+            'audit_konfig' => [
+                'menu' => 'aplikasi-audit-konfig',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'aksi' => 'Kolom Aksi',
+                    'entitas' => 'Kolom Entitas',
+                    'ringkasan' => 'Kolom Ringkasan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+            ],
+            'audit_jamaah' => [
+                'menu' => 'aplikasi-audit-jamaah',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'aksi' => 'Kolom Aksi',
+                    'entitas' => 'Kolom Entitas',
+                    'ringkasan' => 'Kolom Ringkasan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+            ],
+            'app_error_log' => [
+                'menu' => 'aplikasi-log-error',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'level' => 'Kolom Level',
+                    'status' => 'Kolom Status',
+                    'exception' => 'Kolom Exception',
+                    'pesan' => 'Kolom Pesan',
+                    'endpoint' => 'Kolom Endpoint',
+                    'user' => 'Kolom Pengguna',
+                    'detail' => 'Kolom Detail',
+                ],
+            ],
+            'integration_log_database' => [
+                'menu' => 'aplikasi-log-database',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'level' => 'Kolom Level',
+                    'event' => 'Kolom Event',
+                    'judul' => 'Kolom Judul',
+                    'pesan' => 'Kolom Pesan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+                'buttons' => [
+                    'check' => ['nama' => 'Cek Koneksi', 'aksi' => 'update'],
+                    'note' => ['nama' => 'Catat Log', 'aksi' => 'create'],
+                ],
+            ],
+            'integration_log_telegram' => [
+                'menu' => 'aplikasi-log-telegram',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'level' => 'Kolom Level',
+                    'event' => 'Kolom Event',
+                    'judul' => 'Kolom Judul',
+                    'pesan' => 'Kolom Pesan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+                'buttons' => [
+                    'check' => ['nama' => 'Cek Koneksi', 'aksi' => 'update'],
+                    'note' => ['nama' => 'Catat Log', 'aksi' => 'create'],
+                ],
+            ],
+            'integration_log_smtp' => [
+                'menu' => 'aplikasi-log-smtp',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'level' => 'Kolom Level',
+                    'event' => 'Kolom Event',
+                    'judul' => 'Kolom Judul',
+                    'pesan' => 'Kolom Pesan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+                'buttons' => [
+                    'check' => ['nama' => 'Cek Koneksi', 'aksi' => 'update'],
+                    'note' => ['nama' => 'Catat Log', 'aksi' => 'create'],
+                ],
+            ],
+            'integration_log_fonnte' => [
+                'menu' => 'aplikasi-log-fonnte',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'level' => 'Kolom Level',
+                    'event' => 'Kolom Event',
+                    'judul' => 'Kolom Judul',
+                    'pesan' => 'Kolom Pesan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+                'buttons' => [
+                    'check' => ['nama' => 'Cek Koneksi', 'aksi' => 'update'],
+                    'note' => ['nama' => 'Catat Log', 'aksi' => 'create'],
+                ],
+            ],
+            'integration_log_n8n' => [
+                'menu' => 'aplikasi-log-n8n',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'level' => 'Kolom Level',
+                    'event' => 'Kolom Event',
+                    'judul' => 'Kolom Judul',
+                    'pesan' => 'Kolom Pesan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+                'buttons' => [
+                    'check' => ['nama' => 'Cek Koneksi', 'aksi' => 'update'],
+                    'note' => ['nama' => 'Catat Log', 'aksi' => 'create'],
+                ],
+            ],
+            'integration_log_api_co_id' => [
+                'menu' => 'aplikasi-log-api-co-id',
+                'columns' => [
+                    'waktu' => 'Kolom Waktu',
+                    'level' => 'Kolom Level',
+                    'event' => 'Kolom Event',
+                    'judul' => 'Kolom Judul',
+                    'pesan' => 'Kolom Pesan',
+                    'aktor' => 'Kolom Aktor',
+                    'detail' => 'Kolom Detail',
+                ],
+                'buttons' => [
+                    'check' => ['nama' => 'Cek Koneksi', 'aksi' => 'update'],
+                    'note' => ['nama' => 'Catat Log', 'aksi' => 'create'],
                 ],
             ],
             'matriks' => [
@@ -570,6 +819,7 @@ class RbacSeeder extends Seeder
                 'menu' => 'master-materi',
                 'columns' => [
                     'nama' => 'Kolom Nama',
+                    'deskripsi' => 'Kolom Deskripsi',
                     'is_active' => 'Kolom Status',
                 ],
             ],
@@ -578,6 +828,7 @@ class RbacSeeder extends Seeder
                 'columns' => [
                     'nama' => 'Kolom Nama',
                     'calendar_color' => 'Kolom Warna',
+                    'deskripsi' => 'Kolom Deskripsi',
                     'is_active' => 'Kolom Status',
                 ],
             ],
@@ -592,48 +843,58 @@ class RbacSeeder extends Seeder
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'pusat' => [
-                'menu' => 'master-pusat',
+            'wilayah_fung_pusat' => [
+                'menu' => 'master-wilayah-fung-pusat',
                 'columns' => [
                     'kode' => 'Kolom Kode',
                     'nama' => 'Kolom Nama',
+                    'deskripsi' => 'Kolom Deskripsi',
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'daerah' => [
-                'menu' => 'master-daerah',
+            'wilayah_fung_daerah' => [
+                'menu' => 'master-wilayah-fung-daerah',
                 'columns' => [
                     'kode' => 'Kolom Kode',
+                    'wilayah_fung_pusat' => 'Kolom Pusat',
                     'nama' => 'Kolom Nama',
+                    'deskripsi' => 'Kolom Deskripsi',
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'desa' => [
-                'menu' => 'master-desa',
+            'wilayah_fung_desa' => [
+                'menu' => 'master-wilayah-fung-desa',
                 'columns' => [
                     'kode' => 'Kolom Kode',
+                    'wilayah_fung_daerah' => 'Kolom Daerah',
                     'nama' => 'Kolom Nama',
+                    'deskripsi' => 'Kolom Deskripsi',
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'kelompok' => [
-                'menu' => 'master-kelompok',
+            'wilayah_fung_kelompok' => [
+                'menu' => 'master-wilayah-fung-kelompok',
                 'columns' => [
                     'kode' => 'Kolom Kode',
+                    'wilayah_fung_desa' => 'Kolom Desa',
+                    'singkatan' => 'Kolom Singkatan',
                     'nama' => 'Kolom Nama',
+                    'deskripsi' => 'Kolom Deskripsi',
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'sub_kelompok' => [
-                'menu' => 'master-sub-kelompok',
+            'wilayah_fung_sub_kelompok' => [
+                'menu' => 'master-wilayah-fung-sub-kelompok',
                 'columns' => [
                     'kode' => 'Kolom Kode',
+                    'wilayah_fung_kelompok' => 'Kolom Kelompok',
                     'nama' => 'Kolom Nama',
+                    'deskripsi' => 'Kolom Deskripsi',
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'adm_negara' => [
-                'menu' => 'master-adm-negara',
+            'wilayah_adm_negara' => [
+                'menu' => 'master-wilayah-adm-negara',
                 'columns' => [
                     'kode' => 'Kolom Kode',
                     'nama' => 'Kolom Nama',
@@ -641,45 +902,53 @@ class RbacSeeder extends Seeder
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'adm_provinsi' => [
-                'menu' => 'master-adm-provinsi',
+            'wilayah_adm_provinsi' => [
+                'menu' => 'master-wilayah-adm-provinsi',
                 'columns' => [
                     'kode' => 'Kolom Kode',
+                    'wilayah_adm_negara' => 'Kolom Negara',
+                    'singkatan' => 'Kolom SNI',
                     'nama' => 'Kolom Nama',
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'adm_kabupaten_kota' => [
-                'menu' => 'master-adm-kabupaten-kota',
+            'wilayah_adm_kabupaten_kota' => [
+                'menu' => 'master-wilayah-adm-kabupaten-kota',
                 'columns' => [
                     'kode' => 'Kolom Kode',
+                    'wilayah_adm_provinsi' => 'Kolom Provinsi',
+                    'singkatan' => 'Kolom SNI',
+                    'nama' => 'Kolom Nama',
+                    'singkatan_kawasan_metropolitan' => 'Kolom Kawasan Metro',
+                    'jenis' => 'Kolom Jenis',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'wilayah_adm_kecamatan' => [
+                'menu' => 'master-wilayah-adm-kecamatan',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'wilayah_adm_kabupaten_kota' => 'Kolom Kabupaten/Kota',
+                    'nama' => 'Kolom Nama',
+                    'is_active' => 'Kolom Status',
+                ],
+            ],
+            'wilayah_adm_desa' => [
+                'menu' => 'master-wilayah-adm-desa',
+                'columns' => [
+                    'kode' => 'Kolom Kode',
+                    'wilayah_adm_kecamatan' => 'Kolom Kecamatan',
                     'nama' => 'Kolom Nama',
                     'jenis' => 'Kolom Jenis',
                     'is_active' => 'Kolom Status',
                 ],
             ],
-            'adm_kecamatan' => [
-                'menu' => 'master-adm-kecamatan',
+            'wilayah_adm_kode_pos' => [
+                'menu' => 'master-wilayah-adm-kode-pos',
                 'columns' => [
                     'kode' => 'Kolom Kode',
-                    'nama' => 'Kolom Nama',
-                    'is_active' => 'Kolom Status',
-                ],
-            ],
-            'adm_desa_kelurahan' => [
-                'menu' => 'master-adm-desa-kelurahan',
-                'columns' => [
-                    'kode' => 'Kolom Kode',
-                    'nama' => 'Kolom Nama',
-                    'jenis' => 'Kolom Jenis',
-                    'is_active' => 'Kolom Status',
-                ],
-            ],
-            'adm_kode_pos' => [
-                'menu' => 'master-adm-kode-pos',
-                'columns' => [
-                    'kode' => 'Kolom Kode',
-                    'nama' => 'Kolom Nama',
+                    'wilayah' => 'Kolom Wilayah',
+                    'wilayah_adm_negara' => 'Kolom Negara',
                     'is_active' => 'Kolom Status',
                 ],
             ],
@@ -724,10 +993,10 @@ class RbacSeeder extends Seeder
         ];
 
         $crudPrefixes = [
-            'jamaah', 'keluarga', 'pengajian', 'kegiatan', 'users', 'lokasi', 'pemateri', 'materi',
-            'kategori_kegiatan', 'lookup', 'pusat', 'daerah', 'desa', 'kelompok', 'sub_kelompok',
-            'adm_negara', 'adm_provinsi', 'adm_kabupaten_kota', 'adm_kecamatan',
-            'adm_desa_kelurahan', 'adm_kode_pos', 'dapukan', 'menu', 'fitur', 'hak_akses',
+            'jamaah', 'keluarga', 'kegiatan', 'users', 'lokasi', 'pemateri', 'materi',
+            'kategori_kegiatan', 'lookup', 'wilayah_fung_pusat', 'wilayah_fung_daerah', 'wilayah_fung_desa', 'wilayah_fung_kelompok', 'wilayah_fung_sub_kelompok',
+            'wilayah_adm_negara', 'wilayah_adm_provinsi', 'wilayah_adm_kabupaten_kota', 'wilayah_adm_kecamatan',
+            'wilayah_adm_desa', 'wilayah_adm_kode_pos', 'dapukan', 'menu', 'fitur', 'hak_akses',
         ];
 
         foreach ($base as $prefix => &$config) {
@@ -838,6 +1107,10 @@ class RbacSeeder extends Seeder
 
         foreach (array_keys($config['columns']) as $key) {
             $codes[] = "{$prefix}.col.{$key}.view";
+            $moduleUpdate = "{$prefix}.update";
+            if ($key !== 'kode' && in_array($moduleUpdate, $existingCodes, true)) {
+                $codes[] = "{$prefix}.col.{$key}.update";
+            }
         }
 
         return $codes;
@@ -899,9 +1172,7 @@ class RbacSeeder extends Seeder
             'laporan-jamaah' => [
                 ['slug' => 'laporan_jamaah.view', 'nama' => 'Lihat Laporan Jamaah', 'aksi' => 'view'],
             ],
-            'laporan-pengajian' => [
-                ['slug' => 'laporan_pengajian.view', 'nama' => 'Lihat Laporan Pengajian', 'aksi' => 'view'],
-            ],
+
             'laporan-kegiatan' => [
                 ['slug' => 'laporan_kegiatan.view', 'nama' => 'Lihat Laporan Kegiatan', 'aksi' => 'view'],
             ],
@@ -926,11 +1197,11 @@ class RbacSeeder extends Seeder
             'master-lookup' => [
                 ['slug' => 'lookup.view', 'nama' => 'Lihat Lookup', 'aksi' => 'view'],
             ],
-            'pengajian' => [
-                ['slug' => 'pengajian.view', 'nama' => 'Lihat Pengajian', 'aksi' => 'view'],
-            ],
             'kegiatan' => [
                 ['slug' => 'kegiatan.view', 'nama' => 'Lihat Kegiatan', 'aksi' => 'view'],
+            ],
+            'kegiatan-jadwal-rutin' => [
+                ['slug' => 'kegiatan.view', 'nama' => 'Lihat Jadwal Rutin Kegiatan', 'aksi' => 'view'],
             ],
             'absensi' => [
                 ['slug' => 'absensi.view', 'nama' => 'Lihat Absensi', 'aksi' => 'view'],
@@ -955,38 +1226,38 @@ class RbacSeeder extends Seeder
             'master-users' => [
                 ['slug' => 'users.view', 'nama' => 'Lihat Pengguna', 'aksi' => 'view'],
             ],
-            'master-pusat' => [
-                ['slug' => 'pusat.view', 'nama' => 'Lihat Pusat', 'aksi' => 'view'],
+            'master-wilayah-fung-pusat' => [
+                ['slug' => 'wilayah_fung_pusat.view', 'nama' => 'Lihat Pusat', 'aksi' => 'view'],
             ],
-            'master-daerah' => [
-                ['slug' => 'daerah.view', 'nama' => 'Lihat Daerah', 'aksi' => 'view'],
+            'master-wilayah-fung-daerah' => [
+                ['slug' => 'wilayah_fung_daerah.view', 'nama' => 'Lihat Daerah', 'aksi' => 'view'],
             ],
-            'master-desa' => [
-                ['slug' => 'desa.view', 'nama' => 'Lihat Desa', 'aksi' => 'view'],
+            'master-wilayah-fung-desa' => [
+                ['slug' => 'wilayah_fung_desa.view', 'nama' => 'Lihat Desa', 'aksi' => 'view'],
             ],
-            'master-kelompok' => [
-                ['slug' => 'kelompok.view', 'nama' => 'Lihat Kelompok', 'aksi' => 'view'],
+            'master-wilayah-fung-kelompok' => [
+                ['slug' => 'wilayah_fung_kelompok.view', 'nama' => 'Lihat Kelompok', 'aksi' => 'view'],
             ],
-            'master-sub-kelompok' => [
-                ['slug' => 'sub_kelompok.view', 'nama' => 'Lihat Sub Kelompok', 'aksi' => 'view'],
+            'master-wilayah-fung-sub-kelompok' => [
+                ['slug' => 'wilayah_fung_sub_kelompok.view', 'nama' => 'Lihat Sub Kelompok', 'aksi' => 'view'],
             ],
-            'master-adm-negara' => [
-                ['slug' => 'adm_negara.view', 'nama' => 'Lihat Negara', 'aksi' => 'view'],
+            'master-wilayah-adm-negara' => [
+                ['slug' => 'wilayah_adm_negara.view', 'nama' => 'Lihat Negara', 'aksi' => 'view'],
             ],
-            'master-adm-provinsi' => [
-                ['slug' => 'adm_provinsi.view', 'nama' => 'Lihat Provinsi', 'aksi' => 'view'],
+            'master-wilayah-adm-provinsi' => [
+                ['slug' => 'wilayah_adm_provinsi.view', 'nama' => 'Lihat Provinsi', 'aksi' => 'view'],
             ],
-            'master-adm-kabupaten-kota' => [
-                ['slug' => 'adm_kabupaten_kota.view', 'nama' => 'Lihat Kabupaten/Kota', 'aksi' => 'view'],
+            'master-wilayah-adm-kabupaten-kota' => [
+                ['slug' => 'wilayah_adm_kabupaten_kota.view', 'nama' => 'Lihat Kabupaten/Kota', 'aksi' => 'view'],
             ],
-            'master-adm-kecamatan' => [
-                ['slug' => 'adm_kecamatan.view', 'nama' => 'Lihat Kecamatan', 'aksi' => 'view'],
+            'master-wilayah-adm-kecamatan' => [
+                ['slug' => 'wilayah_adm_kecamatan.view', 'nama' => 'Lihat Kecamatan', 'aksi' => 'view'],
             ],
-            'master-adm-desa-kelurahan' => [
-                ['slug' => 'adm_desa_kelurahan.view', 'nama' => 'Lihat Desa/Kelurahan', 'aksi' => 'view'],
+            'master-wilayah-adm-desa' => [
+                ['slug' => 'wilayah_adm_desa.view', 'nama' => 'Lihat Desa/Kelurahan', 'aksi' => 'view'],
             ],
-            'master-adm-kode-pos' => [
-                ['slug' => 'adm_kode_pos.view', 'nama' => 'Lihat Kode Pos', 'aksi' => 'view'],
+            'master-wilayah-adm-kode-pos' => [
+                ['slug' => 'wilayah_adm_kode_pos.view', 'nama' => 'Lihat Kode Pos', 'aksi' => 'view'],
             ],
             'aplikasi-konfig' => [
                 ['slug' => 'konfig.view', 'nama' => 'Lihat Konfigurasi Sistem', 'aksi' => 'view'],
@@ -997,6 +1268,9 @@ class RbacSeeder extends Seeder
             ],
             'aplikasi-konfig-email' => [
                 ['slug' => 'konfig.email.view', 'nama' => 'Tab Email / SMTP', 'aksi' => 'view'],
+            ],
+            'aplikasi-konfig-database' => [
+                ['slug' => 'konfig.database.view', 'nama' => 'Tab Database', 'aksi' => 'view'],
             ],
             'aplikasi-konfig-integrasi' => [
                 ['slug' => 'konfig.integrasi.view', 'nama' => 'Tab Integrasi', 'aksi' => 'view'],
@@ -1019,6 +1293,83 @@ class RbacSeeder extends Seeder
             'aplikasi-konfig-dokumen-media' => [
                 ['slug' => 'konfig_dokumen.media.view', 'nama' => 'Aktifkan di Media', 'aksi' => 'view'],
             ],
+            'aplikasi-audit-login' => [
+                ['slug' => 'audit_login.view', 'nama' => 'Lihat Audit Login', 'aksi' => 'view'],
+            ],
+            'aplikasi-audit-akses' => [
+                ['slug' => 'audit_access.view', 'nama' => 'Lihat Audit Akses', 'aksi' => 'view'],
+            ],
+            'aplikasi-audit-konfig' => [
+                ['slug' => 'audit_konfig.view', 'nama' => 'Lihat Audit Konfigurasi', 'aksi' => 'view'],
+            ],
+            'aplikasi-audit-jamaah' => [
+                ['slug' => 'audit_jamaah.view', 'nama' => 'Lihat Audit Jamaah', 'aksi' => 'view'],
+            ],
+            'aplikasi-log-error' => [
+                ['slug' => 'app_error_log.view', 'nama' => 'Lihat Log Error Aplikasi', 'aksi' => 'view'],
+                ['slug' => 'app_error_log.update', 'nama' => 'Ubah Status Log Error', 'aksi' => 'update'],
+                ['slug' => 'app_error_log.clear', 'nama' => 'Bersihkan Log Error', 'aksi' => 'delete'],
+            ],
+            'aplikasi-log-database' => [
+                ['slug' => 'integration_log_database.view', 'nama' => 'Lihat Log Database', 'aksi' => 'view'],
+            ],
+            'aplikasi-log-telegram' => [
+                ['slug' => 'integration_log_telegram.view', 'nama' => 'Lihat Log Telegram', 'aksi' => 'view'],
+            ],
+            'aplikasi-log-smtp' => [
+                ['slug' => 'integration_log_smtp.view', 'nama' => 'Lihat Log SMTP', 'aksi' => 'view'],
+            ],
+            'aplikasi-log-fonnte' => [
+                ['slug' => 'integration_log_fonnte.view', 'nama' => 'Lihat Log Fonnte', 'aksi' => 'view'],
+            ],
+            'aplikasi-log-n8n' => [
+                ['slug' => 'integration_log_n8n.view', 'nama' => 'Lihat Log n8n', 'aksi' => 'view'],
+            ],
+            'aplikasi-log-api-co-id' => [
+                ['slug' => 'integration_log_api_co_id.view', 'nama' => 'Lihat Log api.co.id', 'aksi' => 'view'],
+            ],
+            'aplikasi-laporkan-teknis' => [
+                ['slug' => 'app_report_teknis.view', 'nama' => 'Lihat Laporan Teknis', 'aksi' => 'view'],
+                ['slug' => 'app_report_teknis.create', 'nama' => 'Buat Laporan Teknis', 'aksi' => 'create'],
+            ],
+            'aplikasi-laporkan-nonteknis' => [
+                ['slug' => 'app_report_nonteknis.view', 'nama' => 'Lihat Laporan Non-Teknis', 'aksi' => 'view'],
+                ['slug' => 'app_report_nonteknis.create', 'nama' => 'Buat Laporan Non-Teknis', 'aksi' => 'create'],
+            ],
+            'aplikasi-laporkan-status' => [
+                ['slug' => 'app_report_status.view', 'nama' => 'Lihat Status Laporan Saya', 'aksi' => 'view'],
+            ],
+            'aplikasi-laporkan-informasi' => [
+                ['slug' => 'app_report_admin.view', 'nama' => 'Lihat Informasi Laporan', 'aksi' => 'view'],
+                ['slug' => 'app_report_admin.update', 'nama' => 'Ubah Status Laporan', 'aksi' => 'update'],
+            ],
+            'aplikasi-kotak-ide' => [
+                ['slug' => 'app_feedback_idea.view', 'nama' => 'Lihat Ide & Saran', 'aksi' => 'view'],
+                ['slug' => 'app_feedback_idea.create', 'nama' => 'Kirim Ide & Saran', 'aksi' => 'create'],
+            ],
+            'aplikasi-kotak-ide-status' => [
+                ['slug' => 'app_feedback_idea_status.view', 'nama' => 'Lihat Status Ide & Saran Saya', 'aksi' => 'view'],
+            ],
+            'aplikasi-kotak-testimoni' => [
+                ['slug' => 'app_feedback_testimonial.view', 'nama' => 'Lihat Testimoni', 'aksi' => 'view'],
+                ['slug' => 'app_feedback_testimonial.create', 'nama' => 'Kirim Testimoni', 'aksi' => 'create'],
+            ],
+            'aplikasi-kotak-polling' => [
+                ['slug' => 'app_poll.view', 'nama' => 'Lihat Jajak Pendapat', 'aksi' => 'view'],
+                ['slug' => 'app_poll.vote', 'nama' => 'Voting Jajak Pendapat', 'aksi' => 'vote'],
+            ],
+            'aplikasi-kotak-informasi' => [
+                ['slug' => 'app_feedback_admin.view', 'nama' => 'Lihat Informasi Masukan', 'aksi' => 'view'],
+                ['slug' => 'app_feedback_admin.update', 'nama' => 'Ubah Informasi Masukan', 'aksi' => 'update'],
+                ['slug' => 'app_poll.manage', 'nama' => 'Kelola Jajak Pendapat', 'aksi' => 'manage'],
+            ],
+            'aplikasi-kotak-galeri-testimoni' => [
+                ['slug' => 'app_feedback_gallery.view', 'nama' => 'Lihat Galeri Testimoni', 'aksi' => 'view'],
+            ],
+            'aplikasi-kotak-daftar-testimoni' => [
+                ['slug' => 'app_feedback_testimonial_admin.view', 'nama' => 'Lihat Daftar Testimoni', 'aksi' => 'view'],
+                ['slug' => 'app_feedback_testimonial_admin.update', 'nama' => 'Kelola Tampilan Testimoni', 'aksi' => 'update'],
+            ],
         ];
 
         foreach ($this->listUiChromeCatalog() as $prefix => $config) {
@@ -1040,6 +1391,7 @@ class RbacSeeder extends Seeder
             foreach ($config['columns'] as $key => $nama) {
                 $definitions["{$prefix}-col-{$key}"] = [
                     ['slug' => "{$prefix}.col.{$key}.view", 'nama' => $nama, 'aksi' => 'view'],
+                    ['slug' => "{$prefix}.col.{$key}.update", 'nama' => 'Ubah '.$nama, 'aksi' => 'update'],
                 ];
             }
         }
@@ -1069,21 +1421,6 @@ class RbacSeeder extends Seeder
 
     private function assignPermissions(array $dapukan, array $permissions): void
     {
-        $nonKonfigPermissions = collect($permissions)
-            ->reject(fn ($permission, string $slug) => str_starts_with($slug, 'konfig.')
-                || str_starts_with($slug, 'konfig_dokumen.'));
-
-        $allIds = $nonKonfigPermissions->pluck('id')->unique()->values()->all();
-        $konfigIds = collect($permissions)
-            ->filter(fn ($permission, string $slug) => str_starts_with($slug, 'konfig.')
-                || str_starts_with($slug, 'konfig_dokumen.'))
-            ->pluck('id')
-            ->unique()
-            ->values()
-            ->all();
-
-        $dapukan['superadmin']->hakAkses()->sync(array_values(array_unique(array_merge($allIds, $konfigIds))));
-
         $ids = fn (array $codes) => collect($codes)
             ->map(fn (string $kode) => $permissions[$kode]->id ?? null)
             ->filter()
@@ -1104,6 +1441,16 @@ class RbacSeeder extends Seeder
             'kalender.detail_hari.view',
         ];
 
+        $feedbackUserCodes = [
+            'app_report_teknis.view', 'app_report_teknis.create',
+            'app_report_nonteknis.view', 'app_report_nonteknis.create',
+            'app_report_status.view',
+            'app_feedback_idea.view', 'app_feedback_idea.create',
+            'app_feedback_idea_status.view',
+            'app_feedback_testimonial.view', 'app_feedback_testimonial.create',
+            'app_feedback_gallery.view',
+        ];
+
         $opsCodes = $this->withListUiChrome([
             'dashboard.view',
             ...$dashboardWidgetCodes,
@@ -1113,7 +1460,6 @@ class RbacSeeder extends Seeder
             ...$kalenderSectionCodes,
             'laporan_kehadiran.view',
             'laporan_jamaah.view',
-            'laporan_pengajian.view',
             'laporan_kegiatan.view',
             'jamaah.view', 'jamaah.create', 'jamaah.update', 'jamaah.delete', 'jamaah.enroll_face',
             'keluarga.view', 'keluarga.create', 'keluarga.update', 'keluarga.delete',
@@ -1122,63 +1468,57 @@ class RbacSeeder extends Seeder
             'materi.view', 'materi.create', 'materi.update', 'materi.delete',
             'kategori_kegiatan.view', 'kategori_kegiatan.create', 'kategori_kegiatan.update', 'kategori_kegiatan.delete',
             'lookup.view', 'lookup.create', 'lookup.update', 'lookup.delete',
-            'pengajian.view', 'pengajian.create', 'pengajian.update', 'pengajian.delete',
             'kegiatan.view', 'kegiatan.create', 'kegiatan.update', 'kegiatan.delete',
             'absensi.view', 'absensi.create', 'absensi.execute',
+            ...$feedbackUserCodes,
         ]);
 
         $admWilayahViewCodes = $this->withListUiChrome([
-            'adm_negara.view',
-            'adm_provinsi.view',
-            'adm_kabupaten_kota.view',
-            'adm_kecamatan.view',
-            'adm_desa_kelurahan.view',
-            'adm_kode_pos.view',
+            'wilayah_adm_negara.view',
+            'wilayah_adm_provinsi.view',
+            'wilayah_adm_kabupaten_kota.view',
+            'wilayah_adm_kecamatan.view',
+            'wilayah_adm_desa.view',
+            'wilayah_adm_kode_pos.view',
         ]);
 
         $adminPusatCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
-            'pusat.view',
-            'daerah.view', 'daerah.create', 'daerah.update', 'daerah.delete',
-            'desa.view', 'desa.create', 'desa.update', 'desa.delete',
-            'kelompok.view', 'kelompok.create', 'kelompok.update', 'kelompok.delete',
-            'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
+            'wilayah_fung_pusat.view',
+            'wilayah_fung_daerah.view', 'wilayah_fung_daerah.create', 'wilayah_fung_daerah.update', 'wilayah_fung_daerah.delete',
+            'wilayah_fung_desa.view', 'wilayah_fung_desa.create', 'wilayah_fung_desa.update', 'wilayah_fung_desa.delete',
+            'wilayah_fung_kelompok.view', 'wilayah_fung_kelompok.create', 'wilayah_fung_kelompok.update', 'wilayah_fung_kelompok.delete',
+            'wilayah_fung_sub_kelompok.view', 'wilayah_fung_sub_kelompok.create', 'wilayah_fung_sub_kelompok.update', 'wilayah_fung_sub_kelompok.delete',
             'users.view', 'users.create', 'users.update',
-            'matriks.view', 'matriks.update',
-            'menu.view', 'menu.create', 'menu.update', 'menu.delete',
-            'fitur.view', 'fitur.create', 'fitur.update', 'fitur.delete',
-            'hak_akses.view', 'hak_akses.create', 'hak_akses.update', 'hak_akses.delete',
-            'konfig_dokumen.view', 'konfig_dokumen.update',
-            'konfig_dokumen.isi.view', 'konfig_dokumen.media.view',
         ], $admWilayahViewCodes));
 
         $adminDaerahCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
-            'pusat.view',
-            'daerah.view',
-            'desa.view', 'desa.create', 'desa.update', 'desa.delete',
-            'kelompok.view', 'kelompok.create', 'kelompok.update', 'kelompok.delete',
-            'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
+            'wilayah_fung_pusat.view',
+            'wilayah_fung_daerah.view',
+            'wilayah_fung_desa.view', 'wilayah_fung_desa.create', 'wilayah_fung_desa.update', 'wilayah_fung_desa.delete',
+            'wilayah_fung_kelompok.view', 'wilayah_fung_kelompok.create', 'wilayah_fung_kelompok.update', 'wilayah_fung_kelompok.delete',
+            'wilayah_fung_sub_kelompok.view', 'wilayah_fung_sub_kelompok.create', 'wilayah_fung_sub_kelompok.update', 'wilayah_fung_sub_kelompok.delete',
             'users.view', 'users.create', 'users.update',
         ], $admWilayahViewCodes));
 
         $adminDesaCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
-            'pusat.view',
-            'daerah.view',
-            'desa.view',
-            'kelompok.view', 'kelompok.create', 'kelompok.update', 'kelompok.delete',
-            'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
+            'wilayah_fung_pusat.view',
+            'wilayah_fung_daerah.view',
+            'wilayah_fung_desa.view',
+            'wilayah_fung_kelompok.view', 'wilayah_fung_kelompok.create', 'wilayah_fung_kelompok.update', 'wilayah_fung_kelompok.delete',
+            'wilayah_fung_sub_kelompok.view', 'wilayah_fung_sub_kelompok.create', 'wilayah_fung_sub_kelompok.update', 'wilayah_fung_sub_kelompok.delete',
             'users.view', 'users.create', 'users.update',
         ], $admWilayahViewCodes));
 
         $adminKelompokCodes = $this->withListUiChrome(array_merge($opsCodes, [
             'dapukan.view',
-            'pusat.view',
-            'daerah.view',
-            'desa.view',
-            'kelompok.view',
-            'sub_kelompok.view', 'sub_kelompok.create', 'sub_kelompok.update', 'sub_kelompok.delete',
+            'wilayah_fung_pusat.view',
+            'wilayah_fung_daerah.view',
+            'wilayah_fung_desa.view',
+            'wilayah_fung_kelompok.view',
+            'wilayah_fung_sub_kelompok.view', 'wilayah_fung_sub_kelompok.create', 'wilayah_fung_sub_kelompok.update', 'wilayah_fung_sub_kelompok.delete',
         ], $admWilayahViewCodes));
 
         $opsViewCodes = $this->withListUiChrome([
@@ -1190,7 +1530,6 @@ class RbacSeeder extends Seeder
             ...$kalenderSectionCodes,
             'laporan_kehadiran.view',
             'laporan_jamaah.view',
-            'laporan_pengajian.view',
             'laporan_kegiatan.view',
             'jamaah.view',
             'keluarga.view',
@@ -1199,11 +1538,11 @@ class RbacSeeder extends Seeder
             'materi.view',
             'kategori_kegiatan.view',
             'lookup.view',
-            'pengajian.view',
             'kegiatan.view',
             'absensi.view',
             'absensi.create',
             'absensi.execute',
+            ...$feedbackUserCodes,
         ]);
 
         $jamaahKelompokCodes = $this->withListUiChrome([
@@ -1214,10 +1553,9 @@ class RbacSeeder extends Seeder
             'kalender.view',
             ...$kalenderSectionCodes,
             'laporan_kehadiran.view',
-            'laporan_pengajian.view',
             'laporan_kegiatan.view',
-            'pengajian.view',
             'kegiatan.view',
+            ...$feedbackUserCodes,
         ]);
 
         $dapukan['admin_pusat']->hakAkses()->sync($ids($adminPusatCodes));

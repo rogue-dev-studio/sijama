@@ -10,7 +10,7 @@ use App\Models\Attendance;
 use App\Models\AttendanceSession;
 use App\Models\Jamaah;
 use App\Models\Kegiatan;
-use App\Models\Pengajian;
+use App\Models\KategoriKegiatan;
 use App\Models\User;
 use App\Support\PaginationHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -37,9 +37,15 @@ class AttendanceService
         return new AttendanceSessionResource($session);
     }
 
-    public function closeSession(int $sessionId): AttendanceSessionResource
+    public function closeSession(int $sessionId, User $user): AttendanceSessionResource
     {
         $session = $this->findSession($sessionId);
+
+        if ($session->opened_by !== $user->id && ! $user->isSuperAdmin()) {
+            throw ValidationException::withMessages([
+                'session' => ['Anda tidak berhak menutup sesi absensi ini.'],
+            ]);
+        }
 
         if ($session->status === 'closed') {
             throw ValidationException::withMessages([
@@ -95,7 +101,7 @@ class AttendanceService
 
     public function showSession(int $sessionId, User $user): AttendanceSessionResource
     {
-        $session = AttendanceSession::with(['attendances.jamaah.kelompok.desa'])
+        $session = AttendanceSession::with(['attendances.jamaah.wilayahFungKelompok.wilayahFungDesa'])
             ->withCount('attendances')
             ->find($sessionId);
 
@@ -124,16 +130,32 @@ class AttendanceService
     }
 
     public function listSessions(
+        User $user,
         ?string $status = null,
         ?int $perPage = null,
         ?int $page = null,
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
     ): LengthAwarePaginator {
         $query = AttendanceSession::query()
             ->withCount('attendances')
-            ->orderByDesc('opened_at');
+            ->orderByDesc('opened_at')
+            ->where(function ($builder) use ($user) {
+                $builder
+                    ->where('opened_by', $user->id)
+                    ->orWhereHas('attendances.jamaah', fn ($jamaahQuery) => $this->scopeService->applyJamaahScope($jamaahQuery, $user));
+            });
 
         if ($status) {
             $query->where('status', $status);
+        }
+
+        if ($dateFrom !== null && $dateFrom !== '') {
+            $query->whereDate('opened_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo !== null && $dateTo !== '') {
+            $query->whereDate('opened_at', '<=', $dateTo);
         }
 
         return PaginationHelper::paginate($query, $perPage, $page);
@@ -152,11 +174,7 @@ class AttendanceService
 
     private function validateReference(string $type, int $refId): void
     {
-        $exists = match ($type) {
-            'pengajian' => Pengajian::whereKey($refId)->exists(),
-            'kegiatan' => Kegiatan::whereKey($refId)->exists(),
-            default => false,
-        };
+        $exists = $type === 'kegiatan' && Kegiatan::whereKey($refId)->exists();
 
         if (! $exists) {
             throw ValidationException::withMessages([

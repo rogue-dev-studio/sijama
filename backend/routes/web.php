@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/storage/{path}', [PublicMediaController::class, 'show'])
+    ->name('storage.public')
     ->withoutMiddleware([
         EncryptCookies::class,
         AddQueuedCookiesToResponse::class,

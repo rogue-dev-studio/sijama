@@ -12,10 +12,12 @@ Single-row (or few-row) system settings for mail/SMTP, UI branding, identity, lo
 | Mail | `mail_protocol`, `smtp_hostname`, `smtp_username`, `smtp_password`, `smtp_port`, `smtp_timeout`, `smtp_encryption`, `mail_from_address`, `mail_from_name`, `mail_reply_to` (`mail_parameter` legacy, tidak dipakai UI) |
 | SMS / reset HP | `password_reset_phone_enabled`, `sms_driver` (`log`\|`fonnte`), `sms_country_code`, `fonnte_token` (encrypted), `fonnte_endpoint` |
 | Reset email | `password_reset_email_enabled` (default aktif) |
-| Integrasi | Telegram: `telegram_enabled`, `telegram_bot_token` (encrypted), `telegram_bot_username`, `telegram_default_chat_id` · n8n: `n8n_enabled`, `n8n_base_url`, `n8n_webhook_url`, `n8n_api_key` (encrypted) |
+| Database | `db_enabled`, `db_driver` (pgsql/mysql/mariadb/sqlsrv/sqlite/other), `db_project`, `db_service_name`, `db_plan`, `db_region`, `db_host`, `db_port`, `db_database`, `db_valid_until`, `db_notes`, `db_last_check_*` |
+| Integrasi | Telegram: `telegram_enabled`, `telegram_bot_token` (encrypted), `telegram_bot_username`, `telegram_default_chat_id`, `telegram_valid_until` · n8n: `n8n_enabled`, `n8n_base_url`, `n8n_webhook_url`, `n8n_api_key` (encrypted), `n8n_valid_until` · api.co.id: `api_co_id_*` + `api_co_id_valid_until` · SMTP/Fonnte: `smtp_valid_until`, `fonnte_valid_until` |
+| Log integrasi | Tabel `integration_log_t` — sub-menu Log Database / Telegram / SMTP / Fonnte / n8n / api.co.id (lihat `integration-log-database-v1.1.0.md`) |
 | Identity | `app_nama`, `nama_instansi` — **tab browser**; `alamat`, `telepon`, `email_kontak` |
 | Branding | `header`, `header_detail` — **sidebar/header aplikasi**; `footer`, `website`, `footer_link`, `footer_detail`, `footer_detail_link` — **footer developer**; `path_logoheader`, `path_favicon`, `path_logofooter` — **upload gambar** (`POST /api/aplikasi/konfig/assets/{logo-header|favicon|logo-footer|background}`) |
-| Tema | `path_background` + `background_style` + `background_repeat_size` (tile saat repeat); palet + warna `color_*` |
+| Tema | `path_background` + `background_style` + `background_repeat_size` (tile saat repeat); palet + warna `color_*`; font `font_family_display` (header/judul) + `font_family_body` (teks isi) — preset id (`fraunces`, `source-sans-3`, `inter`, …) |
 | Locale | `timezone`, `locale` |
 | Ops | `maintenance_mode`, `maintenance_message` |
 
@@ -46,3 +48,4 @@ Bila baris konfig sudah ada tapi kolom mail/SMS kosong, `KonfigSystemKService` m
 3. `2026_08_29_160700_add_sms_reset_columns_to_konfigsystem_k_table.php`
 4. `2026_08_29_162300_add_telegram_n8n_columns_to_konfigsystem_k_table.php`
 5. `2026_08_29_163100_add_password_reset_email_enabled_to_konfigsystem_k_table.php`
+6. `2026_09_04_000057_alter_konfigsystem_k_add_font_family.php` — `font_family_display`, `font_family_body`

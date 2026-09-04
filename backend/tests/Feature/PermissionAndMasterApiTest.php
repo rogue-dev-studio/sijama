@@ -58,7 +58,7 @@ class PermissionAndMasterApiTest extends TestCase
             ->assertJsonPath('data.nama', 'Tauhid Dasar');
 
         $id = (int) $create->json('data.id');
-        $this->assertDatabaseHas('materi', ['id' => $id, 'nama' => 'Tauhid Dasar']);
+        $this->assertDatabaseHas('materi_m', ['id' => $id, 'nama' => 'Tauhid Dasar']);
 
         $this->actingAs($user, 'sanctum')
             ->getJson('/api/master/materi')
@@ -79,7 +79,7 @@ class PermissionAndMasterApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseMissing('materi', ['id' => $id]);
+        $this->assertDatabaseMissing('materi_m', ['id' => $id]);
     }
 
     public function test_debug_face_enroll_unavailable_when_app_debug_false(): void

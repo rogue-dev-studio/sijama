@@ -11,14 +11,15 @@ class DaerahResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'pusat_id' => $this->pusat_id,
-            'pusat' => $this->whenLoaded('pusat', fn () => [
-                'id' => $this->pusat->id,
-                'kode' => $this->pusat->kode,
-                'nama' => $this->pusat->nama,
+            'wilayah_fung_pusat_id' => $this->wilayah_fung_pusat_id,
+            'wilayah_fung_pusat' => $this->whenLoaded('wilayahFungPusat', fn () => [
+                'id' => $this->wilayahFungPusat->id,
+                'kode' => $this->wilayahFungPusat->kode,
+                'nama' => $this->wilayahFungPusat->nama,
             ]),
             'kode' => $this->kode,
             'nama' => $this->nama,
+            'singkatan' => $this->singkatan,
             'deskripsi' => $this->deskripsi,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

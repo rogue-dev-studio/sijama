@@ -10,18 +10,18 @@ import type { AdmDesaKelurahan } from '../api/types'
 import { SimpleMasterListPage, type GatedColumn } from '../components/SimpleMasterListPage'
 
 async function loadKecamatanOptions() {
-  const result = await admKecamatanService.list({ per_page: 10000 })
+  const result = await admKecamatanService.list({ per_page: 500 })
   return result.items.map((item) => ({
     id: item.id,
-    nama: item.kabupaten_kota
-      ? `${item.nama} · ${item.kabupaten_kota.nama}`
+    nama: item.wilayah_adm_kabupaten_kota
+      ? `${item.nama} · ${item.wilayah_adm_kabupaten_kota.nama}`
       : item.nama,
   }))
 }
 
 const parentFilter = {
   label: 'Kecamatan',
-  paramKey: 'kecamatan_id',
+  paramKey: 'wilayah_adm_kecamatan_id',
   loadOptions: loadKecamatanOptions,
 }
 
@@ -31,6 +31,12 @@ const columns: GatedColumn<AdmDesaKelurahan>[] = [
     label: 'Kode',
     cell: (item) => item.kode,
     exportValue: (item) => item.kode,
+  },
+  {
+    key: 'wilayah_adm_kecamatan',
+    label: 'Kecamatan',
+    cell: (item) => item.wilayah_adm_kecamatan?.nama || '—',
+    exportValue: (item) => item.wilayah_adm_kecamatan?.nama || '',
   },
   {
     key: 'nama',
@@ -62,8 +68,8 @@ export function MasterAdmDesaKelurahanPage() {
       title="Master Desa/Kelurahan"
       description="Kelola desa dan kelurahan per kecamatan."
       entityLabel="desa/kelurahan"
-      basePath="/master/adm/desa-kelurahan"
-      permissionPrefix="adm_desa_kelurahan"
+      basePath="/master/wilayah-adm/desa"
+      permissionPrefix="wilayah_adm_desa"
       createLabel="Tambah desa/kelurahan"
       searchPlaceholder="Cari kode atau nama…"
       showStatusFilter={false}

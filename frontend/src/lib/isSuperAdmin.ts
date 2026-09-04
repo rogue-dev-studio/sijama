@@ -5,9 +5,12 @@
  * @Last Modified time: 2026-08-29 17:00:00
  */
 
-import type { User } from '../api/types'
+type AccountWithDapukan = {
+  dapukan?: { slug: string } | null
+  dapukan_list?: Array<{ slug: string }> | null
+}
 
-export function isSuperAdminUser(user: User | null | undefined): boolean {
+export function isSuperAdminUser(user: AccountWithDapukan | null | undefined): boolean {
   if (!user) {
     return false
   }

@@ -14,8 +14,8 @@ class StoreMenuRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'parent_id' => ['nullable', 'integer', 'exists:menus,id'],
-            'slug' => ['required', 'string', 'max:50', 'unique:menus,slug'],
+            'parent_id' => ['nullable', 'integer', 'exists:menu_m,id'],
+            'slug' => ['required', 'string', 'max:50', 'unique:menu_m,slug'],
             'nama' => ['required', 'string', 'max:255'],
             'path' => ['nullable', 'string', 'max:255'],
             'icon' => ['nullable', 'string', 'max:100'],

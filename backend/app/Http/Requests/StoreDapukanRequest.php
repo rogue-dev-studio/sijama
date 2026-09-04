@@ -14,7 +14,7 @@ class StoreDapukanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'slug' => ['required', 'string', 'max:50', 'unique:dapukan,slug'],
+            'slug' => ['required', 'string', 'max:50', 'unique:dapukan_m,slug'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'urutan' => ['nullable', 'integer', 'min:0'],

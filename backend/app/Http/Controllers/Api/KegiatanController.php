@@ -26,6 +26,7 @@ class KegiatanController extends Controller
             $request->query('status') ?: null,
             $request->query('date_from') ?: null,
             $request->query('date_to') ?: null,
+            $request->filled('kategori_kegiatan_id') ? $request->integer('kategori_kegiatan_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,

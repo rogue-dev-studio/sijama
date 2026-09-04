@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class KategoriKegiatan extends Model
 {
-    protected $table = 'kategori_kegiatan';
+    protected $table = 'kategori_kegiatan_m';
 
     protected $fillable = [
         'nama',
@@ -33,10 +33,5 @@ class KategoriKegiatan extends Model
     public function kegiatan(): HasMany
     {
         return $this->hasMany(Kegiatan::class, 'kategori_kegiatan_id');
-    }
-
-    public function pengajian(): HasMany
-    {
-        return $this->hasMany(Pengajian::class, 'kategori_kegiatan_id');
     }
 }

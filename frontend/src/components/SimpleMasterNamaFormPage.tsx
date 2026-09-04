@@ -8,6 +8,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
+import { formFieldAccess, type FormFieldAccess } from '../lib/listUiAccess'
 import { SearchableSelect } from './SearchableSelect'
 import { useToast } from './ToastProvider'
 
@@ -27,9 +29,11 @@ type SimpleMasterNamaFormPageProps<TForm extends NamaDeskripsiForm, TItem> = {
   update: (id: number, data: Partial<TForm>) => Promise<unknown>
   toForm: (item: TItem) => TForm
   toPayload?: (form: TForm) => TForm
+  permissionPrefix: string
   renderExtraFields?: (
     form: TForm,
     setForm: (next: TForm) => void,
+    fieldAccess: (key: string) => FormFieldAccess,
   ) => ReactNode
 }
 
@@ -43,10 +47,16 @@ export function SimpleMasterNamaFormPage<TForm extends NamaDeskripsiForm, TItem>
   update,
   toForm,
   toPayload,
+  permissionPrefix,
   renderExtraFields,
 }: SimpleMasterNamaFormPageProps<TForm, TItem>) {
   const { id } = useParams()
   const isEdit = Boolean(id)
+  const { can } = useAuth()
+  const fieldAccess = (key: string) => formFieldAccess(can, permissionPrefix, key, isEdit)
+  const namaAccess = fieldAccess('nama')
+  const statusAccess = fieldAccess('is_active')
+  const deskripsiAccess = fieldAccess('deskripsi')
   const navigate = useNavigate()
   const { notifySaved } = useToast()
   const [form, setForm] = useState<TForm>(emptyForm)
@@ -107,7 +117,17 @@ export function SimpleMasterNamaFormPage<TForm extends NamaDeskripsiForm, TItem>
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat {entityLabel}…</div>
+    return (
+      <>
+        <header className="page-header">
+          <h1>{isEdit ? `Edit ${entityLabel}` : `Tambah ${entityLabel}`}</h1>
+          <p>{description}</p>
+        </header>
+        <div className="loading-state" role="status" aria-live="polite">
+          Memuat {entityLabel}…
+        </div>
+      </>
+    )
   }
 
   return (
@@ -121,36 +141,45 @@ export function SimpleMasterNamaFormPage<TForm extends NamaDeskripsiForm, TItem>
 
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
-          <div className="field">
-            <label htmlFor="nama">Nama</label>
-            <input
-              id="nama"
-              value={form.nama}
-              onChange={(event) => setForm({ ...form, nama: event.target.value })}
-              required
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="is_active">Status</label>
-            <SearchableSelect
-              id="is_active"
-              value={form.is_active ? '1' : '0'}
-              onChange={(next) => setForm({ ...form, is_active: next === '1' })}
-              options={[
-                { value: '1', label: 'Aktif' },
-                { value: '0', label: 'Nonaktif' },
-              ]}
-            />
-          </div>
-          {renderExtraFields?.(form, setForm)}
-          <div className="field" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="deskripsi">Deskripsi</label>
-            <textarea
-              id="deskripsi"
-              value={form.deskripsi || ''}
-              onChange={(event) => setForm({ ...form, deskripsi: event.target.value })}
-            />
-          </div>
+          {namaAccess.visible && (
+            <div className="field">
+              <label htmlFor="nama">Nama</label>
+              <input
+                id="nama"
+                value={form.nama}
+                onChange={(event) => setForm({ ...form, nama: event.target.value })}
+                required
+                disabled={!namaAccess.enabled}
+              />
+            </div>
+          )}
+          {statusAccess.visible && (
+            <div className="field">
+              <label htmlFor="is_active">Status</label>
+              <SearchableSelect
+                id="is_active"
+                value={form.is_active ? '1' : '0'}
+                onChange={(next) => setForm({ ...form, is_active: next === '1' })}
+                disabled={!statusAccess.enabled}
+                options={[
+                  { value: '1', label: 'Aktif' },
+                  { value: '0', label: 'Nonaktif' },
+                ]}
+              />
+            </div>
+          )}
+          {renderExtraFields?.(form, setForm, fieldAccess)}
+          {deskripsiAccess.visible && (
+            <div className="field" style={{ gridColumn: '1 / -1' }}>
+              <label htmlFor="deskripsi">Deskripsi</label>
+              <textarea
+                id="deskripsi"
+                value={form.deskripsi || ''}
+                onChange={(event) => setForm({ ...form, deskripsi: event.target.value })}
+                disabled={!deskripsiAccess.enabled}
+              />
+            </div>
+          )}
         </div>
         <div className="form-actions">
           <button type="submit" className="btn btn--primary" disabled={submitting}>

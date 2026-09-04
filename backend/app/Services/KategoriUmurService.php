@@ -43,10 +43,10 @@ class KategoriUmurService
                 'tanggal_lahir',
                 'status_pernikahan',
                 'kategori_umur',
-                'kelompok_id',
+                'wilayah_fung_kelompok_id',
                 'status',
             ])
-            ->with('kelompok:id,kode,nama')
+            ->with('wilayahFungKelompok:id,kode,nama')
             ->where('status', 'aktif')
             ->orderBy('nama');
         $this->scopeService->applyJamaahScope($builder, $user);
@@ -125,10 +125,10 @@ class KategoriUmurService
                 'gender',
                 'tanggal_lahir',
                 'status_pernikahan',
-                'kelompok_id',
+                'wilayah_fung_kelompok_id',
                 'status',
             ])
-            ->with('kelompok:id,kode,nama')
+            ->with('wilayahFungKelompok:id,kode,nama')
             ->where('status', 'aktif')
             ->orderBy('nama');
         $this->scopeService->applyJamaahScope($builder, $user);
@@ -241,10 +241,10 @@ class KategoriUmurService
                 : null,
             'kategori_umur' => $resolved,
             'kategori_umur_label' => JamaahKategoriUmur::label($resolved),
-            'kelompok' => $jamaah->kelompok ? [
-                'id' => $jamaah->kelompok->id,
-                'kode' => $jamaah->kelompok->kode,
-                'nama' => $jamaah->kelompok->nama,
+            'wilayah_fung_kelompok' => $jamaah->wilayahFungKelompok ? [
+                'id' => $jamaah->wilayahFungKelompok->id,
+                'kode' => $jamaah->wilayahFungKelompok->kode,
+                'nama' => $jamaah->wilayahFungKelompok->nama,
             ] : null,
         ];
     }

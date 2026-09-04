@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-04 17:50:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-04 18:25:00
+ * @Last Modified time: 2026-08-31 19:05:00
  */
 
 namespace App\Services;
@@ -12,7 +12,6 @@ namespace App\Services;
 use App\Models\HariLibur;
 use App\Models\KategoriKegiatan;
 use App\Models\Kegiatan;
-use App\Models\Pengajian;
 use Carbon\Carbon;
 
 class CalendarService
@@ -36,14 +35,7 @@ class CalendarService
             ->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()])
             ->where('status', '!=', 'cancelled')
             ->orderBy('tanggal')
-            ->get();
-
-        $pengajian = Pengajian::query()
-            ->with('kategoriKegiatan:id,nama,calendar_color')
-            ->whereDate('starts_at', '>=', $start->toDateString())
-            ->whereDate('starts_at', '<=', $end->toDateString())
-            ->where('status', '!=', 'cancelled')
-            ->orderBy('starts_at')
+            ->orderBy('jam_mulai')
             ->get();
 
         $eventsByDate = [];
@@ -51,11 +43,6 @@ class CalendarService
         foreach ($kegiatan as $item) {
             $date = $item->tanggal->toDateString();
             $eventsByDate[$date][] = $this->mapKegiatan($item);
-        }
-
-        foreach ($pengajian as $item) {
-            $date = $item->starts_at->toDateString();
-            $eventsByDate[$date][] = $this->mapPengajian($item);
         }
 
         $days = [];
@@ -111,36 +98,24 @@ class CalendarService
     private function mapKegiatan(Kegiatan $item): array
     {
         $kategori = $item->kategoriKegiatan;
+        $timeLabel = null;
+
+        if ($item->jam_mulai) {
+            $timeLabel = substr((string) $item->jam_mulai, 0, 5);
+            if ($item->jam_selesai) {
+                $timeLabel .= '–'.substr((string) $item->jam_selesai, 0, 5);
+            }
+        }
 
         return [
             'id' => $item->id,
             'type' => 'kegiatan',
             'title' => $item->judul,
-            'time_label' => null,
+            'time_label' => $timeLabel,
             'status' => $item->status,
             'color' => $kategori?->calendar_color ?: self::DEFAULT_COLOR,
             'kategori_id' => $kategori?->id,
             'kategori_nama' => $kategori?->nama,
-        ];
-    }
-
-    private function mapPengajian(Pengajian $item): array
-    {
-        $kategori = $item->kategoriKegiatan;
-        $time = $item->starts_at->format('H:i');
-        if ($item->ends_at) {
-            $time .= '–'.$item->ends_at->format('H:i');
-        }
-
-        return [
-            'id' => $item->id,
-            'type' => 'pengajian',
-            'title' => $item->judul,
-            'time_label' => $time,
-            'status' => $item->status,
-            'color' => $kategori?->calendar_color ?: '#0f766e',
-            'kategori_id' => $kategori?->id,
-            'kategori_nama' => $kategori?->nama ?: 'Pengajian',
         ];
     }
 }

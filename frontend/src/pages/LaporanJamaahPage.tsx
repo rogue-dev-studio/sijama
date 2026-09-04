@@ -2,35 +2,23 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-27 15:39:06
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-27 17:16:38
+ * @Last Modified time: 2026-09-02 10:35:00
  */
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { ApiError } from '../api/client'
+import { useEffect, useState } from 'react'
 import { laporanService, masterKelompokService } from '../api/services'
-import type { Jamaah, Kelompok, PaginationMeta } from '../api/types'
-import { useAuth } from '../auth/AuthContext'
-import { ListFilterBar } from '../components/ListFilterBar'
-import { ExportPrintActions } from '../components/ExportPrintActions'
-import { Pagination, rowNumber } from '../components/Pagination'
+import type { Jamaah, Kelompok } from '../api/types'
+import {
+  SimpleMasterListPage,
+  type GatedColumn,
+  type MasterListParams,
+} from '../components/SimpleMasterListPage'
 import { SearchableSelect } from '../components/SearchableSelect'
-import { SortableTh, bindSortableTh } from '../components/SortableTh'
 import { KATEGORI_UMUR_OPTIONS, kategoriUmurLabel } from '../lib/jamaahOptions'
-import { listColumnPerm, listExportAccess } from '../lib/listUiAccess'
-import { DEFAULT_PER_PAGE, DEFAULT_PAGINATION_META } from '../lib/pagination'
-import { toggleSort, toSortParams, type ListSortState } from '../lib/listSort'
 
 const PREFIX = 'laporan_jamaah'
 
-type ColumnDef = {
-  key: string
-  label: string
-  sortKey: string
-  cell: (item: Jamaah) => ReactNode
-  exportValue: (item: Jamaah) => string | number
-}
-
-const COLUMNS: ColumnDef[] = [
+const COLUMNS: GatedColumn<Jamaah>[] = [
   {
     key: 'nama',
     label: 'Nama',
@@ -39,11 +27,11 @@ const COLUMNS: ColumnDef[] = [
     exportValue: (item) => item.nama,
   },
   {
-    key: 'kelompok',
+    key: 'wilayah_fung_kelompok',
     label: 'Kelompok',
-    sortKey: 'kelompok',
-    cell: (item) => item.kelompok?.nama || '—',
-    exportValue: (item) => item.kelompok?.nama || '—',
+    sortKey: 'wilayah_fung_kelompok',
+    cell: (item) => item.wilayah_fung_kelompok?.nama || '—',
+    exportValue: (item) => item.wilayah_fung_kelompok?.nama || '—',
   },
   {
     key: 'kategori',
@@ -83,239 +71,113 @@ const COLUMNS: ColumnDef[] = [
 ]
 
 export function LaporanJamaahPage() {
-  const { can } = useAuth()
-  const [items, setItems] = useState<Jamaah[]>([])
-  const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_PAGINATION_META)
   const [kelompokList, setKelompokList] = useState<Kelompok[]>([])
-  const [query, setQuery] = useState('')
-  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [faceFilter, setFaceFilter] = useState('')
   const [kelompokFilter, setKelompokFilter] = useState(0)
   const [kategoriUmurFilter, setKategoriUmurFilter] = useState('')
-  const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
-  const [sort, setSort] = useState<ListSortState>({ sortBy: 'nama', sortDir: 'asc' })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  const visibleColumns = COLUMNS.filter((column) => can(listColumnPerm(PREFIX, column.key)))
-  const exportAccess = listExportAccess(can, PREFIX)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await laporanService.jamaah({
-        q: search || undefined,
-        status: statusFilter || undefined,
-        face: faceFilter || undefined,
-        kelompok_id: kelompokFilter || undefined,
-        kategori_umur: kategoriUmurFilter || undefined,
-        page,
-        per_page: perPage,
-        ...toSortParams(sort),
-      })
-      setItems(result.items)
-      setMeta(result.meta)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Gagal memuat laporan jamaah')
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let active = true
+    void masterKelompokService.list({ per_page: 100 }).then((result) => {
+      if (active) setKelompokList(result.items)
+    })
+    return () => {
+      active = false
     }
-  }, [search, statusFilter, faceFilter, kelompokFilter, kategoriUmurFilter, page, perPage, sort])
-
-  useEffect(() => {
-    void load()
-  }, [load])
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        const result = await masterKelompokService.list({ per_page: 100 })
-        setKelompokList(result.items)
-      } catch {
-        setKelompokList([])
-      }
-    })()
   }, [])
 
-  function submitSearch() {
-    setSearch(query)
-    setPage(1)
-  }
-
-  function clearFilters() {
-    setQuery('')
-    setSearch('')
+  function clearExtraFilters() {
     setStatusFilter('')
     setFaceFilter('')
     setKelompokFilter(0)
     setKategoriUmurFilter('')
-    setPage(1)
   }
 
-  function handleSort(column: string) {
-    setSort((current) => toggleSort(current, column))
-    setPage(1)
-  }
-
-  const sortBind = bindSortableTh(sort, handleSort)
-  const hasActiveFilters =
-    search !== '' ||
-    statusFilter !== '' ||
-    faceFilter !== '' ||
-    kelompokFilter > 0 ||
-    kategoriUmurFilter !== ''
+  const hasExtraFilters =
+    statusFilter !== '' || faceFilter !== '' || kelompokFilter > 0 || kategoriUmurFilter !== ''
 
   return (
-    <>
-      <header className="page-header">
-        <div className="page-header__row">
-          <div>
-            <h1>Laporan Jamaah</h1>
-            <p>Rekap data jamaah menurut kelompok, status, kategori umur, dan enroll wajah.</p>
-          </div>
-          <div className="page-header__actions">
-            <ExportPrintActions
-              title="Laporan Jamaah"
-              dokumenKey="laporan_jamaah"
-              disabled={loading || items.length === 0 || visibleColumns.length === 0}
-              {...exportAccess}
-              getPayload={() => ({
-                title: 'Laporan Jamaah',
-                headers: ['No', ...visibleColumns.map((column) => column.label)],
-                columnKeys: ['no', ...visibleColumns.map((column) => column.key)],
-                rows: items.map((item, index) => [
-                  rowNumber(meta, index),
-                  ...visibleColumns.map((column) => column.exportValue(item)),
-                ]),
-              })}
-            />
-          </div>
+    <SimpleMasterListPage<Jamaah>
+      title="Laporan Jamaah"
+      description="Rekap data jamaah menurut kelompok, status, kategori umur, dan enroll wajah."
+      entityLabel="laporan jamaah"
+      basePath="/laporan/jamaah"
+      permissionPrefix={PREFIX}
+      createLabel=""
+      dokumenKey="laporan_jamaah"
+      searchPlaceholder="Cari nama / NIK…"
+      columns={COLUMNS}
+      showStatusFilter={false}
+      showStatusColumn={false}
+      hideCreateButton
+      showActionsColumn={false}
+      extraFilterParams={{
+        status: statusFilter || undefined,
+        face: faceFilter || undefined,
+        wilayah_fung_kelompok_id: kelompokFilter || undefined,
+        kategori_umur: kategoriUmurFilter || undefined,
+      }}
+      hasExtraFilters={hasExtraFilters}
+      onClearExtraFilters={clearExtraFilters}
+      filterPrimary={[
+        <div className="field" key="status">
+          <label htmlFor="lap-jamaah-status">Status</label>
+          <SearchableSelect
+            id="lap-jamaah-status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: '', label: 'Semua' },
+              { value: 'aktif', label: 'Aktif' },
+              { value: 'nonaktif', label: 'Nonaktif' },
+            ]}
+          />
+        </div>,
+        <div className="field" key="face">
+          <label htmlFor="lap-jamaah-face">Wajah</label>
+          <SearchableSelect
+            id="lap-jamaah-face"
+            value={faceFilter}
+            onChange={setFaceFilter}
+            options={[
+              { value: '', label: 'Semua' },
+              { value: 'enrolled', label: 'Terdaftar' },
+              { value: 'pending', label: 'Belum' },
+            ]}
+          />
+        </div>,
+        <div className="field" key="kelompok">
+          <label htmlFor="lap-jamaah-kelompok">Kelompok</label>
+          <SearchableSelect
+            id="lap-jamaah-kelompok"
+            value={kelompokFilter ? String(kelompokFilter) : ''}
+            onChange={(next) => setKelompokFilter(Number(next) || 0)}
+            options={[
+              { value: '', label: 'Semua' },
+              ...kelompokList.map((item) => ({ value: String(item.id), label: item.nama })),
+            ]}
+          />
+        </div>,
+      ]}
+      filterSecondary={
+        <div className="field">
+          <label htmlFor="lap-jamaah-umur">Kategori umur</label>
+          <SearchableSelect
+            id="lap-jamaah-umur"
+            value={kategoriUmurFilter}
+            onChange={setKategoriUmurFilter}
+            options={[
+              { value: '', label: 'Semua' },
+              ...KATEGORI_UMUR_OPTIONS.map((item) => ({ value: item.value, label: item.label })),
+            ]}
+          />
         </div>
-      </header>
-
-      {error && <div className="alert alert--error">{error}</div>}
-
-      <ListFilterBar
-        search={{
-          value: query,
-          onChange: setQuery,
-          onSubmit: submitSearch,
-          placeholder: 'Cari nama / NIK…',
-          ariaLabel: 'Cari jamaah',
-        }}
-        primaryFilters={[
-          <div className="field" key="status">
-            <label htmlFor="lap-jamaah-status">Status</label>
-            <SearchableSelect
-              id="lap-jamaah-status"
-              value={statusFilter}
-              onChange={(next) => {
-                setStatusFilter(next)
-                setPage(1)
-              }}
-              options={[
-                { value: '', label: 'Semua' },
-                { value: 'aktif', label: 'Aktif' },
-                { value: 'nonaktif', label: 'Nonaktif' },
-              ]}
-            />
-          </div>,
-          <div className="field" key="face">
-            <label htmlFor="lap-jamaah-face">Wajah</label>
-            <SearchableSelect
-              id="lap-jamaah-face"
-              value={faceFilter}
-              onChange={(next) => {
-                setFaceFilter(next)
-                setPage(1)
-              }}
-              options={[
-                { value: '', label: 'Semua' },
-                { value: 'enrolled', label: 'Terdaftar' },
-                { value: 'pending', label: 'Belum' },
-              ]}
-            />
-          </div>,
-          <div className="field" key="kelompok">
-            <label htmlFor="lap-jamaah-kelompok">Kelompok</label>
-            <SearchableSelect
-              id="lap-jamaah-kelompok"
-              value={kelompokFilter ? String(kelompokFilter) : ''}
-              onChange={(next) => {
-                setKelompokFilter(Number(next) || 0)
-                setPage(1)
-              }}
-              options={[
-                { value: '', label: 'Semua' },
-                ...kelompokList.map((item) => ({ value: String(item.id), label: item.nama })),
-              ]}
-            />
-          </div>,
-        ]}
-        secondaryContent={
-          <div className="field">
-            <label htmlFor="lap-jamaah-umur">Kategori umur</label>
-            <SearchableSelect
-              id="lap-jamaah-umur"
-              value={kategoriUmurFilter}
-              onChange={(next) => {
-                setKategoriUmurFilter(next)
-                setPage(1)
-              }}
-              options={[
-                { value: '', label: 'Semua' },
-                ...KATEGORI_UMUR_OPTIONS.map((item) => ({ value: item.value, label: item.label })),
-              ]}
-            />
-          </div>
-        }
-        secondaryActive={kategoriUmurFilter !== ''}
-        hasActiveFilters={hasActiveFilters}
-        onReset={clearFilters}
-        resetLabel="Reset"
-      />
-
-      {loading ? (
-        <div className="loading-state">Memuat laporan…</div>
-      ) : items.length === 0 ? (
-        <p className="empty-state">Tidak ada data jamaah untuk filter ini.</p>
-      ) : visibleColumns.length === 0 ? (
-        <p className="empty-state">Tidak ada kolom yang diizinkan untuk ditampilkan.</p>
-      ) : (
-        <>
-          <div className="data-table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">No</th>
-                  {visibleColumns.map((column) => (
-                    <SortableTh
-                      key={column.key}
-                      label={column.label}
-                      column={column.sortKey}
-                      {...sortBind}
-                    />
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id}>
-                    <td className="col-no">{rowNumber(meta, index)}</td>
-                    {visibleColumns.map((column) => (
-                      <td key={column.key}>{column.cell(item)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination meta={meta} onPageChange={setPage} onPerPageChange={setPerPage} />
-        </>
-      )}
-    </>
+      }
+      filterSecondaryActive={kategoriUmurFilter !== ''}
+      list={(params: MasterListParams) => laporanService.jamaah(params)}
+      remove={async () => Promise.resolve()}
+      canDeleteItem={() => false}
+    />
   )
 }

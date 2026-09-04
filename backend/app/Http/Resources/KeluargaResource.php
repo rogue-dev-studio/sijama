@@ -18,11 +18,11 @@ class KeluargaResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'kelompok_id' => $this->kelompok_id,
-            'kelompok' => $this->whenLoaded('kelompok', fn () => $this->kelompok ? [
-                'id' => $this->kelompok->id,
-                'kode' => $this->kelompok->kode,
-                'nama' => $this->kelompok->nama,
+            'wilayah_fung_kelompok_id' => $this->wilayah_fung_kelompok_id,
+            'wilayah_fung_kelompok' => $this->whenLoaded('wilayahFungKelompok', fn () => $this->wilayahFungKelompok ? [
+                'id' => $this->wilayahFungKelompok->id,
+                'kode' => $this->wilayahFungKelompok->kode,
+                'nama' => $this->wilayahFungKelompok->nama,
             ] : null),
             'kepala_jamaah_id' => $this->kepala_jamaah_id,
             'kepala_jamaah' => $this->whenLoaded('kepalaJamaah', fn () => $this->kepalaJamaah ? [
@@ -35,11 +35,11 @@ class KeluargaResource extends JsonResource
             'alamat' => $this->alamat,
             'rt' => $this->rt,
             'rw' => $this->rw,
-            'adm_desa_kelurahan_id' => $this->adm_desa_kelurahan_id,
-            'adm_desa_kelurahan' => $this->whenLoaded('admDesaKelurahan', fn () => $this->admDesaKelurahan ? [
-                'id' => $this->admDesaKelurahan->id,
-                'kode' => $this->admDesaKelurahan->kode,
-                'nama' => $this->admDesaKelurahan->nama,
+            'wilayah_adm_desa_id' => $this->wilayah_adm_desa_id,
+            'wilayah_adm_desa' => $this->whenLoaded('wilayahAdmDesa', fn () => $this->wilayahAdmDesa ? [
+                'id' => $this->wilayahAdmDesa->id,
+                'kode' => $this->wilayahAdmDesa->kode,
+                'nama' => $this->wilayahAdmDesa->nama,
             ] : null),
             'kode_pos' => $this->kode_pos,
             'catatan' => $this->catatan,

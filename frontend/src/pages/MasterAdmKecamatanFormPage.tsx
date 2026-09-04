@@ -10,7 +10,7 @@ import type { AdmKecamatan, AdmKecamatanInput } from '../api/types'
 import { SimpleMasterKodeFormPage } from '../components/SimpleMasterKodeFormPage'
 
 const emptyForm: AdmKecamatanInput = {
-  kabupaten_kota_id: 0,
+  wilayah_adm_kabupaten_kota_id: 0,
   kode: '',
   nama: '',
   is_active: true,
@@ -18,7 +18,7 @@ const emptyForm: AdmKecamatanInput = {
 
 function toForm(item: AdmKecamatan): AdmKecamatanInput {
   return {
-    kabupaten_kota_id: item.kabupaten_kota_id,
+    wilayah_adm_kabupaten_kota_id: item.wilayah_adm_kabupaten_kota_id,
     kode: item.kode,
     nama: item.nama,
     is_active: item.is_active,
@@ -26,15 +26,15 @@ function toForm(item: AdmKecamatan): AdmKecamatanInput {
 }
 
 const parentSelect = {
-  field: 'kabupaten_kota_id' as const,
+  field: 'wilayah_adm_kabupaten_kota_id' as const,
   label: 'Kabupaten/Kota',
   emptyMessage: 'Tambahkan kabupaten/kota terlebih dahulu.',
   loadOptions: async () => {
-    const result = await admKabupatenKotaService.list({ per_page: 10000 })
+    const result = await admKabupatenKotaService.list({ per_page: 500 })
     return result.items.map((item) => ({
       id: item.id,
-      nama: item.provinsi
-        ? `${item.nama} · ${item.provinsi.nama}`
+      nama: item.wilayah_adm_provinsi
+        ? `${item.nama} · ${item.wilayah_adm_provinsi.nama}`
         : `${item.nama} (${item.jenis})`,
     }))
   },
@@ -45,7 +45,7 @@ export function MasterAdmKecamatanFormPage() {
     <SimpleMasterKodeFormPage
       entityLabel="kecamatan"
       description="Kelola kecamatan per kabupaten/kota."
-      listPath="/master/adm/kecamatan"
+      listPath="/master/wilayah-adm/kecamatan"
       emptyForm={emptyForm}
       get={admKecamatanService.get}
       create={admKecamatanService.create}
@@ -53,6 +53,7 @@ export function MasterAdmKecamatanFormPage() {
       toForm={toForm}
       showDeskripsi={false}
       parentSelect={parentSelect}
+      permissionPrefix="wilayah_adm_kecamatan"
     />
   )
 }

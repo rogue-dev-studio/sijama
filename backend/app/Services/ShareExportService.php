@@ -11,6 +11,7 @@ namespace App\Services;
 
 use App\Support\UploadStorage;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class ShareExportService
@@ -39,14 +40,18 @@ class ShareExportService
 
         $storedName = Str::uuid()->toString().'.'.$extension;
         $relative = UploadStorage::storeUploadedAsPath($file, self::SHARE_DIR, $storedName);
-        $publicPath = UploadStorage::publicPath($relative);
-        $url = rtrim((string) config('app.url'), '/').$publicPath;
+        $expiresAt = now()->addHours(self::TTL_HOURS);
+        $url = URL::temporarySignedRoute(
+            'storage.public',
+            $expiresAt,
+            ['path' => $relative],
+        );
 
         return [
-            'path' => $publicPath,
+            'path' => UploadStorage::publicPath($relative),
             'url' => $url,
             'filename' => $file->getClientOriginalName() ?: $storedName,
-            'expires_at' => now()->addHours(self::TTL_HOURS)->toIso8601String(),
+            'expires_at' => $expiresAt->toIso8601String(),
         ];
     }
 

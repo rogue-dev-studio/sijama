@@ -31,6 +31,6 @@ class MateriService extends SimpleMasterService
 
     protected function assertDeletable($model): void
     {
-        $this->denyDeleteIfRelated($model, 'pengajian', 'Materi masih dipakai pengajian.');
+        $this->denyDeleteIfRelated($model, 'kegiatan', 'Materi masih dipakai kegiatan.');
     }
 }

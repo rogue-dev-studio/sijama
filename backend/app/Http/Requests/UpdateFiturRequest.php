@@ -15,8 +15,8 @@ class UpdateFiturRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'menu_id' => ['sometimes', 'integer', 'exists:menus,id'],
-            'slug' => ['sometimes', 'string', 'max:50', Rule::unique('fiturs', 'slug')->ignore($this->route('fitur'))],
+            'menu_id' => ['sometimes', 'integer', 'exists:menu_m,id'],
+            'slug' => ['sometimes', 'string', 'max:50', Rule::unique('fitur_m', 'slug')->ignore($this->route('fitur'))],
             'nama' => ['sometimes', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],

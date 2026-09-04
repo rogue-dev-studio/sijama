@@ -9,7 +9,10 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { jamaahService, masterUserService } from '../api/services'
+import { useAuth } from '../auth/AuthContext'
 import type { Jamaah, MasterUserInput } from '../api/types'
+import { canManageUserAccount } from '../lib/dapukanAccess'
+import { FormPageLoading } from '../components/FormPageLoading'
 
 import { SearchableSelect } from '../components/SearchableSelect'
 import { PasswordInput } from '../components/PasswordInput'
@@ -33,7 +36,10 @@ export function MasterUsersFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { user: actor } = useAuth()
   const { notifySaved } = useToast()
+  const [lockedSuperadmin, setLockedSuperadmin] = useState(false)
+  const [lockedDemo, setLockedDemo] = useState(false)
   const [jamaahList, setJamaahList] = useState<Jamaah[]>([])
   const [form, setForm] = useState<UserForm>(emptyForm)
   const [previewName, setPreviewName] = useState('')
@@ -51,6 +57,8 @@ export function MasterUsersFormPage() {
     selectedJamaah?.dapukan?.map((item) => `${item.nama} (${item.tingkat})`).join(', ') ||
     '—'
 
+  const formLocked = lockedSuperadmin || lockedDemo
+
   useEffect(() => {
     let active = true
 
@@ -63,6 +71,24 @@ export function MasterUsersFormPage() {
         if (id) {
           const item = await masterUserService.get(Number(id))
           if (!active) return
+          if (item.is_demo) {
+            setLockedDemo(true)
+            setForm({
+              username: item.username,
+              password: '',
+              jamaah_id: item.jamaah_id || 0,
+              is_active: item.is_active,
+            })
+            setPreviewName(item.name)
+            setPreviewEmail(item.email || '')
+            setError('Akun demo tidak dapat diedit, dinonaktifkan, atau diganti password.')
+            return
+          }
+          if (!canManageUserAccount(actor, item)) {
+            setLockedSuperadmin(true)
+            setError('Anda tidak dapat mengubah pengguna dengan dapukan di atas level Anda.')
+            return
+          }
           setForm({
             username: item.username,
             password: '',
@@ -85,7 +111,7 @@ export function MasterUsersFormPage() {
     return () => {
       active = false
     }
-  }, [id])
+  }, [actor, id])
 
   function handleJamaahChange(jamaahId: number) {
     const jamaah = jamaahList.find((item) => item.id === jamaahId)
@@ -96,6 +122,7 @@ export function MasterUsersFormPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    if (formLocked) return
     if (!form.jamaah_id) {
       setError('Pilih jamaah. Dapukan dan cakupan wilayah diambil otomatis dari jamaah.')
       return
@@ -131,7 +158,13 @@ export function MasterUsersFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat pengguna…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit pengguna' : 'Tambah pengguna'}
+        description="Akun login terhubung ke jamaah. Dapukan dan cakupan wilayah mengikuti data jamaah."
+        message="Memuat pengguna…"
+      />
+    )
   }
 
   return (
@@ -143,6 +176,13 @@ export function MasterUsersFormPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
+      {formLocked ? (
+        <div className="form-actions">
+          <Link to="/master/users" className="btn btn--secondary">
+            Kembali
+          </Link>
+        </div>
+      ) : (
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
           <div className="field">
@@ -219,6 +259,7 @@ export function MasterUsersFormPage() {
           </Link>
         </div>
       </form>
+      )}
     </>
   )
 }

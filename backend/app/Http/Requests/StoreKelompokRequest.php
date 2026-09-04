@@ -14,9 +14,10 @@ class StoreKelompokRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'desa_id' => ['required', 'integer', 'exists:desa,id'],
-            'kode' => ['nullable', 'string', 'max:50', 'unique:kelompok,kode'],
+            'wilayah_fung_desa_id' => ['required', 'integer', 'exists:wilayah_fung_desa_m,id'],
+            'kode' => ['nullable', 'string', 'max:50', 'unique:wilayah_fung_kelompok_m,kode'],
             'nama' => ['required', 'string', 'max:255'],
+            'singkatan' => ['nullable', 'string', 'max:8', 'alpha_num'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];

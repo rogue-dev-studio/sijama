@@ -21,15 +21,15 @@ use Illuminate\Http\Request;
 
 class AdmDesaKelurahanController extends Controller
 {
-    public function __construct(private readonly AdmDesaKelurahanService $admDesaKelurahanService) {}
+    public function __construct(private readonly AdmDesaKelurahanService $wilayahAdmDesaService) {}
 
     public function index(Request $request): JsonResponse
     {
         [$sortBy, $sortDir] = SortHelper::fromRequest($request);
 
-        $paginator = $this->admDesaKelurahanService->list(
+        $paginator = $this->wilayahAdmDesaService->list(
             $request->query('q'),
-            $request->filled('kecamatan_id') ? $request->integer('kecamatan_id') : null,
+            $request->filled('wilayah_adm_kecamatan_id') ? $request->integer('wilayah_adm_kecamatan_id') : null,
             $request->query('jenis') ?: null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
@@ -50,26 +50,26 @@ class AdmDesaKelurahanController extends Controller
 
     public function store(StoreAdmDesaKelurahanRequest $request): JsonResponse
     {
-        $desaKelurahan = $this->admDesaKelurahanService->create($request->validated());
+        $wilayahAdmDesa = $this->wilayahAdmDesaService->create($request->validated());
 
-        return ApiResponse::success($desaKelurahan, 'Desa/kelurahan berhasil ditambahkan', 201);
+        return ApiResponse::success($wilayahAdmDesa, 'Desa/kelurahan berhasil ditambahkan', 201);
     }
 
-    public function show(int $adm_desa_kelurahan): JsonResponse
+    public function show(int $wilayah_adm_desa): JsonResponse
     {
-        return ApiResponse::success($this->admDesaKelurahanService->find($adm_desa_kelurahan));
+        return ApiResponse::success($this->wilayahAdmDesaService->find($wilayah_adm_desa));
     }
 
-    public function update(UpdateAdmDesaKelurahanRequest $request, int $adm_desa_kelurahan): JsonResponse
+    public function update(UpdateAdmDesaKelurahanRequest $request, int $wilayah_adm_desa): JsonResponse
     {
-        $updated = $this->admDesaKelurahanService->update($adm_desa_kelurahan, $request->validated());
+        $updated = $this->wilayahAdmDesaService->update($wilayah_adm_desa, $request->validated());
 
         return ApiResponse::success($updated, 'Desa/kelurahan berhasil diperbarui');
     }
 
-    public function destroy(int $adm_desa_kelurahan): JsonResponse
+    public function destroy(int $wilayah_adm_desa): JsonResponse
     {
-        $this->admDesaKelurahanService->delete($adm_desa_kelurahan);
+        $this->wilayahAdmDesaService->delete($wilayah_adm_desa);
 
         return ApiResponse::success(null, 'Desa/kelurahan berhasil dihapus');
     }

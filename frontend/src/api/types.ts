@@ -31,10 +31,10 @@ export interface WilayahSummary {
 }
 
 export interface UserScope {
-  pusat: WilayahSummary | null
-  daerah: WilayahSummary | null
-  desa: WilayahSummary | null
-  kelompok: WilayahSummary | null
+  wilayah_fung_pusat: WilayahSummary | null
+  wilayah_fung_daerah: WilayahSummary | null
+  wilayah_fung_desa: WilayahSummary | null
+  wilayah_fung_kelompok: WilayahSummary | null
 }
 
 export interface Dapukan {
@@ -57,6 +57,7 @@ export interface Pusat {
   id: number
   kode: string
   nama: string
+  singkatan: string | null
   deskripsi: string | null
   is_active: boolean
   created_at?: string
@@ -65,10 +66,11 @@ export interface Pusat {
 
 export interface Daerah {
   id: number
-  pusat_id: number
-  pusat?: WilayahSummary
+  wilayah_fung_pusat_id: number
+  wilayah_fung_pusat?: WilayahSummary
   kode: string
   nama: string
+  singkatan: string | null
   deskripsi: string | null
   is_active: boolean
   created_at?: string
@@ -80,6 +82,7 @@ export interface AdmNegara {
   kode: string
   nama: string
   iso3: string | null
+  singkatan: string | null
   is_active: boolean
   created_at?: string
   updated_at?: string
@@ -87,10 +90,11 @@ export interface AdmNegara {
 
 export interface AdmProvinsi {
   id: number
-  negara_id: number
-  negara?: WilayahSummary
+  wilayah_adm_negara_id: number
+  wilayah_adm_negara?: WilayahSummary
   kode: string
   nama: string
+  singkatan: string | null
   is_active: boolean
   created_at?: string
   updated_at?: string
@@ -98,11 +102,13 @@ export interface AdmProvinsi {
 
 export interface AdmKabupatenKota {
   id: number
-  provinsi_id: number
-  provinsi?: WilayahSummary
+  wilayah_adm_provinsi_id: number
+  wilayah_adm_provinsi?: WilayahSummary
   kode: string
   nama: string
   jenis: 'kabupaten' | 'kota'
+  singkatan: string | null
+  singkatan_kawasan_metropolitan: string | null
   is_active: boolean
   created_at?: string
   updated_at?: string
@@ -110,8 +116,8 @@ export interface AdmKabupatenKota {
 
 export interface AdmKecamatan {
   id: number
-  kabupaten_kota_id: number
-  kabupaten_kota?: WilayahSummary
+  wilayah_adm_kabupaten_kota_id: number
+  wilayah_adm_kabupaten_kota?: WilayahSummary
   kode: string
   nama: string
   is_active: boolean
@@ -121,8 +127,8 @@ export interface AdmKecamatan {
 
 export interface AdmDesaKelurahan {
   id: number
-  kecamatan_id: number
-  kecamatan?: WilayahSummary
+  wilayah_adm_kecamatan_id: number
+  wilayah_adm_kecamatan?: WilayahSummary
   kode: string
   nama: string
   jenis: 'desa' | 'kelurahan' | 'desa_adat'
@@ -136,16 +142,16 @@ export interface AdmDesaKelurahan {
 export interface AdmKodePos {
   id: number
   kode: string
-  desa_kelurahan_id: number | null
-  desa_kelurahan?: WilayahSummary | null
-  kecamatan_id: number | null
-  kecamatan?: WilayahSummary | null
+  wilayah_adm_desa_id: number | null
+  wilayah_adm_desa?: WilayahSummary | null
+  wilayah_adm_kecamatan_id: number | null
+  wilayah_adm_kecamatan?: WilayahSummary | null
   wilayah?: {
-    negara: string | null
-    provinsi: string | null
-    kabupaten_kota: string | null
-    kecamatan: string | null
-    desa_kelurahan: string | null
+    wilayah_adm_negara: string | null
+    wilayah_adm_provinsi: string | null
+    wilayah_adm_kabupaten_kota: string | null
+    wilayah_adm_kecamatan: string | null
+    wilayah_adm_desa: string | null
   } | null
   is_active: boolean
   created_at?: string
@@ -154,10 +160,11 @@ export interface AdmKodePos {
 
 export interface Desa {
   id: number
-  daerah_id: number
-  daerah?: WilayahSummary
+  wilayah_fung_daerah_id: number
+  wilayah_fung_daerah?: WilayahSummary
   kode: string
   nama: string
+  singkatan: string | null
   deskripsi: string | null
   is_active: boolean
   created_at?: string
@@ -166,10 +173,11 @@ export interface Desa {
 
 export interface Kelompok {
   id: number
-  desa_id: number
-  desa?: WilayahSummary & { daerah_id?: number }
+  wilayah_fung_desa_id: number
+  wilayah_fung_desa?: WilayahSummary & { wilayah_fung_daerah_id?: number }
   kode: string
   nama: string
+  singkatan: string | null
   deskripsi: string | null
   is_active: boolean
   created_at?: string
@@ -178,10 +186,11 @@ export interface Kelompok {
 
 export interface SubKelompok {
   id: number
-  kelompok_id: number
-  kelompok?: WilayahSummary & { desa_id?: number }
+  wilayah_fung_kelompok_id: number
+  wilayah_fung_kelompok?: WilayahSummary & { wilayah_fung_desa_id?: number }
   kode: string
   nama: string
+  singkatan: string | null
   deskripsi: string | null
   is_active: boolean
   created_at?: string
@@ -235,6 +244,7 @@ export interface MasterUser {
   username: string
   email: string | null
   is_active: boolean
+  is_demo?: boolean
   jamaah_id?: number | null
   jamaah?: {
     id: number
@@ -256,6 +266,7 @@ export interface User {
   username: string
   email: string | null
   is_active: boolean
+  is_demo?: boolean
   jamaah_id?: number | null
   foto_path?: string | null
   path_tanda_tangan?: string | null
@@ -424,6 +435,8 @@ export interface AppPublicSettings {
   color_muted: string | null
   color_border: string | null
   theme_color: string | null
+  font_family_display: string | null
+  font_family_body: string | null
   maintenance_mode: boolean
   maintenance_message: string
   maintenance_login_allowed: boolean
@@ -494,7 +507,7 @@ export type OwnProfileInput = {
   rw?: string
   no_hp?: string
   email?: string | null
-  adm_desa_kelurahan_id?: number | null
+  wilayah_adm_desa_id?: number | null
   kode_pos?: string | null
 }
 
@@ -519,17 +532,17 @@ export type OwnLoginSessionInput = {
 }
 
 export type ProfileAdmChain = {
-  negara_id: number | null
-  provinsi_id: number | null
-  kabupaten_kota_id: number | null
-  kecamatan_id: number | null
-  desa_kelurahan_id: number | null
+  wilayah_adm_negara_id: number | null
+  wilayah_adm_provinsi_id: number | null
+  wilayah_adm_kabupaten_kota_id: number | null
+  wilayah_adm_kecamatan_id: number | null
+  wilayah_adm_desa_id: number | null
   labels: {
-    negara: string | null
-    provinsi: string | null
-    kabupaten_kota: string | null
-    kecamatan: string | null
-    desa_kelurahan: string | null
+    wilayah_adm_negara: string | null
+    wilayah_adm_provinsi: string | null
+    wilayah_adm_kabupaten_kota: string | null
+    wilayah_adm_kecamatan: string | null
+    wilayah_adm_desa: string | null
   }
 }
 
@@ -543,14 +556,14 @@ export type ProfileWilayahOption = {
 export type WilayahFromNikResult = {
   found: boolean
   kecamatan_kode: string | null
-  negara_id?: number | null
-  provinsi_id?: number | null
-  kabupaten_kota_id?: number | null
-  kecamatan_id?: number | null
-  negara?: ProfileWilayahOption | null
-  provinsi?: ProfileWilayahOption | null
-  kabupaten_kota?: (ProfileWilayahOption & { jenis?: string }) | null
-  kecamatan?: ProfileWilayahOption | null
+  wilayah_adm_negara_id?: number | null
+  wilayah_adm_provinsi_id?: number | null
+  wilayah_adm_kabupaten_kota_id?: number | null
+  wilayah_adm_kecamatan_id?: number | null
+  wilayah_adm_negara?: ProfileWilayahOption | null
+  wilayah_adm_provinsi?: ProfileWilayahOption | null
+  wilayah_adm_kabupaten_kota?: (ProfileWilayahOption & { jenis?: string }) | null
+  wilayah_adm_kecamatan?: ProfileWilayahOption | null
 }
 
 export type ProfileResult = {
@@ -609,24 +622,26 @@ export type MasterUserInput = {
   password?: string
   dapukan_id?: number
   jamaah_id: number
-  pusat_id?: number | null
-  daerah_id?: number | null
-  desa_id?: number | null
-  kelompok_id?: number | null
+  wilayah_fung_pusat_id?: number | null
+  wilayah_fung_daerah_id?: number | null
+  wilayah_fung_desa_id?: number | null
+  wilayah_fung_kelompok_id?: number | null
   is_active?: boolean
 }
 
 export type PusatInput = {
   kode: string
   nama: string
+  singkatan?: string | null
   deskripsi?: string | null
   is_active?: boolean
 }
 
 export type DaerahInput = {
-  pusat_id: number
+  wilayah_fung_pusat_id: number
   kode: string
   nama: string
+  singkatan?: string | null
   deskripsi?: string | null
   is_active?: boolean
 }
@@ -635,33 +650,37 @@ export type AdmNegaraInput = {
   kode: string
   nama: string
   iso3?: string | null
+  singkatan?: string | null
   is_active?: boolean
 }
 
 export type AdmProvinsiInput = {
-  negara_id: number
+  wilayah_adm_negara_id: number
   kode: string
   nama: string
+  singkatan?: string | null
   is_active?: boolean
 }
 
 export type AdmKabupatenKotaInput = {
-  provinsi_id: number
+  wilayah_adm_provinsi_id: number
   kode: string
   nama: string
   jenis: AdmKabupatenKota['jenis']
+  singkatan?: string | null
+  singkatan_kawasan_metropolitan?: string | null
   is_active?: boolean
 }
 
 export type AdmKecamatanInput = {
-  kabupaten_kota_id: number
+  wilayah_adm_kabupaten_kota_id: number
   kode: string
   nama: string
   is_active?: boolean
 }
 
 export type AdmDesaKelurahanInput = {
-  kecamatan_id: number
+  wilayah_adm_kecamatan_id: number
   kode: string
   nama: string
   jenis: AdmDesaKelurahan['jenis']
@@ -670,30 +689,33 @@ export type AdmDesaKelurahanInput = {
 
 export type AdmKodePosInput = {
   kode: string
-  desa_kelurahan_id: number
+  wilayah_adm_desa_id: number
   is_active?: boolean
 }
 
 export type DesaInput = {
-  daerah_id: number
+  wilayah_fung_daerah_id: number
   kode: string
   nama: string
+  singkatan?: string | null
   deskripsi?: string | null
   is_active?: boolean
 }
 
 export type KelompokInput = {
-  desa_id: number
+  wilayah_fung_desa_id: number
   kode: string
   nama: string
+  singkatan?: string | null
   deskripsi?: string | null
   is_active?: boolean
 }
 
 export type SubKelompokInput = {
-  kelompok_id: number
+  wilayah_fung_kelompok_id: number
   kode: string
   nama: string
+  singkatan?: string | null
   deskripsi?: string | null
   is_active?: boolean
 }
@@ -705,8 +727,8 @@ export interface MatriksData {
 
 export interface Jamaah {
   id: number
-  kelompok_id: number | null
-  kelompok?: WilayahSummary | null
+  wilayah_fung_kelompok_id: number | null
+  wilayah_fung_kelompok?: WilayahSummary | null
   nik: string | null
   nama: string
   gender: 'L' | 'P'
@@ -727,8 +749,8 @@ export interface Jamaah {
   rw: string | null
   no_hp: string | null
   email: string | null
-  adm_desa_kelurahan_id: number | null
-  adm_desa_kelurahan?: WilayahSummary | null
+  wilayah_adm_desa_id: number | null
+  wilayah_adm_desa?: WilayahSummary | null
   kode_pos: string | null
   status: 'aktif' | 'nonaktif'
   foto_path: string | null
@@ -757,16 +779,16 @@ export interface KeluargaAnggota {
 
 export interface Keluarga {
   id: number
-  kelompok_id: number
-  kelompok?: { id: number; kode: string; nama: string } | null
+  wilayah_fung_kelompok_id: number
+  wilayah_fung_kelompok?: { id: number; kode: string; nama: string } | null
   kepala_jamaah_id: number | null
   kepala_jamaah?: { id: number; nama: string; nik: string | null; no_hp: string | null } | null
   no_kk: string | null
   alamat: string | null
   rt: string | null
   rw: string | null
-  adm_desa_kelurahan_id: number | null
-  adm_desa_kelurahan?: WilayahSummary | null
+  wilayah_adm_desa_id: number | null
+  wilayah_adm_desa?: WilayahSummary | null
   kode_pos: string | null
   catatan: string | null
   status: 'aktif' | 'nonaktif'
@@ -784,13 +806,13 @@ export interface KeluargaAnggotaInput {
 }
 
 export interface KeluargaInput {
-  kelompok_id?: number | null
+  wilayah_fung_kelompok_id?: number | null
   kepala_jamaah_id: number
   no_kk?: string | null
   alamat?: string | null
   rt?: string | null
   rw?: string | null
-  adm_desa_kelurahan_id?: number | null
+  wilayah_adm_desa_id?: number | null
   kode_pos?: string | null
   catatan?: string | null
   status?: 'aktif' | 'nonaktif'
@@ -800,14 +822,14 @@ export interface KeluargaInput {
 export type KeluargaJamaahOption = Pick<
   Jamaah,
   | 'id'
-  | 'kelompok_id'
+  | 'wilayah_fung_kelompok_id'
   | 'nama'
   | 'nik'
   | 'no_hp'
   | 'alamat'
   | 'rt'
   | 'rw'
-  | 'adm_desa_kelurahan_id'
+  | 'wilayah_adm_desa_id'
   | 'kode_pos'
 >
 
@@ -818,11 +840,11 @@ export interface Lokasi {
   nama: string
   jenis: LokasiJenis
   kota: string | null
-  adm_desa_kelurahan_id?: number | null
-  adm_desa_kelurahan?: WilayahSummary | null
-  adm_kecamatan?: WilayahSummary | null
-  adm_kabupaten_kota?: WilayahSummary | null
-  adm_provinsi?: WilayahSummary | null
+  wilayah_adm_desa_id?: number | null
+  wilayah_adm_desa?: WilayahSummary | null
+  wilayah_adm_kecamatan?: WilayahSummary | null
+  wilayah_adm_kabupaten_kota?: WilayahSummary | null
+  wilayah_adm_provinsi?: WilayahSummary | null
   alamat: string | null
   lat?: number | null
   lng?: number | null
@@ -899,6 +921,30 @@ export interface KonfigSystem {
   n8n_base_url: string | null
   n8n_webhook_url: string | null
   n8n_api_key_set: boolean
+  api_co_id_holiday_enabled: boolean
+  api_co_id_api_key_set: boolean
+  api_co_id_holiday_base_url: string | null
+  api_co_id_holiday_last_synced_at: string | null
+  api_co_id_holiday_last_sync_count: number | null
+  db_enabled: boolean
+  db_driver: string | null
+  db_project: string | null
+  db_service_name: string | null
+  db_plan: string | null
+  db_region: string | null
+  db_host: string | null
+  db_port: number | null
+  db_database: string | null
+  db_valid_until: string | null
+  db_notes: string | null
+  db_last_checked_at: string | null
+  db_last_check_status: string | null
+  db_last_check_message: string | null
+  smtp_valid_until: string | null
+  fonnte_valid_until: string | null
+  telegram_valid_until: string | null
+  n8n_valid_until: string | null
+  api_co_id_valid_until: string | null
   header: string | null
   footer: string | null
   website: string | null
@@ -920,6 +966,8 @@ export interface KonfigSystem {
   color_muted: string | null
   color_border: string | null
   theme_color: string | null
+  font_family_display: string | null
+  font_family_body: string | null
   maintenance_mode: boolean
   maintenance_message: string | null
   path_maintenance_background: string | null
@@ -1004,41 +1052,94 @@ export type LokasiRef = MasterRef & {
   jenis?: LokasiJenis | string
 }
 
-export interface Pengajian {
+export interface Kegiatan {
   id: number
   judul: string
   pemateri: string | null
   pemateri_id?: number | null
   pemateri_ref?: MasterRef | null
-  lokasi: string | null
-  lokasi_id?: number | null
-  lokasi_ref?: LokasiRef | null
-  materi_id?: number | null
-  materi?: MasterRef | null
-  kategori_kegiatan_id?: number | null
-  kategori_kegiatan?: (MasterRef & { calendar_color?: string }) | null
-  starts_at: string
-  ends_at: string | null
-  catatan: string | null
-  status: 'scheduled' | 'completed' | 'cancelled'
-  created_at?: string
-  updated_at?: string
-}
-
-export interface Kegiatan {
-  id: number
-  judul: string
+  materi_ids?: number[]
+  materi_list?: MasterRef[]
   jenis: string | null
   kategori_kegiatan_id?: number | null
   kategori_kegiatan?: MasterRef | null
   tanggal: string
+  jam_mulai?: string | null
+  jam_selesai?: string | null
   lokasi: string | null
   lokasi_id?: number | null
   lokasi_ref?: LokasiRef | null
   deskripsi: string | null
+  catatan: string | null
   status: 'planned' | 'ongoing' | 'completed' | 'cancelled'
+  jadwal_rutin_id?: number | null
+  jadwal_rutin?: { id: number; judul: string; is_active: boolean } | null
   created_at?: string
   updated_at?: string
+}
+
+export type KegiatanJadwalFrekuensi = 'mingguan' | 'bulanan' | 'tahunan'
+
+export type KegiatanJadwalScopeLevel = 'daerah' | 'desa' | 'kelompok'
+
+export interface KegiatanJadwalRutin {
+  id: number
+  judul: string
+  pemateri?: string | null
+  pemateri_id?: number | null
+  pemateri_ref?: MasterRef | null
+  materi_ids?: number[]
+  materi_list?: MasterRef[]
+  kategori_kegiatan_id?: number | null
+  kategori_kegiatan?: MasterRef | null
+  lokasi: string | null
+  lokasi_id?: number | null
+  lokasi_ref?: LokasiRef | null
+  deskripsi: string | null
+  frekuensi: KegiatanJadwalFrekuensi
+  day_of_week?: number | null
+  day_of_month?: number | null
+  month_of_year?: number | null
+  jam_mulai?: string | null
+  jam_selesai?: string | null
+  scope_level: KegiatanJadwalScopeLevel
+  wilayah_fung_daerah_id?: number | null
+  wilayah_fung_desa_id?: number | null
+  wilayah_fung_kelompok_id?: number | null
+  wilayah_fung_daerah?: MasterRef | null
+  wilayah_fung_desa?: MasterRef | null
+  wilayah_fung_kelompok?: MasterRef | null
+  effective_from: string
+  effective_until?: string | null
+  generate_horizon_days: number
+  last_generated_until?: string | null
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export interface KegiatanJadwalRutinInput {
+  judul: string
+  pemateri?: string | null
+  pemateri_id?: number | null
+  materi_ids?: number[]
+  kategori_kegiatan_id?: number | null
+  lokasi?: string
+  lokasi_id?: number | null
+  deskripsi?: string
+  frekuensi: KegiatanJadwalFrekuensi
+  day_of_week?: number | null
+  day_of_month?: number | null
+  month_of_year?: number | null
+  jam_mulai?: string | null
+  jam_selesai?: string | null
+  scope_level: KegiatanJadwalScopeLevel
+  wilayah_fung_daerah_id?: number | null
+  wilayah_fung_desa_id?: number | null
+  wilayah_fung_kelompok_id?: number | null
+  effective_from: string
+  effective_until?: string | null
+  generate_horizon_days?: number
 }
 
 export interface AbsensiOverviewPoint {
@@ -1078,7 +1179,7 @@ export interface DashboardStats {
 
 export interface AttendanceSession {
   id: number
-  type: 'pengajian' | 'kegiatan'
+  type: 'kegiatan'
   ref_id: number
   title: string
   opened_by: number
@@ -1114,8 +1215,68 @@ export interface LaporanKehadiranRow {
   session_status: string | null
 }
 
+export interface AuditLoginRow {
+  id: number
+  event: 'login' | 'logout' | string
+  success: boolean
+  username: string
+  user_id: number | null
+  user_name: string | null
+  user_username: string | null
+  failure_reason: string | null
+  ip_address: string | null
+  user_agent: string | null
+  remember_me: boolean | null
+  device_key: string | null
+  personal_access_token_id: number | null
+  attempted_at: string | null
+}
+
+export type AppErrorLogStatus = 'baru' | 'dalam_perbaikan' | 'selesai' | 'diabaikan'
+
+export interface AppErrorLogRow {
+  id: number
+  level: 'error' | 'critical' | string
+  status: AppErrorLogStatus | string
+  status_note: string | null
+  status_updated_at: string | null
+  status_updated_by: number | null
+  status_updated_by_name: string | null
+  status_updated_by_username: string | null
+  exception_class: string
+  message: string
+  file: string | null
+  line: number | null
+  stack_trace: string | null
+  request_method: string | null
+  request_path: string | null
+  user_id: number | null
+  user_name: string | null
+  user_username: string | null
+  ip_address: string | null
+  user_agent: string | null
+  occurred_at: string | null
+}
+
+export interface AuditActivityRow {
+  id: number
+  module: 'access' | 'konfig' | 'jamaah' | string
+  action: string
+  entity_type: string
+  entity_id: number | null
+  entity_label: string | null
+  actor_user_id: number | null
+  actor_username: string | null
+  actor_name: string | null
+  summary: string
+  meta: Record<string, unknown> | null
+  ip_address: string | null
+  user_agent: string | null
+  occurred_at: string | null
+}
+
 export type JamaahInput = {
-  kelompok_id: number
+  wilayah_fung_kelompok_id: number
   nik?: string | null
   nama: string
   gender: 'L' | 'P'
@@ -1131,7 +1292,7 @@ export type JamaahInput = {
   rw?: string | null
   no_hp?: string | null
   email?: string | null
-  adm_desa_kelurahan_id?: number | null
+  wilayah_adm_desa_id?: number | null
   kode_pos?: string | null
   status?: 'aktif' | 'nonaktif'
   foto_path?: string | null
@@ -1147,7 +1308,7 @@ export type KategoriUmurMember = {
   status_pernikahan_label?: string | null
   kategori_umur?: string | null
   kategori_umur_label?: string | null
-  kelompok: WilayahSummary | null
+  wilayah_fung_kelompok: WilayahSummary | null
 }
 
 export type KategoriUmurGroup = {
@@ -1187,7 +1348,7 @@ export type LokasiInput = {
   nama: string
   jenis: LokasiJenis
   kota?: string | null
-  adm_desa_kelurahan_id?: number | null
+  wilayah_adm_desa_id?: number | null
   alamat?: string | null
   lat?: number | null
   lng?: number | null
@@ -1209,17 +1370,17 @@ export type MapsLocationResolveResult = {
   display_name?: string | null
   alamat?: string | null
   adm?: {
-    negara_id: number | null
-    provinsi_id: number | null
-    kabupaten_kota_id: number | null
-    kecamatan_id: number | null
-    desa_kelurahan_id: number | null
+    wilayah_adm_negara_id: number | null
+    wilayah_adm_provinsi_id: number | null
+    wilayah_adm_kabupaten_kota_id: number | null
+    wilayah_adm_kecamatan_id: number | null
+    wilayah_adm_desa_id: number | null
     labels: {
-      negara?: string | null
-      provinsi?: string | null
-      kabupaten_kota?: string | null
-      kecamatan?: string | null
-      desa_kelurahan?: string | null
+      wilayah_adm_negara?: string | null
+      wilayah_adm_provinsi?: string | null
+      wilayah_adm_kabupaten_kota?: string | null
+      wilayah_adm_kecamatan?: string | null
+      wilayah_adm_desa?: string | null
     }
   } | null
 }
@@ -1282,6 +1443,25 @@ export type KonfigSystemInput = {
   n8n_base_url?: string | null
   n8n_webhook_url?: string | null
   n8n_api_key?: string | null
+  api_co_id_holiday_enabled?: boolean
+  api_co_id_api_key?: string | null
+  api_co_id_holiday_base_url?: string | null
+  db_enabled?: boolean
+  db_driver?: string | null
+  db_project?: string | null
+  db_service_name?: string | null
+  db_plan?: string | null
+  db_region?: string | null
+  db_host?: string | null
+  db_port?: number | null
+  db_database?: string | null
+  db_valid_until?: string | null
+  db_notes?: string | null
+  smtp_valid_until?: string | null
+  fonnte_valid_until?: string | null
+  telegram_valid_until?: string | null
+  n8n_valid_until?: string | null
+  api_co_id_valid_until?: string | null
   header?: string | null
   footer?: string | null
   website?: string | null
@@ -1303,6 +1483,8 @@ export type KonfigSystemInput = {
   color_muted?: string | null
   color_border?: string | null
   theme_color?: string | null
+  font_family_display?: string | null
+  font_family_body?: string | null
   maintenance_mode?: boolean
   maintenance_message?: string | null
   path_maintenance_background?: string | null
@@ -1310,6 +1492,59 @@ export type KonfigSystemInput = {
   maintenance_background_repeat_size?: string
   additional_data?: string | null
   is_active?: boolean
+}
+
+export interface HariLiburSyncResult {
+  year: number
+  synced: number
+}
+
+export type IntegrationProvider =
+  | 'database'
+  | 'smtp'
+  | 'fonnte'
+  | 'telegram'
+  | 'n8n'
+  | 'api_co_id'
+
+export interface IntegrationLogRow {
+  id: number
+  provider: IntegrationProvider | string
+  level: string
+  event_type: string
+  title: string
+  message: string
+  context?: Record<string, unknown> | null
+  occurred_at: string | null
+  created_by?: number | null
+  creator?: { id: number; name: string; username: string } | null
+}
+
+export interface IntegrationCheckResult {
+  ok: boolean
+  status: string
+  message: string
+  log_id: number | null
+}
+
+export interface IntegrationExpirySweepResult {
+  recorded: number
+  checks: Array<Record<string, unknown>>
+}
+
+export type IntegrationLogInput = {
+  provider: IntegrationProvider | string
+  level?: string
+  event_type: string
+  title: string
+  message: string
+  context?: Record<string, unknown>
+}
+
+export interface HariLiburSyncResponse {
+  results: HariLiburSyncResult[]
+  last_synced_at: string | null
+  last_sync_count: number | null
 }
 
 export type KonfigDokumenInput = {
@@ -1359,33 +1594,25 @@ export type KategoriKegiatanInput = {
   is_active?: boolean
 }
 
-export type PengajianInput = {
+export type KegiatanInput = {
   judul: string
   pemateri?: string | null
   pemateri_id?: number | null
-  lokasi?: string | null
-  lokasi_id?: number | null
-  materi_id?: number | null
-  kategori_kegiatan_id?: number | null
-  starts_at: string
-  ends_at?: string | null
-  catatan?: string | null
-  status?: Pengajian['status']
-}
-
-export type KegiatanInput = {
-  judul: string
+  materi_ids?: number[]
   jenis?: string | null
   kategori_kegiatan_id?: number | null
   tanggal: string
+  jam_mulai?: string | null
+  jam_selesai?: string | null
   lokasi?: string | null
   lokasi_id?: number | null
   deskripsi?: string | null
+  catatan?: string | null
   status?: Kegiatan['status']
 }
 
 export type OpenSessionInput = {
-  type: 'pengajian' | 'kegiatan'
+  type: 'kegiatan'
   ref_id: number
   title: string
 }
@@ -1398,7 +1625,7 @@ export type CheckInInput = {
 
 export type CalendarEvent = {
   id: number
-  type: 'kegiatan' | 'pengajian'
+  type: 'kegiatan'
   title: string
   time_label: string | null
   status: string
@@ -1433,4 +1660,119 @@ export type CalendarMonth = {
   days: CalendarDay[]
   holidays: Array<CalendarHoliday & { tanggal: string }>
   legend: CalendarLegendItem[]
+}
+
+export type AppReportCategory = 'teknis' | 'nonteknis'
+
+export type AppReportStatus = 'baru' | 'diproses' | 'selesai' | 'ditolak' | string
+
+export interface AppReportRow {
+  id: number
+  category: AppReportCategory | string
+  reporter_name: string
+  reporter_username?: string | null
+  user_id?: number | null
+  jamaah_id?: number | null
+  subject: string
+  description: string
+  contact?: string | null
+  images?: string[]
+  status: AppReportStatus
+  admin_notes?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  user?: { id: number; name: string; username?: string } | null
+  jamaah?: { id: number; nama: string } | null
+}
+
+export type AppReportInput = {
+  reporter_name: string
+  subject: string
+  description: string
+  contact?: string | null
+}
+
+export type AppReportAdminUpdateInput = {
+  status: AppReportStatus
+  admin_notes?: string | null
+}
+
+export type AppFeedbackKind = 'idea' | 'testimonial' | 'ide' | 'testimoni'
+
+export type AppFeedbackStatus = 'baru' | 'diproses' | 'selesai' | 'ditolak' | string
+
+export interface AppFeedbackRow {
+  id: number
+  kind: AppFeedbackKind | string
+  reporter_name: string
+  reporter_username?: string | null
+  user_id?: number | null
+  jamaah_id?: number | null
+  contact?: string | null
+  title: string
+  body: string
+  rating?: number | null
+  role_label?: string | null
+  images?: string[]
+  is_published: boolean
+  status: AppFeedbackStatus
+  admin_notes?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  user?: { id: number; name: string; username?: string } | null
+  jamaah?: { id: number; nama: string } | null
+}
+
+export type AppFeedbackIdeaInput = {
+  reporter_name: string
+  title: string
+  body: string
+  contact?: string | null
+}
+
+export type AppFeedbackTestimonialInput = {
+  reporter_name: string
+  title: string
+  body: string
+  rating: number
+  role_label?: string | null
+  contact?: string | null
+}
+
+export type AppFeedbackAdminUpdateInput = {
+  status?: AppFeedbackStatus
+  admin_notes?: string | null
+}
+
+export interface AppPollOption {
+  id: number
+  label: string
+  urutan: number
+  votes_count?: number
+}
+
+export interface AppPollRow {
+  id: number
+  title: string
+  description?: string | null
+  options: AppPollOption[]
+  my_option_id?: number | null
+  is_active: boolean
+  starts_at?: string | null
+  ends_at?: string | null
+  created_at?: string | null
+  total_votes?: number
+}
+
+export type AppPollVoteInput = {
+  option_id: number
+}
+
+export type AppPollAdminInput = {
+  title: string
+  description?: string | null
+  is_active?: boolean
+  starts_at?: string | null
+  ends_at?: string | null
+  options: Array<{ label: string; urutan?: number }>
 }

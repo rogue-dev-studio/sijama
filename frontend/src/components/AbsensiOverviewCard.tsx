@@ -9,6 +9,7 @@ import { ApiError } from '../api/client'
 import { dashboardService } from '../api/services'
 import type { AbsensiOverviewPeriod } from '../api/types'
 import { SimpleColumnChart } from './Charts'
+import { DateField } from './DateField'
 
 type PeriodKey = 'week' | 'month' | 'year' | 'custom'
 
@@ -132,23 +133,21 @@ export function AbsensiOverviewCard({
           <div className="absensi-overview__custom">
             <div className="field">
               <label htmlFor="absensi-from">Dari</label>
-              <input
+              <DateField
                 id="absensi-from"
-                type="date"
                 value={customFrom}
-                max={customTo}
-                onChange={(event) => setCustomFrom(event.target.value)}
+                max={customTo || undefined}
+                onChange={setCustomFrom}
               />
             </div>
             <div className="field">
               <label htmlFor="absensi-to">Sampai</label>
-              <input
+              <DateField
                 id="absensi-to"
-                type="date"
                 value={customTo}
-                min={customFrom}
+                min={customFrom || undefined}
                 max={localDateIso()}
-                onChange={(event) => setCustomTo(event.target.value)}
+                onChange={setCustomTo}
               />
             </div>
           </div>

@@ -11,7 +11,7 @@ import { SearchableSelect } from '../components/SearchableSelect'
 import { SimpleMasterKodeFormPage } from '../components/SimpleMasterKodeFormPage'
 
 const emptyForm: AdmDesaKelurahanInput = {
-  kecamatan_id: 0,
+  wilayah_adm_kecamatan_id: 0,
   kode: '',
   nama: '',
   jenis: 'desa',
@@ -20,7 +20,7 @@ const emptyForm: AdmDesaKelurahanInput = {
 
 function toForm(item: AdmDesaKelurahan): AdmDesaKelurahanInput {
   return {
-    kecamatan_id: item.kecamatan_id,
+    wilayah_adm_kecamatan_id: item.wilayah_adm_kecamatan_id,
     kode: item.kode,
     nama: item.nama,
     jenis: item.jenis,
@@ -29,15 +29,15 @@ function toForm(item: AdmDesaKelurahan): AdmDesaKelurahanInput {
 }
 
 const parentSelect = {
-  field: 'kecamatan_id' as const,
+  field: 'wilayah_adm_kecamatan_id' as const,
   label: 'Kecamatan',
   emptyMessage: 'Tambahkan kecamatan terlebih dahulu.',
   loadOptions: async () => {
-    const result = await admKecamatanService.list({ per_page: 10000 })
+    const result = await admKecamatanService.list({ per_page: 500 })
     return result.items.map((item) => ({
       id: item.id,
-      nama: item.kabupaten_kota
-        ? `${item.nama} · ${item.kabupaten_kota.nama}`
+      nama: item.wilayah_adm_kabupaten_kota
+        ? `${item.nama} · ${item.wilayah_adm_kabupaten_kota.nama}`
         : item.nama,
     }))
   },
@@ -48,7 +48,7 @@ export function MasterAdmDesaKelurahanFormPage() {
     <SimpleMasterKodeFormPage
       entityLabel="desa/kelurahan"
       description="Kelola desa dan kelurahan per kecamatan."
-      listPath="/master/adm/desa-kelurahan"
+      listPath="/master/wilayah-adm/desa"
       emptyForm={emptyForm}
       get={admDesaKelurahanService.get}
       create={admDesaKelurahanService.create}
@@ -56,31 +56,37 @@ export function MasterAdmDesaKelurahanFormPage() {
       toForm={toForm}
       showDeskripsi={false}
       parentSelect={parentSelect}
-      renderExtraFields={(form, setForm) => (
-        <div className="field">
-          <label htmlFor="jenis">Jenis</label>
-          <SearchableSelect
-            id="jenis"
-            value={form.jenis}
-            onChange={(next) =>
-              setForm({
-                ...form,
-                jenis:
-                  next === 'kelurahan'
-                    ? 'kelurahan'
-                    : next === 'desa_adat'
-                      ? 'desa_adat'
-                      : 'desa',
-              })
-            }
-            options={[
-              { value: 'desa', label: 'Desa' },
-              { value: 'kelurahan', label: 'Kelurahan' },
-              { value: 'desa_adat', label: 'Desa adat' },
-            ]}
-          />
-        </div>
-      )}
+      permissionPrefix="wilayah_adm_desa"
+      renderExtraFields={(form, setForm, _isEdit, fieldAccess) => {
+        const access = fieldAccess('jenis')
+        if (!access.visible) return null
+        return (
+          <div className="field">
+            <label htmlFor="jenis">Jenis</label>
+            <SearchableSelect
+              id="jenis"
+              value={form.jenis}
+              onChange={(next) =>
+                setForm({
+                  ...form,
+                  jenis:
+                    next === 'kelurahan'
+                      ? 'kelurahan'
+                      : next === 'desa_adat'
+                        ? 'desa_adat'
+                        : 'desa',
+                })
+              }
+              disabled={!access.enabled}
+              options={[
+                { value: 'desa', label: 'Desa' },
+                { value: 'kelurahan', label: 'Kelurahan' },
+                { value: 'desa_adat', label: 'Desa adat' },
+              ]}
+            />
+          </div>
+        )
+      }}
     />
   )
 }

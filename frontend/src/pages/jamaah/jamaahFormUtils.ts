@@ -10,7 +10,7 @@ import type { JamaahInput } from '../../api/types'
 export const JAMAHA_KELOMPOK_DAPUKAN_SLUG = 'jamaah_kelompok'
 
 export const emptyJamaahForm: JamaahInput = {
-  kelompok_id: 0,
+  wilayah_fung_kelompok_id: 0,
   nik: '',
   nama: '',
   gender: 'L',
@@ -26,7 +26,7 @@ export const emptyJamaahForm: JamaahInput = {
   rw: '',
   no_hp: '',
   email: '',
-  adm_desa_kelurahan_id: null,
+  wilayah_adm_desa_id: null,
   kode_pos: '',
   status: 'aktif',
 }

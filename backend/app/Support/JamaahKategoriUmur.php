@@ -9,6 +9,7 @@
 
 namespace App\Support;
 
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 
 final class JamaahKategoriUmur
@@ -72,17 +73,28 @@ final class JamaahKategoriUmur
     ];
 
     public static function classify(
-        ?CarbonInterface $tanggalLahir,
+        CarbonInterface|string|null $tanggalLahir,
         ?string $statusPernikahan = null,
-        ?CarbonInterface $asOf = null,
+        CarbonInterface|string|null $asOf = null,
     ): ?string {
-        if ($tanggalLahir === null) {
+        if ($tanggalLahir === null || $tanggalLahir === '') {
             return null;
         }
 
-        $age = $asOf
-            ? (int) $tanggalLahir->diffInYears($asOf)
-            : (int) $tanggalLahir->age;
+        $birth = $tanggalLahir instanceof CarbonInterface
+            ? $tanggalLahir
+            : Carbon::parse($tanggalLahir);
+
+        $reference = null;
+        if ($asOf !== null && $asOf !== '') {
+            $reference = $asOf instanceof CarbonInterface
+                ? $asOf
+                : Carbon::parse($asOf);
+        }
+
+        $age = $reference
+            ? (int) $birth->diffInYears($reference)
+            : (int) $birth->age;
 
         foreach (self::YOUTH_AGE_RANGES as $kode => [$min, $max]) {
             if ($age >= $min && $age <= $max) {

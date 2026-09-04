@@ -53,7 +53,7 @@ export function KeluargaAddressFields({
 }: KeluargaAddressFieldsProps) {
   function handleDesaKelurahanChange(next: string) {
     const desaId = next ? Number(next) : null
-    onFieldChange('adm_desa_kelurahan_id', desaId)
+    onFieldChange('wilayah_adm_desa_id', desaId)
     onFieldChange('kode_pos', kodePosFromDesa(desaKelurahanList, desaId))
   }
 
@@ -88,9 +88,9 @@ export function KeluargaAddressFields({
         />
       </div>
       <div className="field">
-        <label htmlFor="negara_id">Negara</label>
+        <label htmlFor="wilayah_adm_negara_id">Negara</label>
         <SearchableSelect
-          id="negara_id"
+          id="wilayah_adm_negara_id"
           value={selectedNegaraId ? String(selectedNegaraId) : ''}
           onChange={(next) => void onNegaraChange(Number(next) || 0)}
           placeholder="Pilih negara"
@@ -101,9 +101,9 @@ export function KeluargaAddressFields({
         />
       </div>
       <div className="field">
-        <label htmlFor="provinsi_id">Provinsi</label>
+        <label htmlFor="wilayah_adm_provinsi_id">Provinsi</label>
         <SearchableSelect
-          id="provinsi_id"
+          id="wilayah_adm_provinsi_id"
           value={selectedProvinsiId ? String(selectedProvinsiId) : ''}
           onChange={(next) => void onProvinsiChange(Number(next) || 0)}
           disabled={provinsiList.length === 0}
@@ -115,9 +115,9 @@ export function KeluargaAddressFields({
         />
       </div>
       <div className="field">
-        <label htmlFor="kabupaten_kota_id">Kabupaten/Kota</label>
+        <label htmlFor="wilayah_adm_kabupaten_kota_id">Kabupaten/Kota</label>
         <SearchableSelect
-          id="kabupaten_kota_id"
+          id="wilayah_adm_kabupaten_kota_id"
           value={selectedKabupatenKotaId ? String(selectedKabupatenKotaId) : ''}
           onChange={(next) => void onKabupatenKotaChange(Number(next) || 0)}
           disabled={kabupatenKotaList.length === 0}
@@ -129,9 +129,9 @@ export function KeluargaAddressFields({
         />
       </div>
       <div className="field">
-        <label htmlFor="kecamatan_id">Kecamatan</label>
+        <label htmlFor="wilayah_adm_kecamatan_id">Kecamatan</label>
         <SearchableSelect
-          id="kecamatan_id"
+          id="wilayah_adm_kecamatan_id"
           value={selectedKecamatanId ? String(selectedKecamatanId) : ''}
           onChange={(next) => void onKecamatanChange(Number(next) || 0)}
           disabled={kecamatanList.length === 0}
@@ -143,10 +143,10 @@ export function KeluargaAddressFields({
         />
       </div>
       <div className="field">
-        <label htmlFor="adm_desa_kelurahan_id">Desa/Kelurahan</label>
+        <label htmlFor="wilayah_adm_desa_id">Desa/Kelurahan</label>
         <SearchableSelect
-          id="adm_desa_kelurahan_id"
-          value={form.adm_desa_kelurahan_id ? String(form.adm_desa_kelurahan_id) : ''}
+          id="wilayah_adm_desa_id"
+          value={form.wilayah_adm_desa_id ? String(form.wilayah_adm_desa_id) : ''}
           onChange={handleDesaKelurahanChange}
           disabled={desaKelurahanList.length === 0}
           placeholder="Pilih desa/kelurahan"

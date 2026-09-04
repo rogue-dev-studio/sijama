@@ -13,17 +13,17 @@ export type MapCoords = {
 export type MapsLocationResolvedVia = 'parse' | 'redirect' | 'geocode' | 'place_name' | 'coords'
 
 export type MapsAdmSuggestion = {
-  negara_id: number | null
-  provinsi_id: number | null
-  kabupaten_kota_id: number | null
-  kecamatan_id: number | null
-  desa_kelurahan_id: number | null
+  wilayah_adm_negara_id: number | null
+  wilayah_adm_provinsi_id: number | null
+  wilayah_adm_kabupaten_kota_id: number | null
+  wilayah_adm_kecamatan_id: number | null
+  wilayah_adm_desa_id: number | null
   labels: {
-    negara?: string | null
-    provinsi?: string | null
-    kabupaten_kota?: string | null
-    kecamatan?: string | null
-    desa_kelurahan?: string | null
+    wilayah_adm_negara?: string | null
+    wilayah_adm_provinsi?: string | null
+    wilayah_adm_kabupaten_kota?: string | null
+    wilayah_adm_kecamatan?: string | null
+    wilayah_adm_desa?: string | null
   }
 }
 
@@ -463,11 +463,11 @@ export function formatResolveHint(result: MapsLocationResolveResult): string {
 export function formatAdmLabels(adm: MapsAdmSuggestion | null | undefined): string | null {
   if (!adm?.labels) return null
   const parts = [
-    adm.labels.negara,
-    adm.labels.provinsi,
-    adm.labels.kabupaten_kota,
-    adm.labels.kecamatan,
-    adm.labels.desa_kelurahan,
+    adm.labels.wilayah_adm_negara,
+    adm.labels.wilayah_adm_provinsi,
+    adm.labels.wilayah_adm_kabupaten_kota,
+    adm.labels.wilayah_adm_kecamatan,
+    adm.labels.wilayah_adm_desa,
   ].filter((value): value is string => Boolean(value && value.trim()))
   return parts.length > 0 ? parts.join(' · ') : null
 }

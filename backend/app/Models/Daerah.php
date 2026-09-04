@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Daerah extends Model
 {
-    protected $table = 'daerah';
+    protected $table = 'wilayah_fung_daerah_m';
 
     protected $fillable = [
-        'pusat_id',
+        'wilayah_fung_pusat_id',
         'kode',
         'nama',
+        'singkatan',
         'deskripsi',
         'is_active',
     ];
@@ -25,18 +26,18 @@ class Daerah extends Model
         ];
     }
 
-    public function pusat(): BelongsTo
+    public function wilayahFungPusat(): BelongsTo
     {
-        return $this->belongsTo(Pusat::class);
+        return $this->belongsTo(Pusat::class, 'wilayah_fung_pusat_id');
     }
 
-    public function desa(): HasMany
+    public function wilayahFungDesa(): HasMany
     {
-        return $this->hasMany(Desa::class);
+        return $this->hasMany(Desa::class, 'wilayah_fung_daerah_id');
     }
 
     public function users(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'wilayah_fung_daerah_id');
     }
 }

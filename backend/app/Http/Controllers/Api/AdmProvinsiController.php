@@ -29,7 +29,7 @@ class AdmProvinsiController extends Controller
 
         $paginator = $this->admProvinsiService->list(
             $request->query('q'),
-            $request->filled('negara_id') ? $request->integer('negara_id') : null,
+            $request->filled('wilayah_adm_negara_id') ? $request->integer('wilayah_adm_negara_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,
@@ -54,21 +54,21 @@ class AdmProvinsiController extends Controller
         return ApiResponse::success($provinsi, 'Provinsi berhasil ditambahkan', 201);
     }
 
-    public function show(int $adm_provinsi): JsonResponse
+    public function show(int $wilayah_adm_provinsi): JsonResponse
     {
-        return ApiResponse::success($this->admProvinsiService->find($adm_provinsi));
+        return ApiResponse::success($this->admProvinsiService->find($wilayah_adm_provinsi));
     }
 
-    public function update(UpdateAdmProvinsiRequest $request, int $adm_provinsi): JsonResponse
+    public function update(UpdateAdmProvinsiRequest $request, int $wilayah_adm_provinsi): JsonResponse
     {
-        $updated = $this->admProvinsiService->update($adm_provinsi, $request->validated());
+        $updated = $this->admProvinsiService->update($wilayah_adm_provinsi, $request->validated());
 
         return ApiResponse::success($updated, 'Provinsi berhasil diperbarui');
     }
 
-    public function destroy(int $adm_provinsi): JsonResponse
+    public function destroy(int $wilayah_adm_provinsi): JsonResponse
     {
-        $this->admProvinsiService->delete($adm_provinsi);
+        $this->admProvinsiService->delete($wilayah_adm_provinsi);
 
         return ApiResponse::success(null, 'Provinsi berhasil dihapus');
     }

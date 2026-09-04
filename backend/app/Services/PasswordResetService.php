@@ -13,6 +13,7 @@ use App\Contracts\SmsSender;
 use App\Mail\ResetPasswordLinkMail;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
+use App\Support\DemoUserGuard;
 use App\Support\SystemKonfig;
 use App\Support\UserContactResolver;
 use App\Support\UserLoginResolver;
@@ -53,6 +54,10 @@ class PasswordResetService
             return $this->genericPendingResponse();
         }
 
+        if (DemoUserGuard::isDemoUser($user)) {
+            return $this->genericPendingResponse();
+        }
+
         if (! UserContactResolver::hasResetContact($user)) {
             throw ValidationException::withMessages([
                 'identifier' => ['Akun belum memiliki kontak reset yang terdaftar. Hubungi admin.'],
@@ -71,8 +76,6 @@ class PasswordResetService
             $this->throwPhoneMaintenance();
         }
 
-        SystemKonfig::applyRuntimeConfig();
-
         return $this->sendPhoneReset($user, UserContactResolver::phone($user));
     }
 
@@ -90,6 +93,8 @@ class PasswordResetService
                 'identifier' => ['Permintaan reset password tidak valid atau sudah kedaluwarsa.'],
             ]);
         }
+
+        DemoUserGuard::assertCanChangePassword($user);
 
         $channel = filled($token)
             ? PasswordResetRequest::CHANNEL_EMAIL

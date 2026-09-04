@@ -23,8 +23,8 @@ class KelompokController extends Controller
         $paginator = $this->kelompokService->list(
             $request->user(),
             $request->query('q'),
-            $request->filled('desa_id') ? $request->integer('desa_id') : null,
-            $request->filled('daerah_id') ? $request->integer('daerah_id') : null,
+            $request->filled('wilayah_fung_desa_id') ? $request->integer('wilayah_fung_desa_id') : null,
+            $request->filled('wilayah_fung_daerah_id') ? $request->integer('wilayah_fung_daerah_id') : null,
             $request->has('is_active') ? $request->boolean('is_active') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
@@ -50,21 +50,21 @@ class KelompokController extends Controller
         return ApiResponse::success($kelompok, 'Kelompok berhasil ditambahkan', 201);
     }
 
-    public function show(Request $request, int $kelompok): JsonResponse
+    public function show(Request $request, int $wilayah_fung_kelompok): JsonResponse
     {
-        return ApiResponse::success($this->kelompokService->find($kelompok, $request->user()));
+        return ApiResponse::success($this->kelompokService->find($wilayah_fung_kelompok, $request->user()));
     }
 
-    public function update(UpdateKelompokRequest $request, int $kelompok): JsonResponse
+    public function update(UpdateKelompokRequest $request, int $wilayah_fung_kelompok): JsonResponse
     {
-        $updated = $this->kelompokService->update($kelompok, $request->validated(), $request->user());
+        $updated = $this->kelompokService->update($wilayah_fung_kelompok, $request->validated(), $request->user());
 
         return ApiResponse::success($updated, 'Kelompok berhasil diperbarui');
     }
 
-    public function destroy(Request $request, int $kelompok): JsonResponse
+    public function destroy(Request $request, int $wilayah_fung_kelompok): JsonResponse
     {
-        $this->kelompokService->delete($kelompok, $request->user());
+        $this->kelompokService->delete($wilayah_fung_kelompok, $request->user());
 
         return ApiResponse::success(null, 'Kelompok berhasil dihapus');
     }

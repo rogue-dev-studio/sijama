@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Responses\ApiResponse;
+use App\Services\AppErrorLogService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -25,6 +26,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->command('events:update-statuses')->everyFiveMinutes();
+        $schedule->command('kegiatan:generate-rutin')->dailyAt('00:30');
+        $schedule->command('reporting:refresh-views')->everyFifteenMinutes();
+        $schedule->command('hari-libur:sync --next')->monthlyOn(1, '03:00');
+        $schedule->command('integrations:health-check --expiry-only')->dailyAt('07:15');
+        $schedule->command('integrations:health-check')->weeklyOn(1, '07:30');
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
@@ -37,6 +43,23 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->dontReport([
+            ValidationException::class,
+            AuthenticationException::class,
+            AccessDeniedHttpException::class,
+            NotFoundHttpException::class,
+            ModelNotFoundException::class,
+            ServiceUnavailableHttpException::class,
+        ]);
+
+        $exceptions->reportable(function (\Throwable $e) {
+            try {
+                app(AppErrorLogService::class)->recordFromException($e);
+            } catch (\Throwable) {
+                // Jangan biarkan pencatatan log merusak alur error asli.
+            }
+        });
+
         $exceptions->render(function (ValidationException $e, Request $request) {
             if ($request->is('api/*')) {
                 $detail = collect($e->errors())->flatten()->first();

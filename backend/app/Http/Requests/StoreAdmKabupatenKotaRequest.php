@@ -22,10 +22,12 @@ class StoreAdmKabupatenKotaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'provinsi_id' => ['required', 'integer', 'exists:adm_provinsi,id'],
-            'kode' => ['required', 'string', 'max:16', 'unique:adm_kabupaten_kota,kode'],
+            'wilayah_adm_provinsi_id' => ['required', 'integer', 'exists:wilayah_adm_provinsi_m,id'],
+            'kode' => ['required', 'string', 'max:16', 'unique:wilayah_adm_kabupaten_kota_m,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'jenis' => ['required', Rule::in(['kabupaten', 'kota'])],
+            'singkatan' => ['nullable', 'string', 'size:3', 'alpha_num'],
+            'singkatan_kawasan_metropolitan' => ['nullable', 'string', 'max:64'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

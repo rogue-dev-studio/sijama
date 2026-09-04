@@ -65,9 +65,9 @@ class AdmNegaraService
     {
         $negara = $this->findModel($id);
 
-        if ($negara->provinsi()->exists()) {
+        if ($negara->wilayahAdmProvinsi()->exists()) {
             throw ValidationException::withMessages([
-                'adm_negara' => ['Negara masih memiliki provinsi terkait.'],
+                'wilayah_adm_negara' => ['Negara masih memiliki provinsi terkait.'],
             ]);
         }
 

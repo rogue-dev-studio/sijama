@@ -37,6 +37,8 @@ import type {
   KategoriUmurList,
   Kegiatan,
   KegiatanInput,
+  KegiatanJadwalRutin,
+  KegiatanJadwalRutinInput,
   Keluarga,
   KeluargaInput,
   KeluargaJamaahOption,
@@ -44,10 +46,29 @@ import type {
   KelompokInput,
   KonfigSystem,
   KonfigSystemInput,
+  HariLiburSyncResponse,
+  IntegrationCheckResult,
+  IntegrationExpirySweepResult,
+  IntegrationLogInput,
+  IntegrationLogRow,
   KonfigDokumen,
   KonfigDokumenInput,
   KonfigDokumenAssetKind,
   LaporanKehadiranRow,
+  AuditLoginRow,
+  AppErrorLogRow,
+  AuditActivityRow,
+  AppReportRow,
+  AppReportInput,
+  AppReportAdminUpdateInput,
+  AppReportCategory,
+  AppFeedbackRow,
+  AppFeedbackIdeaInput,
+  AppFeedbackTestimonialInput,
+  AppFeedbackAdminUpdateInput,
+  AppPollRow,
+  AppPollVoteInput,
+  AppPollAdminInput,
   LoginInput,
   LoginResult,
   ForgotPasswordInput,
@@ -75,8 +96,6 @@ import type {
   Paginated,
   Pemateri,
   PemateriInput,
-  Pengajian,
-  PengajianInput,
   ProfileResult,
   ProfileWilayahOption,
   WilayahFromNikResult,
@@ -193,7 +212,7 @@ export const masterPusatService = {
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Pusat>>(
-      `/master/pusat${buildListQuery(
+      `/master/wilayah-fung/pusat${buildListQuery(
         withSort(
           [
             ['q', params?.q],
@@ -206,16 +225,16 @@ export const masterPusatService = {
     )
   },
   get(id: number) {
-    return apiRequest<Pusat>(`/master/pusat/${id}`)
+    return apiRequest<Pusat>(`/master/wilayah-fung/pusat/${id}`)
   },
   create(data: PusatInput) {
-    return apiRequest<Pusat>('/master/pusat', { method: 'POST', body: data })
+    return apiRequest<Pusat>('/master/wilayah-fung/pusat', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<PusatInput>) {
-    return apiRequest<Pusat>(`/master/pusat/${id}`, { method: 'PUT', body: data })
+    return apiRequest<Pusat>(`/master/wilayah-fung/pusat/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/pusat/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-fung/pusat/${id}`, { method: 'DELETE' })
   },
 }
 
@@ -386,6 +405,61 @@ export const aplikasiKonfigService = {
   publicSettings() {
     return apiRequest<AppPublicSettings>('/public/konfig')
   },
+  syncHariLibur(data?: { year?: number; next?: boolean }) {
+    return apiRequest<HariLiburSyncResponse>('/aplikasi/konfig/hari-libur/sync', {
+      method: 'POST',
+      body: data ?? {},
+    })
+  },
+  listIntegrationLogs(params?: {
+    q?: string
+    provider?: string
+    level?: string
+    event_type?: string
+    date_from?: string
+    date_to?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<IntegrationLogRow>>(
+      `/aplikasi/konfig/integration-logs${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['provider', params?.provider],
+            ['level', params?.level],
+            ['event_type', params?.event_type],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  showIntegrationLog(id: number) {
+    return apiRequest<IntegrationLogRow>(`/aplikasi/konfig/integration-logs/${id}`)
+  },
+  createIntegrationLog(data: IntegrationLogInput) {
+    return apiRequest<IntegrationLogRow>('/aplikasi/konfig/integration-logs', {
+      method: 'POST',
+      body: data,
+    })
+  },
+  checkIntegration(provider: string) {
+    return apiRequest<IntegrationCheckResult>(`/aplikasi/konfig/integrations/${provider}/check`, {
+      method: 'POST',
+    })
+  },
+  sweepIntegrationExpiry() {
+    return apiRequest<IntegrationExpirySweepResult>('/aplikasi/konfig/integrations/expiry-sweep', {
+      method: 'POST',
+    })
+  },
 }
 
 export const aplikasiKonfigDokumenService = {
@@ -511,18 +585,18 @@ export const masterKategoriKegiatanService = {
 export const masterDaerahService = {
   list(params?: {
     q?: string
-    pusat_id?: number
+    wilayah_fung_pusat_id?: number
     page?: number
     per_page?: number
     sort_by?: string
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Daerah>>(
-      `/master/daerah${buildListQuery(
+      `/master/wilayah-fung/daerah${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['pusat_id', params?.pusat_id],
+            ['wilayah_fung_pusat_id', params?.wilayah_fung_pusat_id],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -532,34 +606,34 @@ export const masterDaerahService = {
     )
   },
   get(id: number) {
-    return apiRequest<Daerah>(`/master/daerah/${id}`)
+    return apiRequest<Daerah>(`/master/wilayah-fung/daerah/${id}`)
   },
   create(data: DaerahInput) {
-    return apiRequest<Daerah>('/master/daerah', { method: 'POST', body: data })
+    return apiRequest<Daerah>('/master/wilayah-fung/daerah', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<DaerahInput>) {
-    return apiRequest<Daerah>(`/master/daerah/${id}`, { method: 'PUT', body: data })
+    return apiRequest<Daerah>(`/master/wilayah-fung/daerah/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/daerah/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-fung/daerah/${id}`, { method: 'DELETE' })
   },
 }
 
 export const masterDesaService = {
   list(params?: {
     q?: string
-    daerah_id?: number
+    wilayah_fung_daerah_id?: number
     page?: number
     per_page?: number
     sort_by?: string
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Desa>>(
-      `/master/desa${buildListQuery(
+      `/master/wilayah-fung/desa${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['daerah_id', params?.daerah_id],
+            ['wilayah_fung_daerah_id', params?.wilayah_fung_daerah_id],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -569,24 +643,24 @@ export const masterDesaService = {
     )
   },
   get(id: number) {
-    return apiRequest<Desa>(`/master/desa/${id}`)
+    return apiRequest<Desa>(`/master/wilayah-fung/desa/${id}`)
   },
   create(data: DesaInput) {
-    return apiRequest<Desa>('/master/desa', { method: 'POST', body: data })
+    return apiRequest<Desa>('/master/wilayah-fung/desa', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<DesaInput>) {
-    return apiRequest<Desa>(`/master/desa/${id}`, { method: 'PUT', body: data })
+    return apiRequest<Desa>(`/master/wilayah-fung/desa/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/desa/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-fung/desa/${id}`, { method: 'DELETE' })
   },
 }
 
 export const masterKelompokService = {
   list(params?: {
     q?: string
-    desa_id?: number
-    daerah_id?: number
+    wilayah_fung_desa_id?: number
+    wilayah_fung_daerah_id?: number
     is_active?: boolean
     page?: number
     per_page?: number
@@ -594,12 +668,12 @@ export const masterKelompokService = {
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<Kelompok>>(
-      `/master/kelompok${buildListQuery(
+      `/master/wilayah-fung/kelompok${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['desa_id', params?.desa_id],
-            ['daerah_id', params?.daerah_id],
+            ['wilayah_fung_desa_id', params?.wilayah_fung_desa_id],
+            ['wilayah_fung_daerah_id', params?.wilayah_fung_daerah_id],
             ['is_active', params?.is_active],
             ['page', params?.page],
             ['per_page', params?.per_page],
@@ -610,34 +684,34 @@ export const masterKelompokService = {
     )
   },
   get(id: number) {
-    return apiRequest<Kelompok>(`/master/kelompok/${id}`)
+    return apiRequest<Kelompok>(`/master/wilayah-fung/kelompok/${id}`)
   },
   create(data: KelompokInput) {
-    return apiRequest<Kelompok>('/master/kelompok', { method: 'POST', body: data })
+    return apiRequest<Kelompok>('/master/wilayah-fung/kelompok', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<KelompokInput>) {
-    return apiRequest<Kelompok>(`/master/kelompok/${id}`, { method: 'PUT', body: data })
+    return apiRequest<Kelompok>(`/master/wilayah-fung/kelompok/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/kelompok/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-fung/kelompok/${id}`, { method: 'DELETE' })
   },
 }
 
 export const masterSubKelompokService = {
   list(params?: {
     q?: string
-    kelompok_id?: number
+    wilayah_fung_kelompok_id?: number
     page?: number
     per_page?: number
     sort_by?: string
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<SubKelompok>>(
-      `/master/sub-kelompok${buildListQuery(
+      `/master/wilayah-fung/sub-kelompok${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['kelompok_id', params?.kelompok_id],
+            ['wilayah_fung_kelompok_id', params?.wilayah_fung_kelompok_id],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -647,16 +721,16 @@ export const masterSubKelompokService = {
     )
   },
   get(id: number) {
-    return apiRequest<SubKelompok>(`/master/sub-kelompok/${id}`)
+    return apiRequest<SubKelompok>(`/master/wilayah-fung/sub-kelompok/${id}`)
   },
   create(data: SubKelompokInput) {
-    return apiRequest<SubKelompok>('/master/sub-kelompok', { method: 'POST', body: data })
+    return apiRequest<SubKelompok>('/master/wilayah-fung/sub-kelompok', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<SubKelompokInput>) {
-    return apiRequest<SubKelompok>(`/master/sub-kelompok/${id}`, { method: 'PUT', body: data })
+    return apiRequest<SubKelompok>(`/master/wilayah-fung/sub-kelompok/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/sub-kelompok/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-fung/sub-kelompok/${id}`, { method: 'DELETE' })
   },
 }
 
@@ -669,7 +743,7 @@ export const admNegaraService = {
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmNegara>>(
-      `/master/adm/negara${buildListQuery(
+      `/master/wilayah-adm/negara${buildListQuery(
         withSort(
           [
             ['q', params?.q],
@@ -682,34 +756,34 @@ export const admNegaraService = {
     )
   },
   get(id: number) {
-    return apiRequest<AdmNegara>(`/master/adm/negara/${id}`)
+    return apiRequest<AdmNegara>(`/master/wilayah-adm/negara/${id}`)
   },
   create(data: AdmNegaraInput) {
-    return apiRequest<AdmNegara>('/master/adm/negara', { method: 'POST', body: data })
+    return apiRequest<AdmNegara>('/master/wilayah-adm/negara', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<AdmNegaraInput>) {
-    return apiRequest<AdmNegara>(`/master/adm/negara/${id}`, { method: 'PUT', body: data })
+    return apiRequest<AdmNegara>(`/master/wilayah-adm/negara/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/adm/negara/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-adm/negara/${id}`, { method: 'DELETE' })
   },
 }
 
 export const admProvinsiService = {
   list(params?: {
     q?: string
-    negara_id?: number
+    wilayah_adm_negara_id?: number
     page?: number
     per_page?: number
     sort_by?: string
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmProvinsi>>(
-      `/master/adm/provinsi${buildListQuery(
+      `/master/wilayah-adm/provinsi${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['negara_id', params?.negara_id],
+            ['wilayah_adm_negara_id', params?.wilayah_adm_negara_id],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -719,23 +793,23 @@ export const admProvinsiService = {
     )
   },
   get(id: number) {
-    return apiRequest<AdmProvinsi>(`/master/adm/provinsi/${id}`)
+    return apiRequest<AdmProvinsi>(`/master/wilayah-adm/provinsi/${id}`)
   },
   create(data: AdmProvinsiInput) {
-    return apiRequest<AdmProvinsi>('/master/adm/provinsi', { method: 'POST', body: data })
+    return apiRequest<AdmProvinsi>('/master/wilayah-adm/provinsi', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<AdmProvinsiInput>) {
-    return apiRequest<AdmProvinsi>(`/master/adm/provinsi/${id}`, { method: 'PUT', body: data })
+    return apiRequest<AdmProvinsi>(`/master/wilayah-adm/provinsi/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/adm/provinsi/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-adm/provinsi/${id}`, { method: 'DELETE' })
   },
 }
 
 export const admKabupatenKotaService = {
   list(params?: {
     q?: string
-    provinsi_id?: number
+    wilayah_adm_provinsi_id?: number
     jenis?: string
     page?: number
     per_page?: number
@@ -743,11 +817,11 @@ export const admKabupatenKotaService = {
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmKabupatenKota>>(
-      `/master/adm/kabupaten-kota${buildListQuery(
+      `/master/wilayah-adm/kabupaten-kota${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['provinsi_id', params?.provinsi_id],
+            ['wilayah_adm_provinsi_id', params?.wilayah_adm_provinsi_id],
             ['jenis', params?.jenis],
             ['page', params?.page],
             ['per_page', params?.per_page],
@@ -758,37 +832,37 @@ export const admKabupatenKotaService = {
     )
   },
   get(id: number) {
-    return apiRequest<AdmKabupatenKota>(`/master/adm/kabupaten-kota/${id}`)
+    return apiRequest<AdmKabupatenKota>(`/master/wilayah-adm/kabupaten-kota/${id}`)
   },
   create(data: AdmKabupatenKotaInput) {
-    return apiRequest<AdmKabupatenKota>('/master/adm/kabupaten-kota', { method: 'POST', body: data })
+    return apiRequest<AdmKabupatenKota>('/master/wilayah-adm/kabupaten-kota', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<AdmKabupatenKotaInput>) {
-    return apiRequest<AdmKabupatenKota>(`/master/adm/kabupaten-kota/${id}`, {
+    return apiRequest<AdmKabupatenKota>(`/master/wilayah-adm/kabupaten-kota/${id}`, {
       method: 'PUT',
       body: data,
     })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/adm/kabupaten-kota/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-adm/kabupaten-kota/${id}`, { method: 'DELETE' })
   },
 }
 
 export const admKecamatanService = {
   list(params?: {
     q?: string
-    kabupaten_kota_id?: number
+    wilayah_adm_kabupaten_kota_id?: number
     page?: number
     per_page?: number
     sort_by?: string
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmKecamatan>>(
-      `/master/adm/kecamatan${buildListQuery(
+      `/master/wilayah-adm/kecamatan${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['kabupaten_kota_id', params?.kabupaten_kota_id],
+            ['wilayah_adm_kabupaten_kota_id', params?.wilayah_adm_kabupaten_kota_id],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -798,23 +872,23 @@ export const admKecamatanService = {
     )
   },
   get(id: number) {
-    return apiRequest<AdmKecamatan>(`/master/adm/kecamatan/${id}`)
+    return apiRequest<AdmKecamatan>(`/master/wilayah-adm/kecamatan/${id}`)
   },
   create(data: AdmKecamatanInput) {
-    return apiRequest<AdmKecamatan>('/master/adm/kecamatan', { method: 'POST', body: data })
+    return apiRequest<AdmKecamatan>('/master/wilayah-adm/kecamatan', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<AdmKecamatanInput>) {
-    return apiRequest<AdmKecamatan>(`/master/adm/kecamatan/${id}`, { method: 'PUT', body: data })
+    return apiRequest<AdmKecamatan>(`/master/wilayah-adm/kecamatan/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/adm/kecamatan/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-adm/kecamatan/${id}`, { method: 'DELETE' })
   },
 }
 
 export const admDesaKelurahanService = {
   list(params?: {
     q?: string
-    kecamatan_id?: number
+    wilayah_adm_kecamatan_id?: number
     jenis?: string
     page?: number
     per_page?: number
@@ -822,11 +896,11 @@ export const admDesaKelurahanService = {
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmDesaKelurahan>>(
-      `/master/adm/desa-kelurahan${buildListQuery(
+      `/master/wilayah-adm/desa${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['kecamatan_id', params?.kecamatan_id],
+            ['wilayah_adm_kecamatan_id', params?.wilayah_adm_kecamatan_id],
             ['jenis', params?.jenis],
             ['page', params?.page],
             ['per_page', params?.per_page],
@@ -837,45 +911,45 @@ export const admDesaKelurahanService = {
     )
   },
   get(id: number) {
-    return apiRequest<AdmDesaKelurahan>(`/master/adm/desa-kelurahan/${id}`)
+    return apiRequest<AdmDesaKelurahan>(`/master/wilayah-adm/desa/${id}`)
   },
   create(data: AdmDesaKelurahanInput) {
-    return apiRequest<AdmDesaKelurahan>('/master/adm/desa-kelurahan', { method: 'POST', body: data })
+    return apiRequest<AdmDesaKelurahan>('/master/wilayah-adm/desa', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<AdmDesaKelurahanInput>) {
-    return apiRequest<AdmDesaKelurahan>(`/master/adm/desa-kelurahan/${id}`, {
+    return apiRequest<AdmDesaKelurahan>(`/master/wilayah-adm/desa/${id}`, {
       method: 'PUT',
       body: data,
     })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/adm/desa-kelurahan/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-adm/desa/${id}`, { method: 'DELETE' })
   },
 }
 
 export const admKodePosService = {
   list(params?: {
     q?: string
-    desa_kelurahan_id?: number
-    kecamatan_id?: number
-    kabupaten_kota_id?: number
-    provinsi_id?: number
-    negara_id?: number
+    wilayah_adm_desa_id?: number
+    wilayah_adm_kecamatan_id?: number
+    wilayah_adm_kabupaten_kota_id?: number
+    wilayah_adm_provinsi_id?: number
+    wilayah_adm_negara_id?: number
     page?: number
     per_page?: number
     sort_by?: string
     sort_dir?: 'asc' | 'desc'
   }) {
     return apiRequest<Paginated<AdmKodePos>>(
-      `/master/adm/kode-pos${buildListQuery(
+      `/master/wilayah-adm/kode-pos${buildListQuery(
         withSort(
           [
             ['q', params?.q],
-            ['desa_kelurahan_id', params?.desa_kelurahan_id],
-            ['kecamatan_id', params?.kecamatan_id],
-            ['kabupaten_kota_id', params?.kabupaten_kota_id],
-            ['provinsi_id', params?.provinsi_id],
-            ['negara_id', params?.negara_id],
+            ['wilayah_adm_desa_id', params?.wilayah_adm_desa_id],
+            ['wilayah_adm_kecamatan_id', params?.wilayah_adm_kecamatan_id],
+            ['wilayah_adm_kabupaten_kota_id', params?.wilayah_adm_kabupaten_kota_id],
+            ['wilayah_adm_provinsi_id', params?.wilayah_adm_provinsi_id],
+            ['wilayah_adm_negara_id', params?.wilayah_adm_negara_id],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -885,16 +959,16 @@ export const admKodePosService = {
     )
   },
   get(id: number) {
-    return apiRequest<AdmKodePos>(`/master/adm/kode-pos/${id}`)
+    return apiRequest<AdmKodePos>(`/master/wilayah-adm/kode-pos/${id}`)
   },
   create(data: AdmKodePosInput) {
-    return apiRequest<AdmKodePos>('/master/adm/kode-pos', { method: 'POST', body: data })
+    return apiRequest<AdmKodePos>('/master/wilayah-adm/kode-pos', { method: 'POST', body: data })
   },
   update(id: number, data: Partial<AdmKodePosInput>) {
-    return apiRequest<AdmKodePos>(`/master/adm/kode-pos/${id}`, { method: 'PUT', body: data })
+    return apiRequest<AdmKodePos>(`/master/wilayah-adm/kode-pos/${id}`, { method: 'PUT', body: data })
   },
   remove(id: number) {
-    return apiRequest<null>(`/master/adm/kode-pos/${id}`, { method: 'DELETE' })
+    return apiRequest<null>(`/master/wilayah-adm/kode-pos/${id}`, { method: 'DELETE' })
   },
 }
 
@@ -1137,7 +1211,7 @@ export const jamaahService = {
     q?: string
     enrolled?: boolean
     status?: string
-    kelompok_id?: number
+    wilayah_fung_kelompok_id?: number
     face?: string
     kategori_umur?: string
     page?: number
@@ -1152,7 +1226,7 @@ export const jamaahService = {
             ['q', params?.q],
             ['enrolled', params?.enrolled],
             ['status', params?.status],
-            ['kelompok_id', params?.kelompok_id],
+            ['wilayah_fung_kelompok_id', params?.wilayah_fung_kelompok_id],
             ['face', params?.face],
             ['kategori_umur', params?.kategori_umur],
             ['page', params?.page],
@@ -1196,7 +1270,7 @@ export const keluargaService = {
   list(params?: {
     q?: string
     status?: string
-    kelompok_id?: number
+    wilayah_fung_kelompok_id?: number
     page?: number
     per_page?: number
     sort_by?: string
@@ -1208,7 +1282,7 @@ export const keluargaService = {
           [
             ['q', params?.q],
             ['status', params?.status],
-            ['kelompok_id', params?.kelompok_id],
+            ['wilayah_fung_kelompok_id', params?.wilayah_fung_kelompok_id],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -1220,10 +1294,10 @@ export const keluargaService = {
   get(id: number) {
     return apiRequest<Keluarga>(`/keluarga/${id}`)
   },
-  jamaahOptions(params?: { kelompok_id?: number; except_keluarga_id?: number }) {
+  jamaahOptions(params?: { wilayah_fung_kelompok_id?: number; except_keluarga_id?: number }) {
     return apiRequest<KeluargaJamaahOption[]>(
       `/keluarga/jamaah-options${buildListQuery([
-        ['kelompok_id', params?.kelompok_id],
+        ['wilayah_fung_kelompok_id', params?.wilayah_fung_kelompok_id],
         ['except_keluarga_id', params?.except_keluarga_id],
       ])}`,
     )
@@ -1239,51 +1313,11 @@ export const keluargaService = {
   },
 }
 
-export const pengajianService = {
-  list(params?: {
-    q?: string
-    status?: string
-    date_from?: string
-    date_to?: string
-    page?: number
-    per_page?: number
-    sort_by?: string
-    sort_dir?: 'asc' | 'desc'
-  }) {
-    return apiRequest<Paginated<Pengajian>>(
-      `/pengajian${buildListQuery(
-        withSort(
-          [
-            ['q', params?.q],
-            ['status', params?.status],
-            ['date_from', params?.date_from],
-            ['date_to', params?.date_to],
-            ['page', params?.page],
-            ['per_page', params?.per_page],
-          ],
-          params,
-        ),
-      )}`,
-    )
-  },
-  get(id: number) {
-    return apiRequest<Pengajian>(`/pengajian/${id}`)
-  },
-  create(data: PengajianInput) {
-    return apiRequest<Pengajian>('/pengajian', { method: 'POST', body: data })
-  },
-  update(id: number, data: Partial<PengajianInput>) {
-    return apiRequest<Pengajian>(`/pengajian/${id}`, { method: 'PUT', body: data })
-  },
-  remove(id: number) {
-    return apiRequest<null>(`/pengajian/${id}`, { method: 'DELETE' })
-  },
-}
-
 export const kegiatanService = {
   list(params?: {
     q?: string
     status?: string
+    kategori_kegiatan_id?: number
     date_from?: string
     date_to?: string
     page?: number
@@ -1297,6 +1331,7 @@ export const kegiatanService = {
           [
             ['q', params?.q],
             ['status', params?.status],
+            ['kategori_kegiatan_id', params?.kategori_kegiatan_id],
             ['date_from', params?.date_from],
             ['date_to', params?.date_to],
             ['page', params?.page],
@@ -1321,9 +1356,56 @@ export const kegiatanService = {
   },
 }
 
+export const kegiatanJadwalRutinService = {
+  list(params?: {
+    q?: string
+    is_active?: boolean
+    scope_level?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<KegiatanJadwalRutin>>(
+      `/kegiatan-jadwal-rutin${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['is_active', params?.is_active],
+            ['scope_level', params?.scope_level],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  get(id: number) {
+    return apiRequest<KegiatanJadwalRutin>(`/kegiatan-jadwal-rutin/${id}`)
+  },
+  create(data: KegiatanJadwalRutinInput) {
+    return apiRequest<KegiatanJadwalRutin>('/kegiatan-jadwal-rutin', { method: 'POST', body: data })
+  },
+  update(id: number, data: Partial<KegiatanJadwalRutinInput>) {
+    return apiRequest<KegiatanJadwalRutin>(`/kegiatan-jadwal-rutin/${id}`, { method: 'PUT', body: data })
+  },
+  deactivate(id: number) {
+    return apiRequest<KegiatanJadwalRutin>(`/kegiatan-jadwal-rutin/${id}/deactivate`, { method: 'POST' })
+  },
+  generate(id: number) {
+    return apiRequest<{ created: number; jadwal: KegiatanJadwalRutin }>(
+      `/kegiatan-jadwal-rutin/${id}/generate`,
+      { method: 'POST' },
+    )
+  },
+}
+
 export const attendanceService = {
   listSessions(params?: {
     status?: string
+    date_from?: string
+    date_to?: string
     page?: number
     per_page?: number
     sort_by?: string
@@ -1334,6 +1416,8 @@ export const attendanceService = {
         withSort(
           [
             ['status', params?.status],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -1408,7 +1492,7 @@ export const laporanService = {
     q?: string
     status?: string
     face?: string
-    kelompok_id?: number
+    wilayah_fung_kelompok_id?: number
     kategori_umur?: string
     page?: number
     per_page?: number
@@ -1422,34 +1506,8 @@ export const laporanService = {
             ['q', params?.q],
             ['status', params?.status],
             ['face', params?.face],
-            ['kelompok_id', params?.kelompok_id],
+            ['wilayah_fung_kelompok_id', params?.wilayah_fung_kelompok_id],
             ['kategori_umur', params?.kategori_umur],
-            ['page', params?.page],
-            ['per_page', params?.per_page],
-          ],
-          params,
-        ),
-      )}`,
-    )
-  },
-  pengajian(params?: {
-    q?: string
-    status?: string
-    date_from?: string
-    date_to?: string
-    page?: number
-    per_page?: number
-    sort_by?: string
-    sort_dir?: 'asc' | 'desc'
-  }) {
-    return apiRequest<Paginated<Pengajian>>(
-      `/laporan/pengajian${buildListQuery(
-        withSort(
-          [
-            ['q', params?.q],
-            ['status', params?.status],
-            ['date_from', params?.date_from],
-            ['date_to', params?.date_to],
             ['page', params?.page],
             ['per_page', params?.per_page],
           ],
@@ -1461,6 +1519,7 @@ export const laporanService = {
   kegiatan(params?: {
     q?: string
     status?: string
+    kategori_kegiatan_id?: number
     date_from?: string
     date_to?: string
     page?: number
@@ -1474,6 +1533,7 @@ export const laporanService = {
           [
             ['q', params?.q],
             ['status', params?.status],
+            ['kategori_kegiatan_id', params?.kategori_kegiatan_id],
             ['date_from', params?.date_from],
             ['date_to', params?.date_to],
             ['page', params?.page],
@@ -1483,5 +1543,364 @@ export const laporanService = {
         ),
       )}`,
     )
+  },
+}
+
+export const auditLoginService = {
+  list(params?: {
+    q?: string
+    event?: string
+    success?: string
+    date_from?: string
+    date_to?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AuditLoginRow>>(
+      `/aplikasi/audit/login${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['event', params?.event],
+            ['success', params?.success],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+}
+
+export const appErrorLogService = {
+  list(params?: {
+    q?: string
+    level?: string
+    status?: string
+    date_from?: string
+    date_to?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AppErrorLogRow>>(
+      `/aplikasi/log/error${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['level', params?.level],
+            ['status', params?.status],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  show(id: number) {
+    return apiRequest<AppErrorLogRow>(`/aplikasi/log/error/${id}`)
+  },
+  updateStatus(id: number, data: { status: string; status_note?: string | null }) {
+    return apiRequest<AppErrorLogRow>(`/aplikasi/log/error/${id}`, {
+      method: 'PATCH',
+      body: data,
+    })
+  },
+  clear(params?: { level?: string; status?: string; date_from?: string; date_to?: string }) {
+    return apiRequest<{ deleted: number }>(
+      `/aplikasi/log/error${buildListQuery([
+        ['level', params?.level],
+        ['status', params?.status],
+        ['date_from', params?.date_from],
+        ['date_to', params?.date_to],
+      ])}`,
+      { method: 'DELETE' },
+    )
+  },
+}
+
+export const auditActivityService = {
+  list(
+    module: 'access' | 'konfig' | 'jamaah',
+    params?: {
+      q?: string
+      action?: string
+      date_from?: string
+      date_to?: string
+      page?: number
+      per_page?: number
+      sort_by?: string
+      sort_dir?: 'asc' | 'desc'
+    },
+  ) {
+    const path =
+      module === 'access'
+        ? '/aplikasi/audit/akses'
+        : module === 'konfig'
+          ? '/aplikasi/audit/konfig'
+          : '/aplikasi/audit/jamaah'
+
+    return apiRequest<Paginated<AuditActivityRow>>(
+      `${path}${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['action', params?.action],
+            ['date_from', params?.date_from],
+            ['date_to', params?.date_to],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  show(module: 'access' | 'konfig' | 'jamaah', id: number) {
+    const path =
+      module === 'access'
+        ? '/aplikasi/audit/akses'
+        : module === 'konfig'
+          ? '/aplikasi/audit/konfig'
+          : '/aplikasi/audit/jamaah'
+
+    return apiRequest<AuditActivityRow>(`${path}/${id}`)
+  },
+}
+
+export const appReportService = {
+  create(category: AppReportCategory, data: FormData | AppReportInput) {
+    if (data instanceof FormData) {
+      return apiUploadRequest<AppReportRow>(`/aplikasi/laporkan/${category}`, data)
+    }
+    return apiUploadRequest<AppReportRow>(`/aplikasi/laporkan/${category}`, (() => {
+      const formData = new FormData()
+      formData.append('reporter_name', data.reporter_name)
+      formData.append('subject', data.subject)
+      formData.append('description', data.description)
+      if (data.contact) formData.append('contact', data.contact)
+      return formData
+    })())
+  },
+  mine(params?: {
+    q?: string
+    category?: string
+    status?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AppReportRow>>(
+      `/aplikasi/laporkan/saya${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['category', params?.category],
+            ['status', params?.status],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  adminList(params?: {
+    q?: string
+    category?: string
+    status?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AppReportRow>>(
+      `/aplikasi/laporkan/informasi${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['category', params?.category],
+            ['status', params?.status],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  adminUpdate(id: number, data: AppReportAdminUpdateInput) {
+    return apiRequest<AppReportRow>(`/aplikasi/laporkan/informasi/${id}`, {
+      method: 'PATCH',
+      body: data,
+    })
+  },
+}
+
+export const appFeedbackService = {
+  createIdea(data: FormData | AppFeedbackIdeaInput) {
+    if (data instanceof FormData) {
+      return apiUploadRequest<AppFeedbackRow>('/aplikasi/kotak-masukan/ide', data)
+    }
+    const formData = new FormData()
+    formData.append('reporter_name', data.reporter_name)
+    formData.append('title', data.title)
+    formData.append('body', data.body)
+    if (data.contact) formData.append('contact', data.contact)
+    return apiUploadRequest<AppFeedbackRow>('/aplikasi/kotak-masukan/ide', formData)
+  },
+  createTestimonial(data: FormData | AppFeedbackTestimonialInput) {
+    if (data instanceof FormData) {
+      return apiUploadRequest<AppFeedbackRow>('/aplikasi/kotak-masukan/testimoni', data)
+    }
+    const formData = new FormData()
+    formData.append('reporter_name', data.reporter_name)
+    formData.append('title', data.title)
+    formData.append('body', data.body)
+    formData.append('rating', String(data.rating))
+    if (data.role_label) formData.append('role_label', data.role_label)
+    if (data.contact) formData.append('contact', data.contact)
+    return apiUploadRequest<AppFeedbackRow>('/aplikasi/kotak-masukan/testimoni', formData)
+  },
+  gallery() {
+    return apiRequest<AppFeedbackRow[]>('/aplikasi/kotak-masukan/galeri-testimoni')
+  },
+  mineIdeas(params?: {
+    q?: string
+    status?: string
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AppFeedbackRow>>(
+      `/aplikasi/kotak-masukan/ide/saya${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['status', params?.status],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  adminList(params?: {
+    q?: string
+    kind?: string
+    status?: string
+    is_published?: string | boolean
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AppFeedbackRow>>(
+      `/aplikasi/kotak-masukan/informasi${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['kind', params?.kind],
+            ['status', params?.status],
+            ['is_published', params?.is_published],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  adminUpdate(id: number, data: AppFeedbackAdminUpdateInput) {
+    return apiRequest<AppFeedbackRow>(`/aplikasi/kotak-masukan/informasi/${id}`, {
+      method: 'PATCH',
+      body: data,
+    })
+  },
+  testimonialAdminList(params?: {
+    q?: string
+    is_published?: string | boolean
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AppFeedbackRow>>(
+      `/aplikasi/kotak-masukan/daftar-testimoni${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['is_published', params?.is_published],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  testimonialAdminUpdate(id: number, data: { is_published: boolean }) {
+    return apiRequest<AppFeedbackRow>(`/aplikasi/kotak-masukan/daftar-testimoni/${id}`, {
+      method: 'PATCH',
+      body: data,
+    })
+  },
+}
+
+export const appPollService = {
+  active() {
+    return apiRequest<AppPollRow[]>('/aplikasi/kotak-masukan/polling')
+  },
+  vote(id: number, data: AppPollVoteInput) {
+    return apiRequest<AppPollRow>(`/aplikasi/kotak-masukan/polling/${id}/vote`, {
+      method: 'POST',
+      body: data,
+    })
+  },
+  adminList(params?: {
+    q?: string
+    is_active?: string | boolean
+    page?: number
+    per_page?: number
+    sort_by?: string
+    sort_dir?: 'asc' | 'desc'
+  }) {
+    return apiRequest<Paginated<AppPollRow>>(
+      `/aplikasi/kotak-masukan/polling/admin${buildListQuery(
+        withSort(
+          [
+            ['q', params?.q],
+            ['is_active', params?.is_active],
+            ['page', params?.page],
+            ['per_page', params?.per_page],
+          ],
+          params,
+        ),
+      )}`,
+    )
+  },
+  adminCreate(data: AppPollAdminInput) {
+    return apiRequest<AppPollRow>('/aplikasi/kotak-masukan/polling/admin', {
+      method: 'POST',
+      body: data,
+    })
+  },
+  adminUpdate(id: number, data: Partial<AppPollAdminInput>) {
+    return apiRequest<AppPollRow>(`/aplikasi/kotak-masukan/polling/admin/${id}`, {
+      method: 'PATCH',
+      body: data,
+    })
   },
 }

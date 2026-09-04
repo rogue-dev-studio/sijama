@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | Date | 2026-08-01 |
-| Related | SRS-wilayah-fungsional-administrasi-v1.0.0, ADR-004 |
+| Related | SRS-wilayah-fung-administrasi-v1.0.0, ADR-004 |
 
 ## Checks
 

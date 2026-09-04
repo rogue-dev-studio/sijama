@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AttendanceSession extends Model
 {
+    protected $table = 'absensi_sesi_t';
+
     protected $fillable = [
         'type',
         'ref_id',

@@ -54,21 +54,21 @@ class PusatController extends Controller
         return ApiResponse::success($pusat, 'Pusat berhasil ditambahkan', 201);
     }
 
-    public function show(Request $request, int $pusat): JsonResponse
+    public function show(Request $request, int $wilayah_fung_pusat): JsonResponse
     {
-        return ApiResponse::success($this->pusatService->find($pusat, $request->user()));
+        return ApiResponse::success($this->pusatService->find($wilayah_fung_pusat, $request->user()));
     }
 
-    public function update(UpdatePusatRequest $request, int $pusat): JsonResponse
+    public function update(UpdatePusatRequest $request, int $wilayah_fung_pusat): JsonResponse
     {
-        $updated = $this->pusatService->update($pusat, $request->validated(), $request->user());
+        $updated = $this->pusatService->update($wilayah_fung_pusat, $request->validated(), $request->user());
 
         return ApiResponse::success($updated, 'Pusat berhasil diperbarui');
     }
 
-    public function destroy(Request $request, int $pusat): JsonResponse
+    public function destroy(Request $request, int $wilayah_fung_pusat): JsonResponse
     {
-        $this->pusatService->delete($pusat, $request->user());
+        $this->pusatService->delete($wilayah_fung_pusat, $request->user());
 
         return ApiResponse::success(null, 'Pusat berhasil dihapus');
     }

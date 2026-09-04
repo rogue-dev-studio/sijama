@@ -69,6 +69,45 @@ export function clearToken(): void {
   removeFromStorage(localStorage)
 }
 
+function storageRelativePath(path: string): string | null {
+  const trimmed = path.trim().replace(/^\/+/, '')
+  if (trimmed.startsWith('storage/')) {
+    return trimmed.slice('storage/'.length)
+  }
+  if (trimmed.startsWith('users/')) {
+    return trimmed
+  }
+
+  return null
+}
+
+export async function fetchAuthenticatedMediaBlob(storedPath: string): Promise<Blob | null> {
+  const relative = storageRelativePath(storedPath)
+  if (!relative?.startsWith('users/')) {
+    return null
+  }
+
+  const headers = new Headers()
+  headers.set('Accept', '*/*')
+  applyDeviceHeaders(headers)
+
+  const token = getToken()
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/media/${relative}`, { headers })
+    if (!response.ok) {
+      return null
+    }
+
+    return await response.blob()
+  } catch {
+    return null
+  }
+}
+
 function applyDeviceHeaders(headers: Headers): void {
   const deviceId = getOrCreateDeviceId()
   if (deviceId && deviceId !== 'anonymous') {

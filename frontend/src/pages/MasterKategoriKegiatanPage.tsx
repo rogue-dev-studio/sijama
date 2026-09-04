@@ -32,6 +32,12 @@ const columns: GatedColumn<KategoriKegiatan>[] = [
     exportValue: (item) => item.calendar_color || '#2563eb',
   },
   {
+    key: 'deskripsi',
+    label: 'Deskripsi',
+    cell: (item) => item.deskripsi || '—',
+    exportValue: (item) => item.deskripsi || '',
+  },
+  {
     key: 'is_active',
     label: 'Status',
     cell: (item) => (

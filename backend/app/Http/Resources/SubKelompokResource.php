@@ -11,15 +11,16 @@ class SubKelompokResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'kelompok_id' => $this->kelompok_id,
-            'kelompok' => $this->whenLoaded('kelompok', fn () => [
-                'id' => $this->kelompok->id,
-                'kode' => $this->kelompok->kode,
-                'nama' => $this->kelompok->nama,
-                'desa_id' => $this->kelompok->desa_id,
+            'wilayah_fung_kelompok_id' => $this->wilayah_fung_kelompok_id,
+            'wilayah_fung_kelompok' => $this->whenLoaded('wilayahFungKelompok', fn () => [
+                'id' => $this->wilayahFungKelompok->id,
+                'kode' => $this->wilayahFungKelompok->kode,
+                'nama' => $this->wilayahFungKelompok->nama,
+                'wilayah_fung_desa_id' => $this->wilayahFungKelompok->wilayah_fung_desa_id,
             ]),
             'kode' => $this->kode,
             'nama' => $this->nama,
+            'singkatan' => $this->singkatan,
             'deskripsi' => $this->deskripsi,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

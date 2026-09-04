@@ -29,7 +29,7 @@ class AdmProvinsiService
         ?string $sortBy = null,
         ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = AdmProvinsi::query()->with('negara');
+        $builder = AdmProvinsi::query()->with('wilayahAdmNegara');
         SortHelper::apply(
             $builder,
             $sortBy,
@@ -39,7 +39,7 @@ class AdmProvinsiService
         );
 
         if ($negaraId !== null) {
-            $builder->where('negara_id', $negaraId);
+            $builder->where('wilayah_adm_negara_id', $negaraId);
         }
 
         if ($query) {
@@ -51,38 +51,38 @@ class AdmProvinsiService
 
     public function create(array $data): AdmProvinsiResource
     {
-        AdmNegara::findOrFail($data['negara_id']);
+        AdmNegara::findOrFail($data['wilayah_adm_negara_id']);
 
         $provinsi = AdmProvinsi::create($data);
 
-        return new AdmProvinsiResource($provinsi->load('negara'));
+        return new AdmProvinsiResource($provinsi->load('wilayahAdmNegara'));
     }
 
     public function find(int $id): AdmProvinsiResource
     {
-        return new AdmProvinsiResource($this->findModel($id)->load('negara'));
+        return new AdmProvinsiResource($this->findModel($id)->load('wilayahAdmNegara'));
     }
 
     public function update(int $id, array $data): AdmProvinsiResource
     {
         $provinsi = $this->findModel($id);
 
-        if (isset($data['negara_id'])) {
-            AdmNegara::findOrFail($data['negara_id']);
+        if (isset($data['wilayah_adm_negara_id'])) {
+            AdmNegara::findOrFail($data['wilayah_adm_negara_id']);
         }
 
         $provinsi->update($data);
 
-        return new AdmProvinsiResource($provinsi->fresh()->load('negara'));
+        return new AdmProvinsiResource($provinsi->fresh()->load('wilayahAdmNegara'));
     }
 
     public function delete(int $id): void
     {
         $provinsi = $this->findModel($id);
 
-        if ($provinsi->kabupatenKota()->exists()) {
+        if ($provinsi->wilayahAdmKabupatenKota()->exists()) {
             throw ValidationException::withMessages([
-                'adm_provinsi' => ['Provinsi masih memiliki kabupaten/kota terkait.'],
+                'wilayah_adm_provinsi' => ['Provinsi masih memiliki kabupaten/kota terkait.'],
             ]);
         }
 

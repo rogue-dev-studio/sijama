@@ -15,12 +15,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AdmProvinsi extends Model
 {
-    protected $table = 'adm_provinsi';
+    protected $table = 'wilayah_adm_provinsi_m';
 
     protected $fillable = [
-        'negara_id',
+        'wilayah_adm_negara_id',
         'kode',
         'nama',
+        'singkatan',
         'is_active',
     ];
 
@@ -31,13 +32,13 @@ class AdmProvinsi extends Model
         ];
     }
 
-    public function negara(): BelongsTo
+    public function wilayahAdmNegara(): BelongsTo
     {
-        return $this->belongsTo(AdmNegara::class, 'negara_id');
+        return $this->belongsTo(AdmNegara::class, 'wilayah_adm_negara_id');
     }
 
-    public function kabupatenKota(): HasMany
+    public function wilayahAdmKabupatenKota(): HasMany
     {
-        return $this->hasMany(AdmKabupatenKota::class, 'provinsi_id');
+        return $this->hasMany(AdmKabupatenKota::class, 'wilayah_adm_provinsi_id');
     }
 }

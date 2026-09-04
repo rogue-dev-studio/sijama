@@ -2,7 +2,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-08-03 13:30:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-03 13:30:00
+ * @Last Modified time: 2026-08-31 20:10:00
  */
 
 import { useEffect, useState, type FormEvent } from 'react'
@@ -12,20 +12,36 @@ import {
   kegiatanService,
   masterKategoriKegiatanService,
   masterLokasiService,
+  masterMateriService,
+  masterPemateriService,
 } from '../api/services'
-import type { KategoriKegiatan, Kegiatan, KegiatanInput, Lokasi } from '../api/types'
+import type {
+  KategoriKegiatan,
+  Kegiatan,
+  KegiatanInput,
+  Lokasi,
+  Materi,
+  Pemateri,
+} from '../api/types'
 
+import { SearchableMultiSelect } from '../components/SearchableMultiSelect'
 import { SearchableSelect } from '../components/SearchableSelect'
+import { TimeInput24 } from '../components/TimeInput24'
+import { DateField } from '../components/DateField'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 
 const emptyForm: KegiatanInput = {
   judul: '',
-  jenis: '',
+  pemateri_id: null,
+  materi_ids: [],
   kategori_kegiatan_id: null,
   tanggal: '',
-  lokasi: '',
+  jam_mulai: '',
+  jam_selesai: '',
   lokasi_id: null,
   deskripsi: '',
+  catatan: '',
   status: 'planned',
 }
 
@@ -40,20 +56,26 @@ export function KegiatanFormPage() {
   const [error, setError] = useState<string | null>(null)
   const [lokasiOptions, setLokasiOptions] = useState<Lokasi[]>([])
   const [kategoriOptions, setKategoriOptions] = useState<KategoriKegiatan[]>([])
+  const [pemateriOptions, setPemateriOptions] = useState<Pemateri[]>([])
+  const [materiOptions, setMateriOptions] = useState<Materi[]>([])
 
   useEffect(() => {
     let active = true
 
     async function load() {
       try {
-        const [lokasiResult, kategoriResult] = await Promise.all([
+        const [lokasiResult, kategoriResult, pemateriResult, materiResult] = await Promise.all([
           masterLokasiService.list({ active_only: true, per_page: 100 }),
           masterKategoriKegiatanService.list({ active_only: true, per_page: 100 }),
+          masterPemateriService.list({ active_only: true, per_page: 100 }),
+          masterMateriService.list({ active_only: true, per_page: 100 }),
         ])
         if (!active) return
 
         setLokasiOptions(lokasiResult.items)
         setKategoriOptions(kategoriResult.items)
+        setPemateriOptions(pemateriResult.items)
+        setMateriOptions(materiResult.items)
 
         if (id) {
           const item = await kegiatanService.get(Number(id))
@@ -61,12 +83,15 @@ export function KegiatanFormPage() {
 
           setForm({
             judul: item.judul,
-            jenis: item.jenis || item.kategori_kegiatan?.nama || '',
+            pemateri_id: item.pemateri_id ?? null,
+            materi_ids: item.materi_ids ?? item.materi_list?.map((m) => m.id) ?? [],
             kategori_kegiatan_id: item.kategori_kegiatan_id ?? null,
             tanggal: item.tanggal,
-            lokasi: item.lokasi || item.lokasi_ref?.nama || '',
+            jam_mulai: item.jam_mulai || '',
+            jam_selesai: item.jam_selesai || '',
             lokasi_id: item.lokasi_id ?? null,
             deskripsi: item.deskripsi || '',
+            catatan: item.catatan || '',
             status: item.status,
           })
         }
@@ -85,26 +110,6 @@ export function KegiatanFormPage() {
     }
   }, [id])
 
-  function handleLokasiChange(value: string) {
-    const selectedId = value ? Number(value) : null
-    const selected = selectedId ? lokasiOptions.find((item) => item.id === selectedId) : undefined
-    setForm((prev) => ({
-      ...prev,
-      lokasi_id: selectedId,
-      lokasi: selected ? selected.nama : prev.lokasi_id ? '' : prev.lokasi,
-    }))
-  }
-
-  function handleKategoriChange(value: string) {
-    const selectedId = value ? Number(value) : null
-    const selected = selectedId ? kategoriOptions.find((item) => item.id === selectedId) : undefined
-    setForm((prev) => ({
-      ...prev,
-      kategori_kegiatan_id: selectedId,
-      jenis: selected ? selected.nama : prev.kategori_kegiatan_id ? '' : prev.jenis,
-    }))
-  }
-
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setSubmitting(true)
@@ -112,11 +117,14 @@ export function KegiatanFormPage() {
 
     const payload: KegiatanInput = {
       ...form,
-      jenis: form.jenis || null,
+      pemateri_id: form.pemateri_id || null,
+      materi_ids: form.materi_ids ?? [],
       kategori_kegiatan_id: form.kategori_kegiatan_id || null,
-      lokasi: form.lokasi || null,
+      jam_mulai: form.jam_mulai || null,
+      jam_selesai: form.jam_selesai || null,
       lokasi_id: form.lokasi_id || null,
       deskripsi: form.deskripsi || null,
+      catatan: form.catatan || null,
     }
 
     try {
@@ -135,14 +143,20 @@ export function KegiatanFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat kegiatan…</div>
+    return (
+      <FormPageLoading
+        title={isEdit ? 'Edit kegiatan' : 'Tambah kegiatan'}
+        description="Agenda kegiatan jamaah dan masjid, termasuk pengajian."
+        message="Memuat kegiatan…"
+      />
+    )
   }
 
   return (
     <>
       <header className="page-header">
         <h1>{isEdit ? 'Edit kegiatan' : 'Tambah kegiatan'}</h1>
-        <p>Agenda kegiatan jamaah dan masjid.</p>
+        <p>Agenda kegiatan jamaah dan masjid, termasuk pengajian.</p>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}
@@ -163,10 +177,15 @@ export function KegiatanFormPage() {
             <SearchableSelect
               id="kategori_kegiatan_id"
               value={form.kategori_kegiatan_id ? String(form.kategori_kegiatan_id) : ''}
-              onChange={(next) => handleKategoriChange(next)}
-              placeholder="— Pilih atau isi jenis manual —"
+              onChange={(next) =>
+                setForm((prev) => ({
+                  ...prev,
+                  kategori_kegiatan_id: next ? Number(next) : null,
+                }))
+              }
+              placeholder="— Pilih kategori —"
               options={[
-                { value: '', label: '— Pilih atau isi jenis manual —' },
+                { value: '', label: '— Pilih kategori —' },
                 ...kategoriOptions.map((item) => ({
                   value: String(item.id),
                   label: item.nama,
@@ -175,57 +194,50 @@ export function KegiatanFormPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="jenis">Jenis (teks)</label>
-            <input
-              id="jenis"
-              value={form.jenis || ''}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  jenis: event.target.value,
-                  kategori_kegiatan_id: null,
-                }))
-              }
-            />
-          </div>
-          <div className="field">
             <label htmlFor="tanggal">Tanggal</label>
-            <input
+            <DateField
               id="tanggal"
-              type="date"
               value={form.tanggal}
-              onChange={(event) => setForm((prev) => ({ ...prev, tanggal: event.target.value }))}
-              required
+              onChange={(next) => setForm((prev) => ({ ...prev, tanggal: next }))}
             />
           </div>
           <div className="field">
-            <label htmlFor="lokasi_id">Lokasi (master)</label>
+            <label htmlFor="jam_mulai">Jam mulai</label>
+            <TimeInput24
+              id="jam_mulai"
+              value={form.jam_mulai || ''}
+              onChange={(next) => setForm((prev) => ({ ...prev, jam_mulai: next }))}
+            />
+            <p className="field-hint">Format 24 jam (00–23), contoh 19:30</p>
+          </div>
+          <div className="field">
+            <label htmlFor="jam_selesai">Jam selesai</label>
+            <TimeInput24
+              id="jam_selesai"
+              value={form.jam_selesai || ''}
+              onChange={(next) => setForm((prev) => ({ ...prev, jam_selesai: next }))}
+            />
+            <p className="field-hint">Format 24 jam (00–23), contoh 21:00</p>
+          </div>
+          <div className="field">
+            <label htmlFor="lokasi_id">Lokasi</label>
             <SearchableSelect
               id="lokasi_id"
               value={form.lokasi_id ? String(form.lokasi_id) : ''}
-              onChange={(next) => handleLokasiChange(next)}
-              placeholder="— Pilih atau isi manual —"
+              onChange={(next) =>
+                setForm((prev) => ({
+                  ...prev,
+                  lokasi_id: next ? Number(next) : null,
+                }))
+              }
+              placeholder="— Pilih lokasi —"
               options={[
-                { value: '', label: '— Pilih atau isi manual —' },
+                { value: '', label: '— Pilih lokasi —' },
                 ...lokasiOptions.map((item) => ({
                   value: String(item.id),
                   label: `${item.nama} · ${item.jenis}`,
                 })),
               ]}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="lokasi">Lokasi (teks)</label>
-            <input
-              id="lokasi"
-              value={form.lokasi || ''}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  lokasi: event.target.value,
-                  lokasi_id: null,
-                }))
-              }
             />
           </div>
           <div className="field">
@@ -247,12 +259,68 @@ export function KegiatanFormPage() {
               ]}
             />
           </div>
+        </div>
+
+        <fieldset className="form-fieldset">
+          <legend>Pemateri &amp; materi (opsional)</legend>
+          <div className="form-grid form-grid--2">
+            <div className="field">
+              <label htmlFor="pemateri_id">Pemateri</label>
+              <SearchableSelect
+                id="pemateri_id"
+                value={form.pemateri_id ? String(form.pemateri_id) : ''}
+                onChange={(next) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pemateri_id: next ? Number(next) : null,
+                  }))
+                }
+                placeholder="— Opsional —"
+                options={[
+                  { value: '', label: '— Opsional —' },
+                  ...pemateriOptions.map((item) => ({
+                    value: String(item.id),
+                    label: item.nama,
+                  })),
+                ]}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="materi_ids">Materi</label>
+              <SearchableMultiSelect
+                id="materi_ids"
+                values={(form.materi_ids ?? []).map(String)}
+                onChange={(next) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    materi_ids: next.map(Number),
+                  }))
+                }
+                placeholder="— Pilih satu atau lebih —"
+                options={materiOptions.map((item) => ({
+                  value: String(item.id),
+                  label: item.nama,
+                }))}
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        <div className="form-grid form-grid--2">
           <div className="field" style={{ gridColumn: '1 / -1' }}>
             <label htmlFor="deskripsi">Deskripsi</label>
             <textarea
               id="deskripsi"
               value={form.deskripsi || ''}
               onChange={(event) => setForm((prev) => ({ ...prev, deskripsi: event.target.value }))}
+            />
+          </div>
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="catatan">Catatan</label>
+            <textarea
+              id="catatan"
+              value={form.catatan || ''}
+              onChange={(event) => setForm((prev) => ({ ...prev, catatan: event.target.value }))}
             />
           </div>
         </div>

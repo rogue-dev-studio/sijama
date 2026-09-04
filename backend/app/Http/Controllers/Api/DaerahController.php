@@ -23,7 +23,7 @@ class DaerahController extends Controller
         $paginator = $this->daerahService->list(
             $request->user(),
             $request->query('q'),
-            $request->filled('pusat_id') ? $request->integer('pusat_id') : null,
+            $request->filled('wilayah_fung_pusat_id') ? $request->integer('wilayah_fung_pusat_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,
@@ -48,21 +48,21 @@ class DaerahController extends Controller
         return ApiResponse::success($daerah, 'Daerah berhasil ditambahkan', 201);
     }
 
-    public function show(Request $request, int $daerah): JsonResponse
+    public function show(Request $request, int $wilayah_fung_daerah): JsonResponse
     {
-        return ApiResponse::success($this->daerahService->find($daerah, $request->user()));
+        return ApiResponse::success($this->daerahService->find($wilayah_fung_daerah, $request->user()));
     }
 
-    public function update(UpdateDaerahRequest $request, int $daerah): JsonResponse
+    public function update(UpdateDaerahRequest $request, int $wilayah_fung_daerah): JsonResponse
     {
-        $updated = $this->daerahService->update($daerah, $request->validated(), $request->user());
+        $updated = $this->daerahService->update($wilayah_fung_daerah, $request->validated(), $request->user());
 
         return ApiResponse::success($updated, 'Daerah berhasil diperbarui');
     }
 
-    public function destroy(Request $request, int $daerah): JsonResponse
+    public function destroy(Request $request, int $wilayah_fung_daerah): JsonResponse
     {
-        $this->daerahService->delete($daerah, $request->user());
+        $this->daerahService->delete($wilayah_fung_daerah, $request->user());
 
         return ApiResponse::success(null, 'Daerah berhasil dihapus');
     }

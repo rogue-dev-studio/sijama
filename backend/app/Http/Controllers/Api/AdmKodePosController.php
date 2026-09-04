@@ -29,11 +29,11 @@ class AdmKodePosController extends Controller
 
         $paginator = $this->admKodePosService->list(
             $request->query('q'),
-            $request->filled('desa_kelurahan_id') ? $request->integer('desa_kelurahan_id') : null,
-            $request->filled('kecamatan_id') ? $request->integer('kecamatan_id') : null,
-            $request->filled('kabupaten_kota_id') ? $request->integer('kabupaten_kota_id') : null,
-            $request->filled('provinsi_id') ? $request->integer('provinsi_id') : null,
-            $request->filled('negara_id') ? $request->integer('negara_id') : null,
+            $request->filled('wilayah_adm_desa_id') ? $request->integer('wilayah_adm_desa_id') : null,
+            $request->filled('wilayah_adm_kecamatan_id') ? $request->integer('wilayah_adm_kecamatan_id') : null,
+            $request->filled('wilayah_adm_kabupaten_kota_id') ? $request->integer('wilayah_adm_kabupaten_kota_id') : null,
+            $request->filled('wilayah_adm_provinsi_id') ? $request->integer('wilayah_adm_provinsi_id') : null,
+            $request->filled('wilayah_adm_negara_id') ? $request->integer('wilayah_adm_negara_id') : null,
             $request->filled('per_page') ? $request->integer('per_page') : null,
             $request->filled('page') ? $request->integer('page') : null,
             $sortBy,
@@ -58,21 +58,21 @@ class AdmKodePosController extends Controller
         return ApiResponse::success($kodePos, 'Kode pos berhasil ditambahkan', 201);
     }
 
-    public function show(int $adm_kode_pos): JsonResponse
+    public function show(int $wilayah_adm_kode_pos): JsonResponse
     {
-        return ApiResponse::success($this->admKodePosService->find($adm_kode_pos));
+        return ApiResponse::success($this->admKodePosService->find($wilayah_adm_kode_pos));
     }
 
-    public function update(UpdateAdmKodePosRequest $request, int $adm_kode_pos): JsonResponse
+    public function update(UpdateAdmKodePosRequest $request, int $wilayah_adm_kode_pos): JsonResponse
     {
-        $updated = $this->admKodePosService->update($adm_kode_pos, $request->validated());
+        $updated = $this->admKodePosService->update($wilayah_adm_kode_pos, $request->validated());
 
         return ApiResponse::success($updated, 'Kode pos berhasil diperbarui');
     }
 
-    public function destroy(int $adm_kode_pos): JsonResponse
+    public function destroy(int $wilayah_adm_kode_pos): JsonResponse
     {
-        $this->admKodePosService->delete($adm_kode_pos);
+        $this->admKodePosService->delete($wilayah_adm_kode_pos);
 
         return ApiResponse::success(null, 'Kode pos berhasil dihapus');
     }

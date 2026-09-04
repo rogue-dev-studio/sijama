@@ -46,8 +46,8 @@ export function MasterAdmNegaraPage() {
       title="Master Negara"
       description="Kelola data wilayah administrasi negara."
       entityLabel="negara"
-      basePath="/master/adm/negara"
-      permissionPrefix="adm_negara"
+      basePath="/master/wilayah-adm/negara"
+      permissionPrefix="wilayah_adm_negara"
       createLabel="Tambah negara"
       searchPlaceholder="Cari kode atau nama negara…"
       showStatusFilter={false}

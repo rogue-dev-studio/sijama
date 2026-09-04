@@ -26,6 +26,34 @@ export function listColumnPerm(prefix: string, key: string): string {
   return `${prefix}.col.${key}.view`
 }
 
+export function listColumnUpdatePerm(prefix: string, key: string): string {
+  return `${prefix}.col.${key}.update`
+}
+
+export function parentFieldColumnKey(field: string): string {
+  return field.endsWith('_id') ? field.slice(0, -3) : field
+}
+
+export type FormFieldAccess = { visible: boolean; enabled: boolean }
+
+export function formFieldAccess(
+  can: (permission: string) => boolean,
+  prefix: string,
+  key: string,
+  isEdit: boolean,
+): FormFieldAccess {
+  const canView = can(listColumnPerm(prefix, key))
+  const canEditCol = can(listColumnUpdatePerm(prefix, key))
+  const visible = canView || canEditCol
+  if (!visible) {
+    return { visible: false, enabled: false }
+  }
+  if (!isEdit) {
+    return { visible: true, enabled: can(`${prefix}.create`) || canEditCol }
+  }
+  return { visible: true, enabled: canEditCol }
+}
+
 export function listExportAccess(can: (permission: string) => boolean, prefix: string) {
   const print = listButtonAccess(can, prefix, 'print', `${prefix}.print`)
   const csv = listButtonAccess(can, prefix, 'export_csv', `${prefix}.export_csv`)

@@ -32,6 +32,5 @@ class KategoriKegiatanService extends SimpleMasterService
     protected function assertDeletable($model): void
     {
         $this->denyDeleteIfRelated($model, 'kegiatan', 'Kategori masih dipakai kegiatan.');
-        $this->denyDeleteIfRelated($model, 'pengajian', 'Kategori masih dipakai pengajian.');
     }
 }

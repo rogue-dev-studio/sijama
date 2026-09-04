@@ -31,7 +31,7 @@ class AdmDesaKelurahanService
         ?string $sortDir = null,
     ): LengthAwarePaginator {
         $builder = AdmDesaKelurahan::query()->with([
-            'kecamatan',
+            'wilayahAdmKecamatan',
             'kodePos' => fn ($query) => $query->orderBy('kode'),
         ]);
         SortHelper::apply(
@@ -43,7 +43,7 @@ class AdmDesaKelurahanService
         );
 
         if ($kecamatanId !== null) {
-            $builder->where('kecamatan_id', $kecamatanId);
+            $builder->where('wilayah_adm_kecamatan_id', $kecamatanId);
         }
 
         if ($jenis) {
@@ -59,64 +59,64 @@ class AdmDesaKelurahanService
 
     public function create(array $data): AdmDesaKelurahanResource
     {
-        AdmKecamatan::findOrFail($data['kecamatan_id']);
+        AdmKecamatan::findOrFail($data['wilayah_adm_kecamatan_id']);
 
-        $desaKelurahan = AdmDesaKelurahan::create($data);
+        $wilayahAdmDesa = AdmDesaKelurahan::create($data);
 
-        return new AdmDesaKelurahanResource($desaKelurahan->load(['kecamatan', 'kodePos']));
+        return new AdmDesaKelurahanResource($wilayahAdmDesa->load(['wilayahAdmKecamatan', 'kodePos']));
     }
 
     public function find(int $id): AdmDesaKelurahanResource
     {
-        return new AdmDesaKelurahanResource($this->findModel($id)->load(['kecamatan', 'kodePos']));
+        return new AdmDesaKelurahanResource($this->findModel($id)->load(['wilayahAdmKecamatan', 'kodePos']));
     }
 
     public function update(int $id, array $data): AdmDesaKelurahanResource
     {
-        $desaKelurahan = $this->findModel($id);
+        $wilayahAdmDesa = $this->findModel($id);
 
-        if (isset($data['kecamatan_id'])) {
-            AdmKecamatan::findOrFail($data['kecamatan_id']);
+        if (isset($data['wilayah_adm_kecamatan_id'])) {
+            AdmKecamatan::findOrFail($data['wilayah_adm_kecamatan_id']);
         }
 
-        $desaKelurahan->update($data);
+        $wilayahAdmDesa->update($data);
 
-        return new AdmDesaKelurahanResource($desaKelurahan->fresh()->load(['kecamatan', 'kodePos']));
+        return new AdmDesaKelurahanResource($wilayahAdmDesa->fresh()->load(['wilayahAdmKecamatan', 'kodePos']));
     }
 
     public function delete(int $id): void
     {
-        $desaKelurahan = $this->findModel($id);
+        $wilayahAdmDesa = $this->findModel($id);
 
-        if ($desaKelurahan->kodePos()->exists()) {
+        if ($wilayahAdmDesa->kodePos()->exists()) {
             throw ValidationException::withMessages([
-                'adm_desa_kelurahan' => ['Desa/kelurahan masih memiliki kode pos terkait.'],
+                'wilayah_adm_desa' => ['Desa/kelurahan masih memiliki kode pos terkait.'],
             ]);
         }
 
-        if ($desaKelurahan->desa()->exists()) {
+        if ($wilayahAdmDesa->wilayahFungDesa()->exists()) {
             throw ValidationException::withMessages([
-                'adm_desa_kelurahan' => ['Desa/kelurahan masih dipetakan ke desa fungsional.'],
+                'wilayah_adm_desa' => ['Desa/kelurahan masih dipetakan ke desa fungsional.'],
             ]);
         }
 
-        if ($desaKelurahan->jamaah()->exists()) {
+        if ($wilayahAdmDesa->jamaah()->exists()) {
             throw ValidationException::withMessages([
-                'adm_desa_kelurahan' => ['Desa/kelurahan masih direferensikan oleh data jamaah.'],
+                'wilayah_adm_desa' => ['Desa/kelurahan masih direferensikan oleh data jamaah.'],
             ]);
         }
 
-        $desaKelurahan->delete();
+        $wilayahAdmDesa->delete();
     }
 
     private function findModel(int $id): AdmDesaKelurahan
     {
-        $desaKelurahan = AdmDesaKelurahan::find($id);
+        $wilayahAdmDesa = AdmDesaKelurahan::find($id);
 
-        if (! $desaKelurahan) {
+        if (! $wilayahAdmDesa) {
             throw new ModelNotFoundException('Desa/kelurahan tidak ditemukan.');
         }
 
-        return $desaKelurahan;
+        return $wilayahAdmDesa;
     }
 }

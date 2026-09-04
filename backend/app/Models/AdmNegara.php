@@ -14,12 +14,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AdmNegara extends Model
 {
-    protected $table = 'adm_negara';
+    protected $table = 'wilayah_adm_negara_m';
 
     protected $fillable = [
         'kode',
         'nama',
         'iso3',
+        'singkatan',
         'is_active',
     ];
 
@@ -30,8 +31,8 @@ class AdmNegara extends Model
         ];
     }
 
-    public function provinsi(): HasMany
+    public function wilayahAdmProvinsi(): HasMany
     {
-        return $this->hasMany(AdmProvinsi::class, 'negara_id');
+        return $this->hasMany(AdmProvinsi::class, 'wilayah_adm_negara_id');
     }
 }

@@ -27,7 +27,7 @@ final class JamaahContactRules
     /** @return list<mixed> */
     public static function noHp(?int $jamaahId = null): array
     {
-        $unique = Rule::unique('jamaah', 'no_hp')->whereNull('deleted_at');
+        $unique = Rule::unique('jamaah_r', 'no_hp')->whereNull('deleted_at');
         if ($jamaahId) {
             $unique->ignore($jamaahId);
         }
@@ -38,7 +38,7 @@ final class JamaahContactRules
     /** @return list<mixed> */
     public static function email(?int $jamaahId = null): array
     {
-        $jamaahUnique = Rule::unique('jamaah', 'email')->whereNull('deleted_at');
+        $jamaahUnique = Rule::unique('jamaah_r', 'email')->whereNull('deleted_at');
         if ($jamaahId) {
             $jamaahUnique->ignore($jamaahId);
         }

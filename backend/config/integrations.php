@@ -23,4 +23,11 @@ return [
         'api_key' => env('N8N_API_KEY'),
     ],
 
+    'api_co_id' => [
+        'enabled' => filter_var(env('API_CO_ID_HOLIDAY_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+        'api_key' => env('API_CO_ID_API_KEY'),
+        'holiday_base_url' => rtrim((string) env('API_CO_ID_HOLIDAY_BASE_URL', 'https://use.api.co.id/holidays/indonesia'), '/'),
+        'timeout_seconds' => (int) env('API_CO_ID_TIMEOUT_SECONDS', 30),
+    ],
+
 ];

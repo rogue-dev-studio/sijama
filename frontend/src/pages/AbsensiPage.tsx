@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TinyFaceDetectorOptions } from 'face-api.js'
 import { ApiError } from '../api/client'
-import { attendanceService, jamaahService, kegiatanService, pengajianService } from '../api/services'
-import type { AttendanceSession, Jamaah, Kegiatan, Pengajian } from '../api/types'
+import { attendanceService, jamaahService, kegiatanService } from '../api/services'
+import type { AttendanceSession, Jamaah, Kegiatan } from '../api/types'
 import {
   needsCameraPermissionUi,
   toCameraPermissionPanelState,
@@ -23,6 +23,7 @@ import { AbsensiControls } from './absensi/AbsensiControls'
 import { AbsensiLiveBar } from './absensi/AbsensiLiveBar'
 import { AbsensiLiveStage } from './absensi/AbsensiLiveStage'
 import { AbsensiNotify } from './absensi/AbsensiNotify'
+import { FormPageLoading } from '../components/FormPageLoading'
 import type { NotifyState, RefOption } from './absensi/types'
 
 const CHECK_IN_DEBOUNCE_MS = 4000
@@ -41,14 +42,12 @@ export function AbsensiPage() {
   const notifyTimerRef = useRef<number | null>(null)
 
   const [sessions, setSessions] = useState<AttendanceSession[]>([])
-  const [pengajianOptions, setPengajianOptions] = useState<RefOption[]>([])
   const [kegiatanOptions, setKegiatanOptions] = useState<RefOption[]>([])
   const [jamaahOptions, setJamaahOptions] = useState<Jamaah[]>([])
   const [faceProfiles, setFaceProfiles] = useState<FaceProfile[]>([])
   const [activeSession, setActiveSession] = useState<AttendanceSession | null>(null)
   const [attendedIds, setAttendedIds] = useState<Set<number>>(new Set())
 
-  const [sessionType, setSessionType] = useState<'pengajian' | 'kegiatan'>('pengajian')
   const [refId, setRefId] = useState('')
   const [manualJamaahId, setManualJamaahId] = useState('')
   const [showSetup, setShowSetup] = useState(true)
@@ -69,7 +68,7 @@ export function AbsensiPage() {
     detail: 'Pilih atau buka sesi absensi untuk menampilkan layar pemindaian.',
   })
 
-  const refOptions = sessionType === 'pengajian' ? pengajianOptions : kegiatanOptions
+  const refOptions = kegiatanOptions
   const isDisplayMode = activeSession?.status === 'open'
 
   useFaceScanOverlay({
@@ -93,24 +92,22 @@ export function AbsensiPage() {
   }, [])
 
   const loadReferenceData = useCallback(async () => {
-    const [pengajian, kegiatan, jamaahList, enrolled] = await Promise.all([
-      pengajianService.list({ per_page: 100 }),
+    const [kegiatan, jamaahList, enrolled] = await Promise.all([
       kegiatanService.list({ per_page: 100 }),
       jamaahService.list({ per_page: 100 }),
       jamaahService.list({ enrolled: true, per_page: 100 }),
     ])
 
-    setPengajianOptions(
-      pengajian.items.map((item: Pengajian) => ({
-        id: item.id,
-        label: `${item.judul} · ${new Date(item.starts_at).toLocaleString('id-ID')}`,
-      })),
-    )
     setKegiatanOptions(
-      kegiatan.items.map((item: Kegiatan) => ({
-        id: item.id,
-        label: `${item.judul} · ${new Date(item.tanggal).toLocaleDateString('id-ID')}`,
-      })),
+      kegiatan.items.map((item: Kegiatan) => {
+        const dateLabel = new Date(item.tanggal).toLocaleDateString('id-ID')
+        const timeLabel = [item.jam_mulai, item.jam_selesai].filter(Boolean).join('–')
+        const suffix = timeLabel ? `${dateLabel} ${timeLabel}` : dateLabel
+        return {
+          id: item.id,
+          label: `${item.judul} · ${suffix}`,
+        }
+      }),
     )
     setJamaahOptions(jamaahList.items)
 
@@ -467,7 +464,7 @@ export function AbsensiPage() {
       pushNotify({
         kind: 'error',
         title: 'Referensi kosong',
-        detail: 'Pilih pengajian atau kegiatan terlebih dahulu.',
+        detail: 'Pilih kegiatan terlebih dahulu.',
       })
       return
     }
@@ -478,7 +475,7 @@ export function AbsensiPage() {
     setBusy(true)
     try {
       const session = await attendanceService.openSession({
-        type: sessionType,
+        type: 'kegiatan',
         ref_id: Number(refId),
         title: selected.label.split(' · ')[0] || selected.label,
       })
@@ -641,7 +638,13 @@ export function AbsensiPage() {
     isDisplayMode && faceProfiles.length > 0 && !cameraActive && needsCameraPermissionUi(cameraAccess)
 
   if (loading) {
-    return <div className="loading-state">Memuat layar absensi…</div>
+    return (
+      <FormPageLoading
+        title="Layar Absensi"
+        description="Mode tampilan kamera. Tanpa daftar hadir — hanya notifikasi sudah atau belum absen."
+        message="Memuat layar absensi…"
+      />
+    )
   }
 
   return (
@@ -674,7 +677,6 @@ export function AbsensiPage() {
           activeSession={activeSession}
           jamaahOptions={jamaahOptions}
           refOptions={refOptions}
-          sessionType={sessionType}
           refId={refId}
           manualJamaahId={manualJamaahId}
           busy={busy}
@@ -683,10 +685,6 @@ export function AbsensiPage() {
           onSelectSession={(next) => void handleSelectSession(next)}
           onManualJamaahChange={setManualJamaahId}
           onManualCheckIn={() => void handleManualCheckIn()}
-          onSessionTypeChange={(next) => {
-            setSessionType(next)
-            setRefId('')
-          }}
           onRefIdChange={setRefId}
           onOpenSession={() => void handleOpenSession()}
         />

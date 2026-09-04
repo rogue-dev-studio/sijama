@@ -21,6 +21,7 @@ import { DokumenFormatBar } from '../components/DokumenFormatBar'
 import { DokumenFullPreview } from '../components/DokumenFullPreview'
 import { KonfigImageUpload } from '../components/KonfigImageUpload'
 import { useToast } from '../components/ToastProvider'
+import { FormPageLoading } from '../components/FormPageLoading'
 import {
   DOKUMEN_EXPORT_MEDIA,
   getDokumenColumns,
@@ -282,7 +283,13 @@ export function AplikasiKonfigDokumenFormPage() {
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat konfigurasi dokumen…</div>
+    return (
+      <FormPageLoading
+        title="Konfigurasi dokumen"
+        description="Atur tata letak, header, dan gaya cetakan dokumen."
+        message="Memuat konfigurasi dokumen…"
+      />
+    )
   }
 
   if (!form) {

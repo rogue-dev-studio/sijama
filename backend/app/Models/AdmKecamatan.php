@@ -15,10 +15,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AdmKecamatan extends Model
 {
-    protected $table = 'adm_kecamatan';
+    protected $table = 'wilayah_adm_kecamatan_m';
 
     protected $fillable = [
-        'kabupaten_kota_id',
+        'wilayah_adm_kabupaten_kota_id',
         'kode',
         'nama',
         'is_active',
@@ -31,18 +31,18 @@ class AdmKecamatan extends Model
         ];
     }
 
-    public function kabupatenKota(): BelongsTo
+    public function wilayahAdmKabupatenKota(): BelongsTo
     {
-        return $this->belongsTo(AdmKabupatenKota::class, 'kabupaten_kota_id');
+        return $this->belongsTo(AdmKabupatenKota::class, 'wilayah_adm_kabupaten_kota_id');
     }
 
-    public function desaKelurahan(): HasMany
+    public function wilayahAdmDesa(): HasMany
     {
-        return $this->hasMany(AdmDesaKelurahan::class, 'kecamatan_id');
+        return $this->hasMany(AdmDesaKelurahan::class, 'wilayah_adm_kecamatan_id');
     }
 
     public function kodePos(): HasMany
     {
-        return $this->hasMany(AdmKodePos::class, 'kecamatan_id');
+        return $this->hasMany(AdmKodePos::class, 'wilayah_adm_kecamatan_id');
     }
 }

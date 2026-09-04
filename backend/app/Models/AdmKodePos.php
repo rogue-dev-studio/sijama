@@ -14,12 +14,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdmKodePos extends Model
 {
-    protected $table = 'adm_kode_pos';
+    protected $table = 'wilayah_adm_kode_pos_m';
 
     protected $fillable = [
         'kode',
-        'desa_kelurahan_id',
-        'kecamatan_id',
+        'wilayah_adm_desa_id',
+        'wilayah_adm_kecamatan_id',
         'is_active',
     ];
 
@@ -30,13 +30,13 @@ class AdmKodePos extends Model
         ];
     }
 
-    public function desaKelurahan(): BelongsTo
+    public function wilayahAdmDesa(): BelongsTo
     {
-        return $this->belongsTo(AdmDesaKelurahan::class, 'desa_kelurahan_id');
+        return $this->belongsTo(AdmDesaKelurahan::class, 'wilayah_adm_desa_id');
     }
 
-    public function kecamatan(): BelongsTo
+    public function wilayahAdmKecamatan(): BelongsTo
     {
-        return $this->belongsTo(AdmKecamatan::class, 'kecamatan_id');
+        return $this->belongsTo(AdmKecamatan::class, 'wilayah_adm_kecamatan_id');
     }
 }

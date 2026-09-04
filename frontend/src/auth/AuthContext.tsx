@@ -128,8 +128,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [applySettings])
 
   const can = useCallback(
-    (permission: string) => permissions.includes(permission),
-    [permissions],
+    (permission: string) => {
+      if (isSuperAdminUser(user) || permissions.includes('*')) {
+        return true
+      }
+
+      return permissions.includes(permission)
+    },
+    [permissions, user],
   )
 
   const value = useMemo(

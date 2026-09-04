@@ -9,6 +9,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\CreatesAuthorizedUser;
 use Tests\TestCase;
@@ -61,7 +62,7 @@ class AuthApiTest extends TestCase
             'email' => 'login.phone@sijama.test',
             'status' => 'aktif',
         ]);
-        $user->update(['jamaah_id' => $jamaah->id, 'email' => $jamaah->email]);
+        $user->updateAttributes(['jamaah_id' => $jamaah->id, 'email' => $jamaah->email]);
 
         $response = $this->postJson('/api/login', [
             'username' => '081234567890',
@@ -104,5 +105,38 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.user.username', 'me.user')
             ->assertJsonPath('data.permissions.0', 'materi.view');
+    }
+
+    public function test_me_returns_wildcard_permissions_for_superadmin(): void
+    {
+        $this->seed(\Database\Seeders\RbacSeeder::class);
+
+        $admin = User::query()->where('username', 'admin')->firstOrFail();
+
+        $this->actingAs($admin, 'sanctum')
+            ->getJson('/api/me')
+            ->assertOk()
+            ->assertJsonPath('data.permissions', ['*']);
+    }
+
+    public function test_logout_revokes_token(): void
+    {
+        $this->createAuthorizedUser(username: 'logout.user');
+
+        $login = $this->postJson('/api/login', [
+            'username' => 'logout.user',
+            'password' => 'password',
+        ]);
+
+        $login->assertOk();
+        $token = (string) $login->json('data.token');
+        $tokenId = (int) explode('|', $token, 2)[0];
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/logout')
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $tokenId]);
     }
 }

@@ -8,6 +8,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
+import { formFieldAccess, parentFieldColumnKey, type FormFieldAccess } from '../lib/listUiAccess'
 import { SearchableSelect } from './SearchableSelect'
 import { useToast } from './ToastProvider'
 
@@ -24,6 +26,7 @@ export type ParentSelectConfig<TForm> = {
   loadOptions: () => Promise<Array<{ id: number; nama: string }>>
   emptyMessage: string
   allowEmptyOptions?: boolean
+  columnKey?: string
 }
 
 type SimpleMasterKodeFormPageProps<TForm extends KodeNamaForm, TItem> = {
@@ -37,8 +40,14 @@ type SimpleMasterKodeFormPageProps<TForm extends KodeNamaForm, TItem> = {
   toForm: (item: TItem) => TForm
   toPayload?: (form: TForm) => TForm
   showDeskripsi?: boolean
+  permissionPrefix: string
   parentSelect?: ParentSelectConfig<TForm>
-  renderExtraFields?: (form: TForm, setForm: (next: TForm) => void, isEdit: boolean) => ReactNode
+  renderExtraFields?: (
+    form: TForm,
+    setForm: (next: TForm) => void,
+    isEdit: boolean,
+    fieldAccess: (key: string) => FormFieldAccess,
+  ) => ReactNode
 }
 
 export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
@@ -52,11 +61,18 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
   toForm,
   toPayload,
   showDeskripsi = true,
+  permissionPrefix,
   parentSelect,
   renderExtraFields,
 }: SimpleMasterKodeFormPageProps<TForm, TItem>) {
   const { id } = useParams()
   const isEdit = Boolean(id)
+  const { can } = useAuth()
+  const fieldAccess = (key: string) => formFieldAccess(can, permissionPrefix, key, isEdit)
+  const kodeAccess = fieldAccess('kode')
+  const namaAccess = fieldAccess('nama')
+  const statusAccess = fieldAccess('is_active')
+  const deskripsiAccess = fieldAccess('deskripsi')
   const navigate = useNavigate()
   const { notifySaved } = useToast()
   const [form, setForm] = useState<TForm>(emptyForm)
@@ -130,7 +146,17 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
   }
 
   if (loading) {
-    return <div className="loading-state">Memuat {entityLabel}…</div>
+    return (
+      <>
+        <header className="page-header">
+          <h1>{isEdit ? `Edit ${entityLabel}` : `Tambah ${entityLabel}`}</h1>
+          <p>{description}</p>
+        </header>
+        <div className="loading-state" role="status" aria-live="polite">
+          Memuat {entityLabel}…
+        </div>
+      </>
+    )
   }
 
   if (parentSelect && parentOptions.length === 0 && !parentSelect.allowEmptyOptions) {
@@ -150,6 +176,10 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
     )
   }
 
+  const parentColumnKey = parentSelect
+    ? parentSelect.columnKey ?? parentFieldColumnKey(parentSelect.field)
+    : null
+  const parentAccess = parentColumnKey ? fieldAccess(parentColumnKey) : { visible: true, enabled: true }
   const parentValue = parentSelect
     ? String((form as Record<string, unknown>)[parentSelect.field] || '')
     : ''
@@ -165,7 +195,7 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
 
       <form className="form-panel" onSubmit={(event) => void handleSubmit(event)}>
         <div className="form-grid form-grid--2">
-          {parentSelect && (
+          {parentSelect && parentAccess.visible && (
             <div className="field">
               <label htmlFor={parentSelect.field}>{parentSelect.label}</label>
               <SearchableSelect
@@ -179,6 +209,7 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
                 }
                 placeholder={`Pilih ${parentSelect.label.toLowerCase()}`}
                 required={!parentSelect.allowEmptyOptions}
+                disabled={!parentAccess.enabled}
                 options={[
                   {
                     value: '',
@@ -194,45 +225,57 @@ export function SimpleMasterKodeFormPage<TForm extends KodeNamaForm, TItem>({
               />
             </div>
           )}
-          <div className="field">
-            <label htmlFor="kode">Kode</label>
-            <input
-              id="kode"
-              value={form.kode}
-              onChange={(event) => setForm({ ...form, kode: event.target.value })}
-              required
-              disabled={isEdit}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="nama">Nama</label>
-            <input
-              id="nama"
-              value={form.nama}
-              onChange={(event) => setForm({ ...form, nama: event.target.value })}
-              required
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="is_active">Status</label>
-            <SearchableSelect
-              id="is_active"
-              value={form.is_active ? '1' : '0'}
-              onChange={(next) => setForm({ ...form, is_active: next === '1' })}
-              options={[
-                { value: '1', label: 'Aktif' },
-                { value: '0', label: 'Nonaktif' },
-              ]}
-            />
-          </div>
-          {renderExtraFields?.(form, setForm, isEdit)}
-          {showDeskripsi && (
+          {kodeAccess.visible && (
+            <div className="field">
+              <label htmlFor="kode">Kode</label>
+              <input
+                id="kode"
+                value={form.kode}
+                onChange={(event) => setForm({ ...form, kode: event.target.value })}
+                required
+                disabled={!kodeAccess.enabled}
+              />
+              {isEdit && !kodeAccess.enabled && (
+                <p className="field-hint">Kode terkunci. Centang UBAH pada Kolom Kode di matriks akses.</p>
+              )}
+            </div>
+          )}
+          {namaAccess.visible && (
+            <div className="field">
+              <label htmlFor="nama">Nama</label>
+              <input
+                id="nama"
+                value={form.nama}
+                onChange={(event) => setForm({ ...form, nama: event.target.value })}
+                required
+                disabled={!namaAccess.enabled}
+              />
+            </div>
+          )}
+          {statusAccess.visible && (
+            <div className="field">
+              <label htmlFor="is_active">Status</label>
+              <SearchableSelect
+                id="is_active"
+                value={form.is_active ? '1' : '0'}
+                onChange={(next) => setForm({ ...form, is_active: next === '1' })}
+                disabled={!statusAccess.enabled}
+                options={[
+                  { value: '1', label: 'Aktif' },
+                  { value: '0', label: 'Nonaktif' },
+                ]}
+              />
+            </div>
+          )}
+          {renderExtraFields?.(form, setForm, isEdit, fieldAccess)}
+          {showDeskripsi && deskripsiAccess.visible && (
             <div className="field" style={{ gridColumn: '1 / -1' }}>
               <label htmlFor="deskripsi">Deskripsi</label>
               <textarea
                 id="deskripsi"
                 value={form.deskripsi || ''}
                 onChange={(event) => setForm({ ...form, deskripsi: event.target.value })}
+                disabled={!deskripsiAccess.enabled}
               />
             </div>
           )}

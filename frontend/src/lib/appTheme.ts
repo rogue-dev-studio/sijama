@@ -8,6 +8,12 @@
 import type { AppPublicSettings } from '../api/types'
 import { normalizeBackgroundStyle, resolveBackgroundRepeatSizeCss, type BackgroundStyle } from './backgroundStyle'
 import type { EffectiveColorScheme } from './colorScheme'
+import {
+  DEFAULT_FONT_BODY,
+  DEFAULT_FONT_DISPLAY,
+  ensureAppFontsLoaded,
+  resolveFontPreset,
+} from './appFonts'
 import { resolveKonfigAssetUrl } from './konfigAsset'
 
 const BG_PATTERN_URL = '/bg-pattern.svg'
@@ -159,5 +165,22 @@ export function applyAppTheme(
     } else if (settings.color_accent?.trim()) {
       themeMeta.content = settings.color_accent.trim()
     }
+  }
+
+  const displayId = settings.font_family_display?.trim() || DEFAULT_FONT_DISPLAY
+  const bodyId = settings.font_family_body?.trim() || DEFAULT_FONT_BODY
+  ensureAppFontsLoaded(displayId, bodyId)
+
+  const displayPreset = resolveFontPreset(displayId)
+  const bodyPreset = resolveFontPreset(bodyId)
+  if (displayPreset) {
+    root.style.setProperty('--font-display', displayPreset.stack)
+  } else {
+    root.style.removeProperty('--font-display')
+  }
+  if (bodyPreset) {
+    root.style.setProperty('--font-body', bodyPreset.stack)
+  } else {
+    root.style.removeProperty('--font-body')
   }
 }

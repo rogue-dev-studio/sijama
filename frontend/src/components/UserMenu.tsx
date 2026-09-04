@@ -101,6 +101,24 @@ export function UserMenu({
 
       {open && (
         <div className="user-menu__dropdown" role="menu" id={menuId}>
+          {iconOnly && (
+            <>
+              <div className="user-menu__identity" role="presentation">
+                <span className="user-menu__avatar user-menu__avatar--lg" aria-hidden>
+                  {avatarSrc ? (
+                    <img src={avatarSrc} alt="" className="user-menu__avatar-image" />
+                  ) : (
+                    <MenuIcon name="user" size={18} />
+                  )}
+                </span>
+                <span className="user-menu__meta">
+                  <strong>{user.name}</strong>
+                  <span className="muted">@{user.username}</span>
+                </span>
+              </div>
+              <div className="user-menu__divider" role="separator" />
+            </>
+          )}
           <ThemeToggle onSelect={() => setOpen(false)} />
           <div className="user-menu__divider" role="separator" />
           <Link

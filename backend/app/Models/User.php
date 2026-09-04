@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\DemoUserGuard;
 use App\Support\DapukanTingkat;
+use App\Support\SuperAdminAccess;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -24,16 +26,23 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'dapukan_id',
-        'jamaah_id',
-        'pusat_id',
-        'daerah_id',
-        'desa_id',
-        'kelompok_id',
-        'is_active',
         'login_remember_minutes',
         'login_remember_until_logout',
         'path_tanda_tangan',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    private const SCOPE_ATTRIBUTES = [
+        'dapukan_id',
+        'jamaah_id',
+        'wilayah_fung_pusat_id',
+        'wilayah_fung_daerah_id',
+        'wilayah_fung_desa_id',
+        'wilayah_fung_kelompok_id',
+        'is_active',
+        'is_demo',
     ];
 
     protected $hidden = [
@@ -47,8 +56,74 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_demo' => 'boolean',
             'login_remember_until_logout' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user): void {
+            SuperAdminAccess::assertCanDelete($user);
+            DemoUserGuard::assertCanDelete($user);
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function assignScopeAttributes(array $attributes): self
+    {
+        foreach (self::SCOPE_ATTRIBUTES as $key) {
+            if (array_key_exists($key, $attributes)) {
+                $this->setAttribute($key, $attributes[$key]);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public static function createManaged(array $attributes): self
+    {
+        $scope = array_intersect_key($attributes, array_flip(self::SCOPE_ATTRIBUTES));
+        $base = array_diff_key($attributes, array_flip(self::SCOPE_ATTRIBUTES));
+
+        $user = static::query()->create($base);
+        if ($scope !== []) {
+            $user->assignScopeAttributes($scope)->save();
+        }
+
+        return $user->refresh();
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateAttributes(array $attributes): bool
+    {
+        if (DemoUserGuard::isReservedUsername((string) $this->username)) {
+            $attributes['is_demo'] = true;
+        }
+
+        $scope = array_intersect_key($attributes, array_flip(self::SCOPE_ATTRIBUTES));
+        $base = array_diff_key($attributes, array_flip(self::SCOPE_ATTRIBUTES));
+
+        if ($base !== []) {
+            $this->fill($base);
+        }
+        if ($scope !== []) {
+            $this->assignScopeAttributes($scope);
+        }
+
+        return $this->save();
+    }
+
+    public function isDemo(): bool
+    {
+        return (bool) $this->is_demo;
     }
 
     public function dapukan(): BelongsTo
@@ -61,24 +136,24 @@ class User extends Authenticatable
         return $this->belongsTo(Jamaah::class);
     }
 
-    public function pusat(): BelongsTo
+    public function wilayahFungPusat(): BelongsTo
     {
-        return $this->belongsTo(Pusat::class);
+        return $this->belongsTo(Pusat::class, 'wilayah_fung_pusat_id');
     }
 
-    public function daerah(): BelongsTo
+    public function wilayahFungDaerah(): BelongsTo
     {
-        return $this->belongsTo(Daerah::class);
+        return $this->belongsTo(Daerah::class, 'wilayah_fung_daerah_id');
     }
 
-    public function desa(): BelongsTo
+    public function wilayahFungDesa(): BelongsTo
     {
-        return $this->belongsTo(Desa::class);
+        return $this->belongsTo(Desa::class, 'wilayah_fung_desa_id');
     }
 
-    public function kelompok(): BelongsTo
+    public function wilayahFungKelompok(): BelongsTo
     {
-        return $this->belongsTo(Kelompok::class);
+        return $this->belongsTo(Kelompok::class, 'wilayah_fung_kelompok_id');
     }
 
     /** @return Collection<int, Dapukan> */
@@ -117,21 +192,36 @@ class User extends Authenticatable
         return $this->effectiveDapukan()->contains(fn (Dapukan $dapukan) => $dapukan->slug === 'superadmin');
     }
 
+    /** @var list<string>|null */
+    private ?array $permissionCodesCache = null;
+
     public function hasPermission(string $slug): bool
     {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
         return in_array($slug, $this->permissionCodes(), true);
     }
 
     public function permissionCodes(): array
     {
+        if ($this->permissionCodesCache !== null) {
+            return $this->permissionCodesCache;
+        }
+
+        if ($this->isSuperAdmin()) {
+            return $this->permissionCodesCache = HakAkses::query()->orderBy('slug')->pluck('slug')->all();
+        }
+
         $dapukan = new \Illuminate\Database\Eloquent\Collection($this->effectiveDapukan()->all());
         if ($dapukan->isEmpty()) {
-            return [];
+            return $this->permissionCodesCache = [];
         }
 
         $dapukan->loadMissing('hakAkses');
 
-        return $dapukan
+        return $this->permissionCodesCache = $dapukan
             ->flatMap(fn (Dapukan $item) => $item->hakAkses->pluck('slug'))
             ->unique()
             ->sort()

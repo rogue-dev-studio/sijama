@@ -23,6 +23,8 @@ use App\Models\User;
 use App\Services\LookupOptionsService;
 use App\Support\LoginRememberOptions;
 use App\Support\LookupTypes;
+use App\Support\DemoUserGuard;
+use App\Support\SuperAdminAccess;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -33,11 +35,12 @@ class ProfileService
         private readonly LookupOptionsService $lookupOptionsService,
         private readonly ProfilePhotoService $profilePhotoService,
         private readonly ProfileSignatureService $profileSignatureService,
+        private readonly AuditActivityService $auditActivityService,
     ) {}
 
     public function show(User $user, ?PersonalAccessToken $currentAccessToken = null): array
     {
-        $user->loadMissing(['dapukan', 'jamaah.dapukan', 'pusat', 'daerah', 'desa', 'kelompok']);
+        $user->loadMissing(['dapukan', 'jamaah.dapukan', 'wilayahFungPusat', 'wilayahFungDaerah', 'wilayahFungDesa', 'wilayahFungKelompok']);
 
         $jamaah = null;
         $admChain = null;
@@ -45,8 +48,8 @@ class ProfileService
         if ($user->jamaah_id) {
             $model = Jamaah::query()
                 ->with([
-                    'kelompok.desa.daerah',
-                    'admDesaKelurahan.kecamatan.kabupatenKota.provinsi.negara',
+                    'wilayahFungKelompok.wilayahFungDesa.wilayahFungDaerah',
+                    'wilayahAdmDesa.wilayahAdmKecamatan.wilayahAdmKabupatenKota.wilayahAdmProvinsi.wilayahAdmNegara',
                     'pekerjaanRef',
                     'dapukan:id,slug,nama,tingkat',
                 ])
@@ -155,7 +158,7 @@ class ProfileService
     public function wilayahOptions(string $level, ?int $parentId = null): array
     {
         return match ($level) {
-            'negara' => AdmNegara::query()
+            'negara', 'wilayah_adm_negara' => AdmNegara::query()
                 ->where('is_active', true)
                 ->orderBy('nama')
                 ->get(['id', 'kode', 'nama'])
@@ -166,9 +169,9 @@ class ProfileService
                 ])
                 ->values()
                 ->all(),
-            'provinsi' => AdmProvinsi::query()
+            'provinsi', 'wilayah_adm_provinsi' => AdmProvinsi::query()
                 ->where('is_active', true)
-                ->when($parentId, fn ($q) => $q->where('negara_id', $parentId))
+                ->when($parentId, fn ($q) => $q->where('wilayah_adm_negara_id', $parentId))
                 ->orderBy('nama')
                 ->get(['id', 'kode', 'nama'])
                 ->map(fn (AdmProvinsi $item) => [
@@ -178,9 +181,9 @@ class ProfileService
                 ])
                 ->values()
                 ->all(),
-            'kabupaten_kota' => AdmKabupatenKota::query()
+            'kabupaten_kota', 'wilayah_adm_kabupaten_kota' => AdmKabupatenKota::query()
                 ->where('is_active', true)
-                ->when($parentId, fn ($q) => $q->where('provinsi_id', $parentId))
+                ->when($parentId, fn ($q) => $q->where('wilayah_adm_provinsi_id', $parentId))
                 ->orderBy('nama')
                 ->get(['id', 'kode', 'nama'])
                 ->map(fn (AdmKabupatenKota $item) => [
@@ -190,9 +193,9 @@ class ProfileService
                 ])
                 ->values()
                 ->all(),
-            'kecamatan' => AdmKecamatan::query()
+            'kecamatan', 'wilayah_adm_kecamatan' => AdmKecamatan::query()
                 ->where('is_active', true)
-                ->when($parentId, fn ($q) => $q->where('kabupaten_kota_id', $parentId))
+                ->when($parentId, fn ($q) => $q->where('wilayah_adm_kabupaten_kota_id', $parentId))
                 ->orderBy('nama')
                 ->get(['id', 'kode', 'nama'])
                 ->map(fn (AdmKecamatan $item) => [
@@ -202,9 +205,9 @@ class ProfileService
                 ])
                 ->values()
                 ->all(),
-            'desa_kelurahan' => AdmDesaKelurahan::query()
+            'desa_kelurahan', 'wilayah_adm_desa' => AdmDesaKelurahan::query()
                 ->where('is_active', true)
-                ->when($parentId, fn ($q) => $q->where('kecamatan_id', $parentId))
+                ->when($parentId, fn ($q) => $q->where('wilayah_adm_kecamatan_id', $parentId))
                 ->with(['kodePos' => fn ($q) => $q->orderBy('kode')])
                 ->orderBy('nama')
                 ->get(['id', 'kode', 'nama'])
@@ -279,8 +282,22 @@ class ProfileService
 
     public function updatePassword(User $user, string $password): void
     {
+        DemoUserGuard::assertCanChangePassword($user);
+        SuperAdminAccess::assertCanChangePassword($user);
+
         $user->update([
             'password' => $password,
+        ]);
+
+        $this->auditActivityService->record([
+            'module' => AuditActivityService::MODULE_ACCESS,
+            'action' => 'password_change_self',
+            'entity_type' => 'user',
+            'entity_id' => $user->id,
+            'entity_label' => $user->username,
+            'summary' => sprintf('Ganti password sendiri (%s)', $user->username),
+            'meta' => ['password_changed' => true],
+            'actor' => $user,
         ]);
     }
 
@@ -334,51 +351,51 @@ class ProfileService
 
     /**
      * @return array{
-     *   negara_id: int|null,
-     *   provinsi_id: int|null,
-     *   kabupaten_kota_id: int|null,
-     *   kecamatan_id: int|null,
-     *   desa_kelurahan_id: int|null,
-     *   labels: array{negara: string|null, provinsi: string|null, kabupaten_kota: string|null, kecamatan: string|null, desa_kelurahan: string|null}
+     *   wilayah_adm_negara_id: int|null,
+     *   wilayah_adm_provinsi_id: int|null,
+     *   wilayah_adm_kabupaten_kota_id: int|null,
+     *   wilayah_adm_kecamatan_id: int|null,
+     *   wilayah_adm_desa_id: int|null,
+     *   labels: array{wilayah_adm_negara: string|null, wilayah_adm_provinsi: string|null, wilayah_adm_kabupaten_kota: string|null, wilayah_adm_kecamatan: string|null, wilayah_adm_desa: string|null}
      * }|null
      */
     private function buildAdmChain(Jamaah $jamaah): ?array
     {
-        if (! $jamaah->adm_desa_kelurahan_id || ! $jamaah->relationLoaded('admDesaKelurahan') || ! $jamaah->admDesaKelurahan) {
+        if (! $jamaah->wilayah_adm_desa_id || ! $jamaah->relationLoaded('wilayahAdmDesa') || ! $jamaah->wilayahAdmDesa) {
             return [
-                'negara_id' => null,
-                'provinsi_id' => null,
-                'kabupaten_kota_id' => null,
-                'kecamatan_id' => null,
-                'desa_kelurahan_id' => null,
+                'wilayah_adm_negara_id' => null,
+                'wilayah_adm_provinsi_id' => null,
+                'wilayah_adm_kabupaten_kota_id' => null,
+                'wilayah_adm_kecamatan_id' => null,
+                'wilayah_adm_desa_id' => null,
                 'labels' => [
-                    'negara' => null,
-                    'provinsi' => null,
-                    'kabupaten_kota' => null,
-                    'kecamatan' => null,
-                    'desa_kelurahan' => null,
+                    'wilayah_adm_negara' => null,
+                    'wilayah_adm_provinsi' => null,
+                    'wilayah_adm_kabupaten_kota' => null,
+                    'wilayah_adm_kecamatan' => null,
+                    'wilayah_adm_desa' => null,
                 ],
             ];
         }
 
-        $desa = $jamaah->admDesaKelurahan;
-        $kecamatan = $desa->kecamatan;
-        $kabupaten = $kecamatan?->kabupatenKota;
-        $provinsi = $kabupaten?->provinsi;
-        $negara = $provinsi?->negara;
+        $desa = $jamaah->wilayahAdmDesa;
+        $kecamatan = $desa->wilayahAdmKecamatan;
+        $kabupaten = $kecamatan?->wilayahAdmKabupatenKota;
+        $provinsi = $kabupaten?->wilayahAdmProvinsi;
+        $negara = $provinsi?->wilayahAdmNegara;
 
         return [
-            'negara_id' => $negara?->id,
-            'provinsi_id' => $provinsi?->id,
-            'kabupaten_kota_id' => $kabupaten?->id,
-            'kecamatan_id' => $kecamatan?->id,
-            'desa_kelurahan_id' => $desa->id,
+            'wilayah_adm_negara_id' => $negara?->id,
+            'wilayah_adm_provinsi_id' => $provinsi?->id,
+            'wilayah_adm_kabupaten_kota_id' => $kabupaten?->id,
+            'wilayah_adm_kecamatan_id' => $kecamatan?->id,
+            'wilayah_adm_desa_id' => $desa->id,
             'labels' => [
-                'negara' => $negara?->nama,
-                'provinsi' => $provinsi?->nama,
-                'kabupaten_kota' => $kabupaten?->nama,
-                'kecamatan' => $kecamatan?->nama,
-                'desa_kelurahan' => $desa->nama,
+                'wilayah_adm_negara' => $negara?->nama,
+                'wilayah_adm_provinsi' => $provinsi?->nama,
+                'wilayah_adm_kabupaten_kota' => $kabupaten?->nama,
+                'wilayah_adm_kecamatan' => $kecamatan?->nama,
+                'wilayah_adm_desa' => $desa->nama,
             ],
         ];
     }

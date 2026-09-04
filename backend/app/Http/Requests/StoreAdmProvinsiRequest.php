@@ -21,9 +21,10 @@ class StoreAdmProvinsiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'negara_id' => ['required', 'integer', 'exists:adm_negara,id'],
-            'kode' => ['required', 'string', 'max:8', 'unique:adm_provinsi,kode'],
+            'wilayah_adm_negara_id' => ['required', 'integer', 'exists:wilayah_adm_negara_m,id'],
+            'kode' => ['required', 'string', 'max:8', 'unique:wilayah_adm_provinsi_m,kode'],
             'nama' => ['required', 'string', 'max:255'],
+            'singkatan' => ['nullable', 'string', 'max:8', 'unique:wilayah_adm_provinsi_m,singkatan'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

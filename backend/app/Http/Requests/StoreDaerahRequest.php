@@ -14,9 +14,10 @@ class StoreDaerahRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pusat_id' => ['required', 'integer', 'exists:pusat,id'],
-            'kode' => ['required', 'string', 'max:50', 'unique:daerah,kode'],
+            'wilayah_fung_pusat_id' => ['required', 'integer', 'exists:wilayah_fung_pusat_m,id'],
+            'kode' => ['required', 'string', 'max:50', 'unique:wilayah_fung_daerah_m,kode'],
             'nama' => ['required', 'string', 'max:255'],
+            'singkatan' => ['nullable', 'string', 'max:8', 'alpha_num'],
             'deskripsi' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];

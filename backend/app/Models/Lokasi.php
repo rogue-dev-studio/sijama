@@ -15,13 +15,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lokasi extends Model
 {
-    protected $table = 'lokasi';
+    protected $table = 'lokasi_m';
 
     protected $fillable = [
         'nama',
         'jenis',
         'kota',
-        'adm_desa_kelurahan_id',
+        'wilayah_adm_desa_id',
         'alamat',
         'lat',
         'lng',
@@ -41,14 +41,9 @@ class Lokasi extends Model
         ];
     }
 
-    public function admDesaKelurahan(): BelongsTo
+    public function wilayahAdmDesa(): BelongsTo
     {
-        return $this->belongsTo(AdmDesaKelurahan::class, 'adm_desa_kelurahan_id');
-    }
-
-    public function pengajian(): HasMany
-    {
-        return $this->hasMany(Pengajian::class);
+        return $this->belongsTo(AdmDesaKelurahan::class, 'wilayah_adm_desa_id');
     }
 
     public function kegiatan(): HasMany

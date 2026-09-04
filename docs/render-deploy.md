@@ -74,15 +74,18 @@ Set `FRONTEND_URL` di backend = URL frontend Render.
 
 1. Render Dashboard → **sijama-api** → **Environment**
 2. Tambah env:
+   - `MIGRATE_FRESH_ON_DEPLOY` = `true` — **wajib sekali** setelah squash migration (hapus semua tabel Aiven lalu recreate). **DATA HILANG.**
    - `SEED_ON_DEPLOY` = `true`
    - `BOOTSTRAP_ADMIN_USERNAME` = `admin` (atau username pilihan)
    - `BOOTSTRAP_ADMIN_EMAIL` = email admin production
    - `BOOTSTRAP_ADMIN_PASSWORD` = password kuat (min. 8 karakter)
    - `BOOTSTRAP_ADMIN_NAME` = opsional (default: Super Admin SIJAMA)
-3. **Manual Deploy** → buka **Logs**, tunggu baris `Seed finished` dan `Production admin ... siap`
-4. **Hapus** `SEED_ON_DEPLOY` dan `BOOTSTRAP_ADMIN_*` agar deploy berikutnya tidak seed / reset admin
+3. **Manual Deploy** → buka **Logs**, tunggu `migrate:fresh done` lalu `Seed finished`
+4. **Hapus** `MIGRATE_FRESH_ON_DEPLOY`, `SEED_ON_DEPLOY`, dan `BOOTSTRAP_ADMIN_*` agar deploy berikutnya tidak wipe/seed ulang
 
-Entrypoint menjalankan `scripts/seed-aiven-only.sh` (RBAC, konfig, wilayah, lookup, event, hari libur — tanpa akun demo lokal).
+Entrypoint menjalankan `scripts/seed-aiven-only.sh` (RBAC, konfig, wilayah, lookup, event, hari libur, **9 akun demo** — tidak dapat dihapus dari aplikasi).
+
+Password demo release: `BOOTSTRAP_DEMO_PASSWORD` (default `password`, min. 8 karakter).
 
 **Paid Shell (alternatif):**
 
@@ -92,7 +95,7 @@ bash scripts/seed-aiven-only.sh
 
 > **Jangan** pakai `php artisan db:seed --force` saja — `DatabaseSeeder` sengaja di-skip di production.
 
-Verifikasi (PostgreSQL): `hak_akses` dan grant Super Admin harus ~545 baris. Setelah seed, **logout/login** agar permission session ter-refresh.
+Verifikasi (PostgreSQL): `hak_akses_m` dan grant Super Admin harus **530** baris (katalog UI saat ini). Angka lama **545** termasuk modul `pengajian` / `laporan_pengajian` yang sudah digabung ke kegiatan. Setelah seed, **logout/login** agar permission session ter-refresh.
 
 Login seed lokal: `admin@sijama.local` / `password` — **ganti password di production.**
 

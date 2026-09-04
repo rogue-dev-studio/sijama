@@ -2,9 +2,9 @@
 
 /**
  * @Author: rogue-dev-studio
- * @Date: 2026-08-03 12:40:00
+ * @Date: 2026-08-31 19:01:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-08-03 12:40:00
+ * @Last Modified time: 2026-08-31 19:01:00
  */
 
 namespace Database\Seeders;
@@ -19,15 +19,20 @@ class MasterEventSeeder extends Seeder
 {
     public function run(): void
     {
+        $legacyKategori = [
+            'Sosial', 'Dakwah', 'Pendidikan', 'Olahraga', 'Keputrian', 'Pemuda', 'Lainnya',
+        ];
+
+        KategoriKegiatan::query()
+            ->whereIn('nama', $legacyKategori)
+            ->update(['is_active' => false]);
+
         foreach ([
+            ['nama' => 'Kemandirian', 'calendar_color' => '#16a34a'],
+            ['nama' => 'PPG', 'calendar_color' => '#2563eb'],
+            ['nama' => 'Daerahan', 'calendar_color' => '#7c3aed'],
             ['nama' => 'Pengajian', 'calendar_color' => '#0f766e'],
-            ['nama' => 'Sosial', 'calendar_color' => '#2563eb'],
-            ['nama' => 'Dakwah', 'calendar_color' => '#7c3aed'],
-            ['nama' => 'Pendidikan', 'calendar_color' => '#0891b2'],
-            ['nama' => 'Olahraga', 'calendar_color' => '#16a34a'],
-            ['nama' => 'Keputrian', 'calendar_color' => '#db2777'],
-            ['nama' => 'Pemuda', 'calendar_color' => '#ea580c'],
-            ['nama' => 'Lainnya', 'calendar_color' => '#64748b'],
+            ['nama' => 'CAI', 'calendar_color' => '#0891b2'],
         ] as $row) {
             KategoriKegiatan::updateOrCreate(
                 ['nama' => $row['nama']],
@@ -39,14 +44,26 @@ class MasterEventSeeder extends Seeder
             );
         }
 
+        $legacyMateri = [
+            'Tafsir', 'Hadits', 'Fiqih', 'Akhlak', 'Sirah', 'Muamalah', 'Keluarga / Pernikahan',
+            'Teks Daerahan PPG Daerah',
+        ];
+
+        Materi::query()
+            ->whereIn('nama', $legacyMateri)
+            ->update(['is_active' => false]);
+
         foreach ([
-            ['nama' => 'Tafsir'],
-            ['nama' => 'Hadits'],
-            ['nama' => 'Fiqih'],
-            ['nama' => 'Akhlak'],
-            ['nama' => 'Sirah'],
-            ['nama' => 'Muamalah'],
-            ['nama' => 'Keluarga / Pernikahan'],
+            ['nama' => 'Al-Quran'],
+            ['nama' => 'Al-Hadits'],
+            ['nama' => 'Nasehat'],
+            ['nama' => 'Teks Daerahan'],
+            ['nama' => 'PPG Daerah'],
+            ['nama' => 'FKKI Daerah'],
+            ['nama' => 'Organisasi Daerah'],
+            ['nama' => 'ST'],
+            ['nama' => 'CAI'],
+            ['nama' => 'ASAD'],
         ] as $row) {
             Materi::updateOrCreate(
                 ['nama' => $row['nama']],

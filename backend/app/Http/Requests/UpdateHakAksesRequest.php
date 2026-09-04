@@ -15,8 +15,8 @@ class UpdateHakAksesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'fitur_id' => ['sometimes', 'integer', 'exists:fiturs,id'],
-            'slug' => ['sometimes', 'string', 'max:100', Rule::unique('hak_akses', 'slug')->ignore($this->route('hak_akses'))],
+            'fitur_id' => ['sometimes', 'integer', 'exists:fitur_m,id'],
+            'slug' => ['sometimes', 'string', 'max:100', Rule::unique('hak_akses_m', 'slug')->ignore($this->route('hak_akses'))],
             'nama' => ['sometimes', 'string', 'max:255'],
             'aksi' => ['sometimes', 'string', Rule::in(['view', 'create', 'update', 'delete', 'execute'])],
         ];

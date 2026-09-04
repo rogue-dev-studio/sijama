@@ -34,7 +34,7 @@ class ProfilePhotoTest extends TestCase
             'email' => 'photo.user@sijama.test',
             'status' => 'aktif',
         ]);
-        $user->update(['jamaah_id' => $jamaah->id]);
+        $user->updateAttributes(['jamaah_id' => $jamaah->id]);
 
         $upload = $this->actingAs($user, 'sanctum')->post('/api/profile/photo', [
             'file' => UploadedFile::fake()->image('avatar.jpg', 200, 200),

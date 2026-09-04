@@ -9,11 +9,19 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\RejectsKodeChangeUnlessSuperAdmin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateAdmKecamatanRequest extends FormRequest
 {
+    use RejectsKodeChangeUnlessSuperAdmin;
+
+    protected function columnPermissionPrefix(): string
+    {
+        return 'wilayah_adm_kecamatan';
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -22,8 +30,8 @@ class UpdateAdmKecamatanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kabupaten_kota_id' => ['sometimes', 'integer', 'exists:adm_kabupaten_kota,id'],
-            'kode' => ['sometimes', 'string', 'max:24', Rule::unique('adm_kecamatan', 'kode')->ignore($this->route('adm_kecamatan'))],
+            'wilayah_adm_kabupaten_kota_id' => ['sometimes', 'integer', 'exists:wilayah_adm_kabupaten_kota_m,id'],
+            'kode' => ['sometimes', 'string', 'max:24', Rule::unique('wilayah_adm_kecamatan_m', 'kode')->ignore($this->route('wilayah_adm_kecamatan'))],
             'nama' => ['sometimes', 'string', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],
         ];

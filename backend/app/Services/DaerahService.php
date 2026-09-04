@@ -26,7 +26,7 @@ class DaerahService
         ?string $sortBy = null,
         ?string $sortDir = null,
     ): LengthAwarePaginator {
-        $builder = Daerah::query()->with('pusat');
+        $builder = Daerah::query()->with('wilayahFungPusat');
         SortHelper::apply(
             $builder,
             $sortBy,
@@ -37,7 +37,7 @@ class DaerahService
         $this->scopeService->applyDaerahScope($builder, $user);
 
         if ($pusatId !== null) {
-            $builder->where('pusat_id', $pusatId);
+            $builder->where('wilayah_fung_pusat_id', $pusatId);
         }
 
         if ($query) {
@@ -49,12 +49,12 @@ class DaerahService
 
     public function create(array $data, User $user): DaerahResource
     {
-        $pusat = Pusat::findOrFail($data['pusat_id']);
+        $pusat = Pusat::findOrFail($data['wilayah_fung_pusat_id']);
         $this->scopeService->assertPusatInScope($user, $pusat);
 
         $daerah = Daerah::create($data);
 
-        return new DaerahResource($daerah->load('pusat'));
+        return new DaerahResource($daerah->load('wilayahFungPusat'));
     }
 
     public function find(int $id, User $user): DaerahResource
@@ -62,7 +62,7 @@ class DaerahService
         $daerah = $this->findModel($id);
         $this->scopeService->assertDaerahInScope($user, $daerah);
 
-        return new DaerahResource($daerah->load('pusat'));
+        return new DaerahResource($daerah->load('wilayahFungPusat'));
     }
 
     public function update(int $id, array $data, User $user): DaerahResource
@@ -70,14 +70,14 @@ class DaerahService
         $daerah = $this->findModel($id);
         $this->scopeService->assertDaerahInScope($user, $daerah);
 
-        if (isset($data['pusat_id'])) {
-            $pusat = Pusat::findOrFail($data['pusat_id']);
+        if (isset($data['wilayah_fung_pusat_id'])) {
+            $pusat = Pusat::findOrFail($data['wilayah_fung_pusat_id']);
             $this->scopeService->assertPusatInScope($user, $pusat);
         }
 
         $daerah->update($data);
 
-        return new DaerahResource($daerah->fresh()->load('pusat'));
+        return new DaerahResource($daerah->fresh()->load('wilayahFungPusat'));
     }
 
     public function delete(int $id, User $user): void
@@ -85,7 +85,7 @@ class DaerahService
         $daerah = $this->findModel($id);
         $this->scopeService->assertDaerahInScope($user, $daerah);
 
-        if ($daerah->desa()->exists()) {
+        if ($daerah->wilayahFungDesa()->exists()) {
             throw ValidationException::withMessages([
                 'daerah' => ['Daerah masih memiliki desa terkait.'],
             ]);

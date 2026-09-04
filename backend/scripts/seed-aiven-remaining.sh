@@ -26,4 +26,4 @@ php artisan db:seed --class=MasterEventSeeder --force
 echo "== HariLibur =="
 php artisan db:seed --class=HariLiburSeeder --force
 
-echo "Remaining seed done."
+echo "Remaining seed done (akun demo via WilayahSeeder)."

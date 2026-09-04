@@ -10,7 +10,7 @@ import type { Desa, DesaInput } from '../api/types'
 import { SimpleMasterKodeFormPage } from '../components/SimpleMasterKodeFormPage'
 
 const emptyForm: DesaInput = {
-  daerah_id: 0,
+  wilayah_fung_daerah_id: 0,
   kode: '',
   nama: '',
   deskripsi: '',
@@ -19,7 +19,7 @@ const emptyForm: DesaInput = {
 
 function toForm(item: Desa): DesaInput {
   return {
-    daerah_id: item.daerah_id,
+    wilayah_fung_daerah_id: item.wilayah_fung_daerah_id,
     kode: item.kode,
     nama: item.nama,
     deskripsi: item.deskripsi || '',
@@ -28,7 +28,7 @@ function toForm(item: Desa): DesaInput {
 }
 
 const parentSelect = {
-  field: 'daerah_id' as const,
+  field: 'wilayah_fung_daerah_id' as const,
   label: 'Daerah',
   emptyMessage: 'Tambahkan daerah terlebih dahulu.',
   loadOptions: async () => {
@@ -42,13 +42,14 @@ export function MasterDesaFormPage() {
     <SimpleMasterKodeFormPage
       entityLabel="desa"
       description="Kelola wilayah desa per daerah dalam hierarki SIJAMA."
-      listPath="/master/desa"
+      listPath="/master/wilayah-fung/desa"
       emptyForm={emptyForm}
       get={masterDesaService.get}
       create={masterDesaService.create}
       update={masterDesaService.update}
       toForm={toForm}
       parentSelect={parentSelect}
+      permissionPrefix="wilayah_fung_desa"
     />
   )
 }

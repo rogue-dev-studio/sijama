@@ -78,3 +78,25 @@ export function buildMaintenancePageStyle(settings: AppPublicSettings): CSSPrope
 
   return style
 }
+
+export function buildAuthGatePageStyle(settings: AppPublicSettings): CSSProperties {
+  const style: CSSProperties = {}
+  const backgroundUrl = resolveKonfigAssetUrl(settings.path_background)
+  const backgroundStyle = normalizeBackgroundStyle(settings.background_style)
+  const repeatSize = normalizeBackgroundRepeatSize(settings.background_repeat_size)
+
+  if (backgroundUrl) {
+    applyBackgroundLayers(style, backgroundUrl, backgroundStyle, repeatSize)
+  } else {
+    style.backgroundImage = `url("${BG_PATTERN_URL}")`
+    style.backgroundRepeat = 'repeat'
+    style.backgroundSize = BG_PATTERN_SIZE
+    style.backgroundPosition = 'top left'
+  }
+
+  if (settings.color_bg?.trim()) {
+    style.backgroundColor = settings.color_bg.trim()
+  }
+
+  return style
+}

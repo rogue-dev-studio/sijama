@@ -16,6 +16,7 @@ import {
 } from 'react'
 import { aplikasiKonfigService } from '../api/services'
 import type { AppPublicSettings } from '../api/types'
+import { getToken } from '../api/client'
 import { buildBrowserTabTitle } from '../lib/appBrand'
 import { resolveKonfigAssetUrl } from '../lib/konfigAsset'
 
@@ -48,6 +49,8 @@ const FALLBACK_SETTINGS: AppPublicSettings = {
   color_muted: null,
   color_border: null,
   theme_color: null,
+  font_family_display: null,
+  font_family_body: null,
   maintenance_mode: false,
   maintenance_message: 'Aplikasi sedang dalam perawatan. Silakan coba lagi nanti.',
   maintenance_login_allowed: false,
@@ -116,6 +119,14 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
+
+    if (getToken()) {
+      setLoading(false)
+      return () => {
+        active = false
+      }
+    }
+
     void (async () => {
       try {
         const next = await aplikasiKonfigService.publicSettings()

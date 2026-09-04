@@ -13,6 +13,10 @@ class EnsurePermission
     {
         $user = $request->user();
 
+        if ($user?->isSuperAdmin()) {
+            return $next($request);
+        }
+
         if (! $user || ! $user->hasPermission($permission)) {
             return ApiResponse::error('Akses ditolak.', null, 403);
         }

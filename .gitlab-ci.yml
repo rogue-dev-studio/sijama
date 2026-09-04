@@ -23,11 +23,24 @@ test:backend:
   stage: test
   image: php:8.2-cli
   extends: .default_rules
+  services:
+    - postgres:16-alpine
+  variables:
+    POSTGRES_DB: sijama_testing
+    POSTGRES_USER: sijama
+    POSTGRES_PASSWORD: sijama
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_DATABASE: sijama_testing
+    DB_USERNAME: sijama
+    DB_PASSWORD: sijama
   before_script:
-    - apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libpq-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev
+    - apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libpq-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev postgresql-client
     - docker-php-ext-configure gd --with-freetype --with-jpeg
     - docker-php-ext-install -j"$(nproc)" zip gd mbstring bcmath pdo_pgsql
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - until pg_isready -h postgres -U sijama; do sleep 1; done
   script:
     - cd backend
     - composer install --no-interaction --prefer-dist

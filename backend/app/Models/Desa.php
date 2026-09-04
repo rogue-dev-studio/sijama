@@ -8,15 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Desa extends Model
 {
-    protected $table = 'desa';
+    protected $table = 'wilayah_fung_desa_m';
 
     protected $fillable = [
-        'daerah_id',
+        'wilayah_fung_daerah_id',
         'kode',
         'nama',
+        'singkatan',
         'deskripsi',
         'is_active',
-        'adm_desa_kelurahan_id',
+        'wilayah_adm_desa_id',
     ];
 
     protected function casts(): array
@@ -26,23 +27,23 @@ class Desa extends Model
         ];
     }
 
-    public function daerah(): BelongsTo
+    public function wilayahFungDaerah(): BelongsTo
     {
-        return $this->belongsTo(Daerah::class);
+        return $this->belongsTo(Daerah::class, 'wilayah_fung_daerah_id');
     }
 
-    public function admDesaKelurahan(): BelongsTo
+    public function wilayahAdmDesa(): BelongsTo
     {
-        return $this->belongsTo(AdmDesaKelurahan::class, 'adm_desa_kelurahan_id');
+        return $this->belongsTo(AdmDesaKelurahan::class, 'wilayah_adm_desa_id');
     }
 
-    public function kelompok(): HasMany
+    public function wilayahFungKelompok(): HasMany
     {
-        return $this->hasMany(Kelompok::class);
+        return $this->hasMany(Kelompok::class, 'wilayah_fung_desa_id');
     }
 
     public function users(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'wilayah_fung_desa_id');
     }
 }

@@ -10,7 +10,7 @@ import type { SubKelompok, SubKelompokInput } from '../api/types'
 import { SimpleMasterKodeFormPage } from '../components/SimpleMasterKodeFormPage'
 
 const emptyForm: SubKelompokInput = {
-  kelompok_id: 0,
+  wilayah_fung_kelompok_id: 0,
   kode: '',
   nama: '',
   deskripsi: '',
@@ -19,7 +19,7 @@ const emptyForm: SubKelompokInput = {
 
 function toForm(item: SubKelompok): SubKelompokInput {
   return {
-    kelompok_id: item.kelompok_id,
+    wilayah_fung_kelompok_id: item.wilayah_fung_kelompok_id,
     kode: item.kode,
     nama: item.nama,
     deskripsi: item.deskripsi || '',
@@ -28,11 +28,11 @@ function toForm(item: SubKelompok): SubKelompokInput {
 }
 
 const parentSelect = {
-  field: 'kelompok_id' as const,
+  field: 'wilayah_fung_kelompok_id' as const,
   label: 'Kelompok',
   emptyMessage: 'Tambahkan kelompok terlebih dahulu.',
   loadOptions: async () => {
-    const result = await masterKelompokService.list({ per_page: 10000 })
+    const result = await masterKelompokService.list({ per_page: 500 })
     return result.items.map((item) => ({ id: item.id, nama: item.nama }))
   },
 }
@@ -42,13 +42,14 @@ export function MasterSubKelompokFormPage() {
     <SimpleMasterKodeFormPage
       entityLabel="sub kelompok"
       description="Kelola sub kelompok di bawah kelompok."
-      listPath="/master/sub-kelompok"
+      listPath="/master/wilayah-fung/sub-kelompok"
       emptyForm={emptyForm}
       get={masterSubKelompokService.get}
       create={masterSubKelompokService.create}
       update={masterSubKelompokService.update}
       toForm={toForm}
       parentSelect={parentSelect}
+      permissionPrefix="wilayah_fung_sub_kelompok"
     />
   )
 }

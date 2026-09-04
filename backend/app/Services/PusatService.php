@@ -77,7 +77,7 @@ class PusatService
         $pusat = $this->findModel($id);
         $this->scopeService->assertPusatInScope($user, $pusat);
 
-        if ($pusat->daerah()->exists()) {
+        if ($pusat->wilayahFungDaerah()->exists()) {
             throw ValidationException::withMessages([
                 'pusat' => ['Pusat masih memiliki daerah terkait.'],
             ]);

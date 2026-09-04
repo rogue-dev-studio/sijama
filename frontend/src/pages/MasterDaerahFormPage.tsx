@@ -10,7 +10,7 @@ import type { Daerah, DaerahInput } from '../api/types'
 import { SimpleMasterKodeFormPage } from '../components/SimpleMasterKodeFormPage'
 
 const emptyForm: DaerahInput = {
-  pusat_id: 0,
+  wilayah_fung_pusat_id: 0,
   kode: '',
   nama: '',
   deskripsi: '',
@@ -19,7 +19,7 @@ const emptyForm: DaerahInput = {
 
 function toForm(item: Daerah): DaerahInput {
   return {
-    pusat_id: item.pusat_id,
+    wilayah_fung_pusat_id: item.wilayah_fung_pusat_id,
     kode: item.kode,
     nama: item.nama,
     deskripsi: item.deskripsi || '',
@@ -28,7 +28,7 @@ function toForm(item: Daerah): DaerahInput {
 }
 
 const parentSelect = {
-  field: 'pusat_id' as const,
+  field: 'wilayah_fung_pusat_id' as const,
   label: 'Pusat',
   emptyMessage: 'Tambahkan pusat terlebih dahulu.',
   loadOptions: async () => {
@@ -42,13 +42,14 @@ export function MasterDaerahFormPage() {
     <SimpleMasterKodeFormPage
       entityLabel="daerah"
       description="Kelola wilayah daerah per pusat dalam hierarki SIJAMA."
-      listPath="/master/daerah"
+      listPath="/master/wilayah-fung/daerah"
       emptyForm={emptyForm}
       get={masterDaerahService.get}
       create={masterDaerahService.create}
       update={masterDaerahService.update}
       toForm={toForm}
       parentSelect={parentSelect}
+      permissionPrefix="wilayah_fung_daerah"
     />
   )
 }

@@ -13,7 +13,7 @@ import { useAppSettings } from '../auth/AppSettingsContext'
 import { useAuth } from '../auth/AuthContext'
 import { buildAppShellBrand } from '../lib/appBrand'
 import { isSuperAdminUser } from '../lib/isSuperAdmin'
-import { buildMaintenancePageStyle } from '../lib/maintenanceTheme'
+import { PublicGateShell } from '../components/PublicGateShell'
 
 export function MaintenancePage() {
   const { settings } = useAppSettings()
@@ -21,7 +21,6 @@ export function MaintenancePage() {
   const navigate = useNavigate()
   const { title, subtitle } = buildAppShellBrand(settings)
   const logo = settings.path_logoheader
-  const pageStyle = buildMaintenancePageStyle(settings)
   const showLogout = Boolean(user && !isSuperAdminUser(user))
 
   async function handleLogout() {
@@ -30,9 +29,7 @@ export function MaintenancePage() {
   }
 
   return (
-    <div className="maintenance-page" style={pageStyle}>
-      <div className="maintenance-page__overlay" aria-hidden />
-      <div className="maintenance-panel">
+    <PublicGateShell settings={settings} mode="maintenance">
         <div className="maintenance-panel__brand">
           <BrandMark size={64} src={logo} className="maintenance-panel__brand-mark" alt={title} />
           <h1>{title}</h1>
@@ -52,7 +49,6 @@ export function MaintenancePage() {
           </div>
         )}
         <DeveloperFooter />
-      </div>
-    </div>
+    </PublicGateShell>
   )
 }

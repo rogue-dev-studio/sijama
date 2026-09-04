@@ -11,6 +11,7 @@ namespace Database\Seeders;
 
 use App\Models\Dapukan;
 use App\Models\User;
+use App\Support\SuperAdminAccess;
 use Illuminate\Database\Seeder;
 use InvalidArgumentException;
 
@@ -48,13 +49,15 @@ class ProductionAdminSeeder extends Seeder
                 'email' => $email,
                 'password' => $password,
                 'dapukan_id' => $superadmin->id,
-                'pusat_id' => null,
-                'daerah_id' => null,
-                'desa_id' => null,
-                'kelompok_id' => null,
+                'wilayah_fung_pusat_id' => null,
+                'wilayah_fung_daerah_id' => null,
+                'wilayah_fung_desa_id' => null,
+                'wilayah_fung_kelompok_id' => null,
                 'is_active' => true,
             ],
         );
+
+        SuperAdminAccess::grantAll();
 
         $this->command?->info("Production admin '{$username}' siap (Super Admin).");
     }

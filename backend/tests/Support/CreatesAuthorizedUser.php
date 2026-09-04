@@ -65,7 +65,7 @@ trait CreatesAuthorizedUser
             $dapukan->hakAkses()->sync($hakIds);
         }
 
-        return User::query()->create([
+        return User::createManaged([
             'name' => 'Tester',
             'username' => $username,
             'email' => $username.'@sijama.test',

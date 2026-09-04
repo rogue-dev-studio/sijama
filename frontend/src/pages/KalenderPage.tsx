@@ -10,7 +10,8 @@ import { ApiError } from '../api/client'
 import { calendarService } from '../api/services'
 import type { CalendarDay, CalendarEvent, CalendarMonth } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { SearchableSelect } from '../components/SearchableSelect'
+import { MenuIcon } from '../components/MenuIcon'
+import { DateField } from '../components/DateField'
 
 const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as const
 const MONTHS = [
@@ -31,6 +32,31 @@ const MAX_MARKERS = 3
 
 function formatMonthTitle(year: number, month: number) {
   return `${MONTHS[month - 1]} ${year}`
+}
+
+function monthAnchorDate(year: number, month: number) {
+  return `${year}-${String(month).padStart(2, '0')}-01`
+}
+
+function parseDateParts(raw: string): { year: number; month: number; day: number } | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (
+    !Number.isInteger(year) ||
+    year < 1 ||
+    !Number.isInteger(month) ||
+    month < 1 ||
+    month > 12 ||
+    !Number.isInteger(day) ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null
+  }
+  return { year, month, day }
 }
 
 function hijriLabel(dateIso: string): string {
@@ -117,13 +143,7 @@ export function KalenderPage() {
   const selectedDay = data?.days.find((day) => day.date === selectedDate) ?? null
 
   function eventLink(event: CalendarEvent) {
-    return event.type === 'pengajian' ? `/pengajian/${event.id}/edit` : `/kegiatan/${event.id}/edit`
-  }
-
-  function handleYearChange(raw: string) {
-    const next = Number(raw)
-    if (!Number.isInteger(next) || next < 1) return
-    setYear(next)
+    return `/kegiatan/${event.id}/edit`
   }
 
   function goToToday() {
@@ -133,9 +153,26 @@ export function KalenderPage() {
     setSelectedDate(localDateIso(today))
   }
 
+  function handlePeriodChange(raw: string) {
+    if (!raw.trim()) {
+      goToToday()
+      return
+    }
+    const next = parseDateParts(raw)
+    if (!next) return
+    setYear(next.year)
+    setMonth(next.month)
+    setSelectedDate(raw)
+  }
+
   const today = new Date()
   const todayIso = localDateIso(today)
   const viewingToday = year === today.getFullYear() && month === today.getMonth() + 1
+  const awayFromToday = !viewingToday || selectedDate !== todayIso
+  const periodInputValue =
+    selectedDate && selectedDate.startsWith(`${year}-${String(month).padStart(2, '0')}-`)
+      ? selectedDate
+      : monthAnchorDate(year, month)
 
   return (
     <>
@@ -143,59 +180,47 @@ export function KalenderPage() {
         <div className="page-header__row">
           <div>
             <h1>Kalender</h1>
-            <p>Jadwal kegiatan dan pengajian per bulan (Masehi &amp; Hijriyah).</p>
+            <p>Jadwal kegiatan per bulan (Masehi &amp; Hijriyah).</p>
           </div>
         </div>
       </header>
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="form-panel calendar-card">
-        <div className="calendar-toolbar">
-          <h2 className="calendar-toolbar__title">{formatMonthTitle(year, month)}</h2>
-          <div className="calendar-toolbar__filters">
+      <div className="filter-bar">
+        <div className="filter-bar__row filter-bar__row--primary filter-bar__row--period">
+          <div className="filter-bar__cell filter-bar__cell--filter">
             <div className="field">
-              <label htmlFor="calendar-month">Bulan</label>
-              <SearchableSelect
-                id="calendar-month"
-                value={String(month)}
-                onChange={(next) => setMonth(Number(next))}
-                placeholder="Pilih bulan"
-                options={MONTHS.map((label, index) => ({
-                  value: String(index + 1),
-                  label,
-                }))}
+              <label htmlFor="calendar-period">Periode</label>
+              <DateField
+                id="calendar-period"
+                value={periodInputValue}
+                onChange={handlePeriodChange}
+                onClear={goToToday}
               />
             </div>
-            <div className="field">
-              <label htmlFor="calendar-year">Tahun</label>
-              <input
-                id="calendar-year"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                step={1}
-                value={year}
-                onChange={(event) => handleYearChange(event.target.value)}
-              />
-            </div>
-            <div className="field calendar-toolbar__today">
-              <span className="calendar-toolbar__today-spacer" aria-hidden="true">
-                &nbsp;
-              </span>
+          </div>
+          <div className="filter-bar__cell filter-bar__cell--toolbar">
+            <span className="filter-bar__toolbar-spacer" aria-hidden="true">
+              &nbsp;
+            </span>
+            <div className="filter-bar__toolbar">
               <button
                 type="button"
-                className="btn btn--secondary"
+                className="btn btn--secondary btn--icon"
+                disabled={!awayFromToday}
+                aria-label="Hari ini"
+                title="Hari ini"
                 onClick={goToToday}
-                aria-label="Lompat ke hari ini"
-                disabled={viewingToday && selectedDate === todayIso}
               >
-                Hari ini
+                <MenuIcon name="calendar" size={16} />
               </button>
             </div>
           </div>
         </div>
+      </div>
 
+      <div className="form-panel calendar-card">
         {loading && <div className="loading-state">Memuat kalender…</div>}
 
         {!loading && data && (
@@ -297,8 +322,9 @@ export function KalenderPage() {
                         {dayNumber(item.tanggal)} {MONTHS[month - 1]}
                       </span>
                       <span className="calendar-holidays__name">{item.nama}</span>
-                      <span className="muted"> ({item.jenis})</span>
-                      <span className="muted"> · Hijri {hijriLabel(item.tanggal)}</span>
+                      <span className="calendar-holidays__meta muted">
+                        ({item.jenis}) · Hijri {hijriLabel(item.tanggal)}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -328,7 +354,7 @@ export function KalenderPage() {
             </p>
           )}
           {selectedDay && selectedDay.events.length === 0 && (
-            <p className="empty-state">Tidak ada kegiatan/pengajian pada tanggal ini.</p>
+            <p className="empty-state">Tidak ada kegiatan pada tanggal ini.</p>
           )}
           {selectedDay && selectedDay.events.length > 0 && (
             <ul className="calendar-event-list">
@@ -338,7 +364,6 @@ export function KalenderPage() {
                   <div>
                     <div>
                       <strong>{event.title}</strong>
-                      <span className="muted"> · {event.type}</span>
                     </div>
                     <div className="muted">
                       {[event.time_label, event.kategori_nama, event.status].filter(Boolean).join(' · ')}
