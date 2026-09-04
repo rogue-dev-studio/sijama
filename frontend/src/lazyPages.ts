@@ -7,7 +7,7 @@
 
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
-function lazyNamed<T extends ComponentType<object>>(
+function lazyNamed<T extends ComponentType<any>>(
   loader: () => Promise<Record<string, T>>,
   exportName: string,
 ): LazyExoticComponent<T> {

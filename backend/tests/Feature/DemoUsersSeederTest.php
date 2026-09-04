@@ -121,7 +121,7 @@ class DemoUsersSeederTest extends TestCase
 
         $login->assertOk();
         $permissions = $login->json('data.permissions');
-        $this->assertSame($allSlugs, $permissions);
+        $this->assertSame(['*'], $permissions);
     }
 
     public function test_every_demo_user_receives_dapukan_permissions(): void

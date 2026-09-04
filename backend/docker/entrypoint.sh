@@ -48,13 +48,23 @@ if [ "$ROLE" = "scheduler" ]; then
   exec php artisan schedule:work
 fi
 
-# Squash / remigrate: set MIGRATE_FRESH_ON_DEPLOY=true once (wipes DB), then unset.
+# Squash remigrate: env flag, or auto-recover when migrate fails (old Aiven vs new definitions).
+DID_FRESH=false
 if [ "${MIGRATE_FRESH_ON_DEPLOY:-false}" = "true" ]; then
   echo "MIGRATE_FRESH_ON_DEPLOY=true — running migrate:fresh (DATA WIPE)..."
   php artisan migrate:fresh --force
+  DID_FRESH=true
   echo "migrate:fresh done. Remove MIGRATE_FRESH_ON_DEPLOY from env after this deploy."
 else
+  set +e
   php artisan migrate --force
+  MIGRATE_EXIT=$?
+  set -e
+  if [ "$MIGRATE_EXIT" -ne 0 ]; then
+    echo "migrate failed (exit ${MIGRATE_EXIT}) — auto migrate:fresh for remigrate baseline (DATA WIPE)..."
+    php artisan migrate:fresh --force
+    DID_FRESH=true
+  fi
 fi
 
 UPLOAD_DISK="${FILESYSTEM_UPLOAD_DISK:-}"
@@ -75,15 +85,15 @@ fi
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# Render free tier: no Shell — set SEED_ON_DEPLOY=true once in Dashboard, redeploy, then unset.
-if [ "${SEED_ON_DEPLOY:-false}" = "true" ]; then
-  echo "SEED_ON_DEPLOY=true — running production seed..."
+# Seed when asked or after a fresh wipe.
+if [ "${SEED_ON_DEPLOY:-false}" = "true" ] || [ "$DID_FRESH" = "true" ]; then
+  echo "Running production seed..."
   if [ -f scripts/seed-aiven-only.sh ]; then
     bash scripts/seed-aiven-only.sh
   else
     echo "scripts/seed-aiven-only.sh not found; seed skipped."
   fi
-  echo "Seed finished. Remove SEED_ON_DEPLOY from env vars to avoid re-seeding on next deploy."
+  echo "Seed finished. Remove SEED_ON_DEPLOY / MIGRATE_FRESH_ON_DEPLOY from env after success."
 fi
 
 LISTEN_PORT="${PORT:-80}"

@@ -18,7 +18,9 @@ export type ToastTone = 'success' | 'error' | 'info'
 
 export type ToastInput = {
   title: string
-  message: string
+  message?: string
+  /** Alias for message (legacy call sites). */
+  detail?: string
   tone?: ToastTone
   durationMs?: number
 }
@@ -57,7 +59,7 @@ function normalizeInput(
   }
   return {
     title: input.title.trim() || (input.tone === 'error' ? 'Gagal' : 'Berhasil'),
-    message: input.message.trim(),
+    message: (input.message ?? input.detail ?? '').trim(),
     tone: input.tone ?? tone,
     durationMs: input.durationMs ?? durationMs,
   }

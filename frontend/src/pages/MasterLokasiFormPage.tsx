@@ -196,7 +196,7 @@ export function MasterLokasiFormPage() {
   async function applyFromMaps(payload: LokasiMapsApplyPayload) {
     const adm = payload.adm
     const nextAlamat = payload.alamat?.trim() || null
-    const nextKota = adm?.labels?.kabupaten_kota?.trim() || null
+    const nextKota = adm?.labels?.wilayah_adm_kabupaten_kota?.trim() || null
     const mapsPlaceName = payload.place_name?.trim() || null
     const mapsPlaceId = payload.place_id?.trim() || null
     const mapsUrl = payload.maps_url?.trim() || null

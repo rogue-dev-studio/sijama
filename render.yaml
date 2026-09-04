@@ -51,11 +51,11 @@ services:
           type: web
           name: sijama-web
           envVarKey: RENDER_EXTERNAL_URL
-      # Set to "true" once in Render Dashboard → redeploy → unset (free tier has no Shell).
+      # One-shot remigrate+seed (squash baseline). Unset after successful deploy.
       - key: MIGRATE_FRESH_ON_DEPLOY
-        sync: false
+        value: "true"
       - key: SEED_ON_DEPLOY
-        sync: false
+        value: "true"
       - key: BOOTSTRAP_ADMIN_USERNAME
         sync: false
       - key: BOOTSTRAP_ADMIN_EMAIL
@@ -64,6 +64,8 @@ services:
         sync: false
       - key: BOOTSTRAP_ADMIN_NAME
         sync: false
+      - key: BOOTSTRAP_DEMO_PASSWORD
+        value: "password"
 
   - type: web
     name: sijama-web

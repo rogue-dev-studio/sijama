@@ -194,7 +194,7 @@ export function IntegrationLogPage({
 
   async function handleSaveNote() {
     if (!noteTitle.trim() || !noteMessage.trim()) {
-      pushToast({ tone: 'error', title: 'Judul dan pesan wajib diisi' })
+      pushToast({ tone: 'error', title: 'Validasi', message: 'Judul dan pesan wajib diisi' })
       return
     }
     setNoteSaving(true)

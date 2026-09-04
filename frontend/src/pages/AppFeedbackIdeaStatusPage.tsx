@@ -213,8 +213,8 @@ export function AppFeedbackIdeaStatusPage() {
               {selected.images && selected.images.length > 0 ? (
                 <div className="multi-image-picker__previews">
                   {selected.images.map((src) => (
-                    <a key={src} href={resolveKonfigAssetUrl(src)} target="_blank" rel="noreferrer">
-                      <img src={resolveKonfigAssetUrl(src)} alt="" className="multi-image-picker__thumb" />
+                    <a key={src} href={resolveKonfigAssetUrl(src) ?? undefined} target="_blank" rel="noreferrer">
+                      <img src={resolveKonfigAssetUrl(src) ?? undefined} alt="" className="multi-image-picker__thumb" />
                     </a>
                   ))}
                 </div>

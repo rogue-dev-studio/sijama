@@ -104,7 +104,7 @@ class ReportingViewService
             ->limit(8)
             ->get()
             ->map(fn ($row) => [
-                'label' => (string) $row->wilayahFungKelompok_nama,
+                'label' => (string) $row->kelompok_nama,
                 'value' => (int) $row->jamaah_aktif,
             ])
             ->values()
