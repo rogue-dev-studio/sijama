@@ -51,11 +51,11 @@ services:
           type: web
           name: sijama-web
           envVarKey: RENDER_EXTERNAL_URL
-      # One-shot remigrate+seed (squash baseline). Unset after successful deploy.
+      # One-shot only via Dashboard, or auto when migrate fails (see entrypoint.sh).
       - key: MIGRATE_FRESH_ON_DEPLOY
-        value: "true"
+        value: "false"
       - key: SEED_ON_DEPLOY
-        value: "true"
+        value: "false"
       - key: BOOTSTRAP_ADMIN_USERNAME
         sync: false
       - key: BOOTSTRAP_ADMIN_EMAIL
@@ -65,7 +65,7 @@ services:
       - key: BOOTSTRAP_ADMIN_NAME
         sync: false
       - key: BOOTSTRAP_DEMO_PASSWORD
-        value: "password"
+        sync: false
 
   - type: web
     name: sijama-web
