@@ -27,6 +27,8 @@ backend/bootstrap/cache/*.php
 
 pgdata/
 *.sql
+!backend/database/migrations/definitions/
+!backend/database/migrations/definitions/**/*.sql
 *.dump
 *.sqlite
 *.sqlite3

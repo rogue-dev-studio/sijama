@@ -1,0 +1,8 @@
+CREATE TABLE materi_m (
+    id BIGSERIAL PRIMARY KEY,
+    nama VARCHAR(255) NOT NULL,
+    deskripsi TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP(0) WITHOUT TIME ZONE,
+    updated_at TIMESTAMP(0) WITHOUT TIME ZONE
+);

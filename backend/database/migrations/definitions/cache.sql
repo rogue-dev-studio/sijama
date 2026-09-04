@@ -1,0 +1,5 @@
+CREATE TABLE cache (
+    key VARCHAR(255) NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL,
+    expiration INTEGER NOT NULL
+);
