@@ -2,7 +2,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-09-04 16:55:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-09-04 17:36:00
+ * @Last Modified time: 2026-09-05 19:35:00
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -20,6 +20,8 @@ const AVATAR_PALETTE = [
   '#3d6b8a',
   '#6b4d5a',
 ]
+
+const BODY_PREVIEW_MAX = 140
 
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -42,6 +44,14 @@ function normalizeGalleryRows(payload: unknown): AppFeedbackRow[] {
     return (payload as { items: AppFeedbackRow[] }).items
   }
   return []
+}
+
+function truncateBody(text: string, max = BODY_PREVIEW_MAX): { preview: string; truncated: boolean } {
+  const normalized = text.replace(/\s+/g, ' ').trim()
+  if (normalized.length <= max) {
+    return { preview: normalized, truncated: false }
+  }
+  return { preview: `${normalized.slice(0, max).trimEnd()}…`, truncated: true }
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -72,6 +82,7 @@ export function AppTestimonialGalleryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
+  const [selected, setSelected] = useState<AppFeedbackRow | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -95,6 +106,20 @@ export function AppTestimonialGalleryPage() {
   useEffect(() => {
     setIndex(0)
   }, [pageSize])
+
+  useEffect(() => {
+    if (!selected) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelected(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [selected])
 
   const maxIndex = Math.max(0, items.length - pageSize)
 
@@ -141,14 +166,22 @@ export function AppTestimonialGalleryPage() {
           <div className="testimonial-carousel__track">
             {visible.map((item) => {
               const name = item.reporter_name || 'Anonim'
-              const imageSrc = item.images?.[0] ? resolveKonfigAssetUrl(item.images[0]) : null
+              const { preview, truncated } = truncateBody(item.body || '')
+              const hasImages = (item.images?.length ?? 0) > 0
+              const showMore = truncated || hasImages
               return (
                 <article key={item.id} className="testimonial-carousel__card">
                   <h2 className="testimonial-carousel__title">{item.title}</h2>
                   <StarRow rating={item.rating || 0} />
-                  <p className="testimonial-carousel__body">{item.body}</p>
-                  {imageSrc ? (
-                    <img src={imageSrc} alt="" className="testimonial-carousel__image" />
+                  <p className="testimonial-carousel__body">{preview}</p>
+                  {showMore ? (
+                    <button
+                      type="button"
+                      className="btn btn--secondary btn--small testimonial-carousel__more"
+                      onClick={() => setSelected(item)}
+                    >
+                      Selengkapnya
+                    </button>
                   ) : null}
                   <div className="testimonial-carousel__author">
                     <span
@@ -184,6 +217,66 @@ export function AppTestimonialGalleryPage() {
           >
             ›
           </button>
+        </div>
+      ) : null}
+
+      {selected ? (
+        <div className="app-confirm" role="presentation" onMouseDown={() => setSelected(null)}>
+          <div
+            className="app-confirm__panel testimonial-carousel__detail"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="testimonial-gallery-detail-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h2 id="testimonial-gallery-detail-title" className="app-confirm__title">
+              {selected.title}
+            </h2>
+            <StarRow rating={selected.rating || 0} />
+            <p className="testimonial-carousel__detail-body">{selected.body}</p>
+            {selected.images && selected.images.length > 0 ? (
+              <ul className="multi-image-picker__list testimonial-carousel__detail-images">
+                {selected.images.map((path) => {
+                  const src = resolveKonfigAssetUrl(path)
+                  return src ? (
+                    <li key={path} className="multi-image-picker__item">
+                      <a href={src} target="_blank" rel="noreferrer">
+                        <img src={src} alt="" className="testimonial-carousel__detail-image" />
+                      </a>
+                    </li>
+                  ) : null
+                })}
+              </ul>
+            ) : null}
+            <div className="testimonial-carousel__author" style={{ marginTop: '1rem' }}>
+              <span
+                className="testimonial-carousel__avatar"
+                style={{ background: avatarColor(selected.reporter_name || 'Anonim') }}
+                aria-hidden="true"
+              >
+                {initialsFromName(selected.reporter_name || 'Anonim')}
+              </span>
+              <div className="testimonial-carousel__meta">
+                <strong>{selected.reporter_name || 'Anonim'}</strong>
+                {selected.role_label ? <span>{selected.role_label}</span> : null}
+                {selected.reporter_username || selected.contact ? (
+                  <span className="testimonial-carousel__subtle">
+                    {[
+                      selected.reporter_username ? `@${selected.reporter_username}` : null,
+                      selected.contact,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+            <div className="app-confirm__actions" style={{ marginTop: '1rem' }}>
+              <button type="button" className="btn btn--secondary" onClick={() => setSelected(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </section>
