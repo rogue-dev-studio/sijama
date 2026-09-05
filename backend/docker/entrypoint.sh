@@ -76,13 +76,17 @@ chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
 if [ "${SEED_ON_DEPLOY:-false}" = "true" ]; then
-  echo "SEED_ON_DEPLOY=true — running production seed..."
+  echo "SEED_ON_DEPLOY=true — starting production seed in background..."
+  mkdir -p storage/logs
   if [ -f scripts/seed-aiven-only.sh ]; then
-    bash scripts/seed-aiven-only.sh
+    # Background: full wilayah seed can take hours; do not block Apache / Render health.
+    nohup bash scripts/seed-aiven-only.sh > storage/logs/seed-on-deploy.log 2>&1 &
+    echo $! > storage/logs/seed-on-deploy.pid
+    echo "Seed PID $(cat storage/logs/seed-on-deploy.pid) — tail storage/logs/seed-on-deploy.log"
   else
     echo "scripts/seed-aiven-only.sh not found; seed skipped."
   fi
-  echo "Seed finished. Set SEED_ON_DEPLOY=false after this deploy."
+  echo "Set SEED_ON_DEPLOY=false after seed finishes (check log)."
 fi
 
 LISTEN_PORT="${PORT:-80}"

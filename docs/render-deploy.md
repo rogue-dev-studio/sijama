@@ -70,18 +70,23 @@ Set `FRONTEND_URL` di backend = URL frontend Render.
 1. Cek health: `https://<sijama-api>.onrender.com/up`
 2. Seed master data (wajib sekali setelah deploy besar / matriks akses kosong).
 
-**Free tier (tanpa Shell):**
+## Two-phase online remigrate + seed (Render free)
 
-1. Render Dashboard → **sijama-api** → **Environment**
-2. Tambah env:
-   - `MIGRATE_FRESH_ON_DEPLOY` = `true` — **wajib sekali** setelah squash migration (hapus semua tabel Aiven lalu recreate). **DATA HILANG.**
-   - `SEED_ON_DEPLOY` = `true`
-   - `BOOTSTRAP_ADMIN_USERNAME` = `admin` (atau username pilihan)
-   - `BOOTSTRAP_ADMIN_EMAIL` = email admin production
-   - `BOOTSTRAP_ADMIN_PASSWORD` = password kuat (min. 8 karakter)
-   - `BOOTSTRAP_ADMIN_NAME` = opsional (default: Super Admin SIJAMA)
-3. **Manual Deploy** → buka **Logs**, tunggu `migrate:fresh done` lalu `Seed finished`
-4. **Hapus** `MIGRATE_FRESH_ON_DEPLOY`, `SEED_ON_DEPLOY`, dan `BOOTSTRAP_ADMIN_*` agar deploy berikutnya tidak wipe/seed ulang
+**Phase 1 — schema only (sudah / lakukan dulu)**
+
+1. `migrate:fresh` ke Aiven (lokal dengan `.env.aiven`) **tanpa** seed → `users=0`
+2. Pastikan Render env: `MIGRATE_FRESH_ON_DEPLOY=false`, `SEED_ON_DEPLOY=false`
+3. Deploy API (push / Manual Deploy) — hanya `migrate`, app hidup dengan DB kosong
+
+**Phase 2 — reseed online**
+
+1. Render → sijama-api → Environment: `SEED_ON_DEPLOY=true`
+2. Opsional: `BOOTSTRAP_DEMO_PASSWORD=password` (min 8), plus `BOOTSTRAP_ADMIN_*` bila perlu
+3. **Manual Deploy** — entrypoint menjalankan `seed-aiven-only.sh` di **background** (log: `storage/logs/seed-on-deploy.log`) agar health check tidak timeout
+4. Seed penuh (wilayah adm + kode pos) bisa **berapa jam**; cek log / `SELECT COUNT(*) FROM users` / `wilayah_adm_desa_m`
+5. Setelah selesai: set `SEED_ON_DEPLOY=false`
+
+Jangan set `MIGRATE_FRESH_ON_DEPLOY=true` di phase 2 (akan wipe seed lagi).
 
 Entrypoint menjalankan `scripts/seed-aiven-only.sh` (RBAC, konfig, wilayah, lookup, event, hari libur, **9 akun demo** — tidak dapat dihapus dari aplikasi).
 
