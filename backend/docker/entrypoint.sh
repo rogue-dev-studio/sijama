@@ -79,14 +79,16 @@ if [ "${SEED_ON_DEPLOY:-false}" = "true" ]; then
   echo "SEED_ON_DEPLOY=true — starting production seed in background..."
   mkdir -p storage/logs
   if [ -f scripts/seed-aiven-only.sh ]; then
-    # Background: full wilayah seed can take hours; do not block Apache / Render health.
-    nohup bash scripts/seed-aiven-only.sh > storage/logs/seed-on-deploy.log 2>&1 &
+    # Line-buffer + tee so each seeder line appears in Render Logs immediately.
+    nohup bash -c 'stdbuf -oL -eL bash scripts/seed-aiven-only.sh 2>&1 | tee -a storage/logs/seed-on-deploy.log' &
     echo $! > storage/logs/seed-on-deploy.pid
-    echo "Seed PID $(cat storage/logs/seed-on-deploy.pid) — tail storage/logs/seed-on-deploy.log"
+    echo "Seed PID $(cat storage/logs/seed-on-deploy.pid) — watch Logs for [seed-aiven ...] lines"
   else
     echo "scripts/seed-aiven-only.sh not found; seed skipped."
   fi
-  echo "Set SEED_ON_DEPLOY=false after seed finishes (check log)."
+  echo "Set SEED_ON_DEPLOY=false after seed finishes."
+else
+  echo "SEED_ON_DEPLOY is not true — skipping seed."
 fi
 
 LISTEN_PORT="${PORT:-80}"
