@@ -9,7 +9,7 @@ import { API_BASE } from '../api/types'
 
 const LEGACY_DEFAULT_PATHS = new Set(['/logo.svg', '/favicon.svg'])
 
-const STORAGE_PREFIXES = ['konfig/', 'jamaah/', 'users/', 'share/']
+const STORAGE_PREFIXES = ['konfig/', 'jamaah/', 'users/', 'share/', 'app-feedback/', 'app-reports/']
 
 export function isProtectedStoragePath(path?: string | null): boolean {
   const value = path?.trim()

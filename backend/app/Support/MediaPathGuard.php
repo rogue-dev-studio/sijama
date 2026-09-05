@@ -15,6 +15,8 @@ final class MediaPathGuard
     public const PUBLIC_PREFIXES = [
         'jamaah/',
         'konfig/',
+        'app-feedback/',
+        'app-reports/',
     ];
 
     /** @var list<string> */
