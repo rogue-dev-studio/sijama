@@ -28,13 +28,21 @@ class UploadStorage
     public static function storeUploadedAs(UploadedFile $file, string $directory, string $filename): string
     {
         $relative = $file->storeAs($directory, $filename, self::storeOptions());
+        if ($relative === false || $relative === '') {
+            throw new \RuntimeException('Gagal menyimpan file unggahan ke storage.');
+        }
 
         return self::publicPath($relative);
     }
 
     public static function storeUploadedAsPath(UploadedFile $file, string $directory, string $filename): string
     {
-        return $file->storeAs($directory, $filename, self::storeOptions());
+        $relative = $file->storeAs($directory, $filename, self::storeOptions());
+        if ($relative === false || $relative === '') {
+            throw new \RuntimeException('Gagal menyimpan file unggahan ke storage.');
+        }
+
+        return $relative;
     }
 
     /** @return array{disk: string} */

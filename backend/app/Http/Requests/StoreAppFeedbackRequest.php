@@ -4,7 +4,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-09-04 16:55:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-09-04 17:20:00
+ * @Last Modified time: 2026-09-05 19:05:00
  */
 
 namespace App\Http\Requests;
@@ -28,7 +28,19 @@ class StoreAppFeedbackRequest extends FormRequest
             'role_label' => ['nullable', 'string', 'max:120'],
             'contact' => ['nullable', 'string', 'max:120'],
             'images' => ['nullable', 'array', 'max:5'],
-            'images.*' => ['image', 'max:2048'],
+            'images.*' => ['file', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'reporter_name.required' => 'Nama wajib diisi.',
+            'title.required' => 'Judul / headline wajib diisi.',
+            'body.required' => 'Isi testimoni wajib diisi.',
+            'images.max' => 'Maksimal 5 gambar.',
+            'images.*.mimes' => 'Gambar harus JPG, PNG, GIF, atau WebP.',
+            'images.*.max' => 'Setiap gambar maksimal 5 MB.',
         ];
     }
 }

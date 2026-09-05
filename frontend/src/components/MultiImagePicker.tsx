@@ -51,7 +51,10 @@ export function MultiImagePicker({
           event.target.value = ''
         }}
       />
-      <p className="form-hint">Maksimal {MAX_FEEDBACK_IMAGES} gambar (image/*).</p>
+      <p className="form-hint">
+        Maksimal {MAX_FEEDBACK_IMAGES} gambar (JPG/PNG/WebP/GIF, maks. 5 MB/file).
+        {files.length > 0 ? ` Terpilih: ${files.length}.` : ''}
+      </p>
       {previewUrls.length > 0 ? (
         <ul className="multi-image-picker__list">
           {previewUrls.map((url, index) => (

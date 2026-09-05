@@ -25,9 +25,9 @@ export function createFeedbackFormData(
     if (text === '') continue
     formData.append(key, String(value))
   }
-  for (const file of images.slice(0, MAX_FEEDBACK_IMAGES)) {
-    formData.append('images[]', file)
-  }
+  images.forEach((file, index) => {
+    formData.append(`images[${index}]`, file)
+  })
   return formData
 }
 

@@ -272,9 +272,24 @@ class AppFeedbackService
             if (count($paths) >= self::MAX_IMAGES) {
                 break;
             }
+            if (! $file->isValid()) {
+                throw ValidationException::withMessages([
+                    'images' => ['Unggahan gambar gagal: '.$file->getErrorMessage()],
+                ]);
+            }
             $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            if (! in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                $ext = 'jpg';
+            }
             $filename = Str::uuid()->toString().'_'.$index.'.'.$ext;
-            $paths[] = UploadStorage::storeUploadedAs($file, $directory, $filename);
+            try {
+                $paths[] = UploadStorage::storeUploadedAs($file, $directory, $filename);
+            } catch (\Throwable $e) {
+                report($e);
+                throw ValidationException::withMessages([
+                    'images' => ['Gagal menyimpan gambar. Coba format JPG/PNG/WebP dan ukuran maks. 5 MB.'],
+                ]);
+            }
         }
 
         return $paths;

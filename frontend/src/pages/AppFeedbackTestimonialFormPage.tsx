@@ -36,6 +36,7 @@ export function AppFeedbackTestimonialFormPage() {
   const [hoverRating, setHoverRating] = useState(0)
   const [images, setImages] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [formKey, setFormKey] = useState(0)
 
   useEffect(() => {
     setReporterName(user?.name?.trim() || '')
@@ -44,6 +45,10 @@ export function AppFeedbackTestimonialFormPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    if (!reporterName.trim() || !title.trim() || !body.trim()) {
+      notifyError('Nama, judul, dan isi testimoni wajib diisi.')
+      return
+    }
     setSubmitting(true)
 
     try {
@@ -67,6 +72,7 @@ export function AppFeedbackTestimonialFormPage() {
       setImages([])
       setReporterName(user?.name?.trim() || '')
       setContact(defaultContactFromUser(user))
+      setFormKey((value) => value + 1)
     } catch (err) {
       notifyError(formatApiError(err))
     } finally {
@@ -83,7 +89,7 @@ export function AppFeedbackTestimonialFormPage() {
         <p>Bagikan apresiasi atau pengalaman positif Anda memakai aplikasi.</p>
       </div>
 
-      <form className="form-panel" onSubmit={handleSubmit}>
+      <form key={formKey} className="form-panel" onSubmit={handleSubmit} noValidate>
         <div className="form-grid form-grid--2">
           <div className="field">
             <label htmlFor="testi-username">Username</label>

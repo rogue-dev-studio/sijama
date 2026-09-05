@@ -33,6 +33,7 @@ export function AppFeedbackIdeaFormPage() {
   const [body, setBody] = useState('')
   const [images, setImages] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [formKey, setFormKey] = useState(0)
 
   useEffect(() => {
     setReporterName(user?.name?.trim() || '')
@@ -41,6 +42,10 @@ export function AppFeedbackIdeaFormPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    if (!reporterName.trim() || !title.trim() || !body.trim()) {
+      notifyError('Nama, judul, dan isi wajib diisi.')
+      return
+    }
     setSubmitting(true)
 
     try {
@@ -60,6 +65,7 @@ export function AppFeedbackIdeaFormPage() {
       setImages([])
       setReporterName(user?.name?.trim() || '')
       setContact(defaultContactFromUser(user))
+      setFormKey((value) => value + 1)
     } catch (err) {
       notifyError(formatApiError(err))
     } finally {
@@ -80,7 +86,7 @@ export function AppFeedbackIdeaFormPage() {
         </p>
       ) : null}
 
-      <form className="form-panel" onSubmit={handleSubmit}>
+      <form key={formKey} className="form-panel" onSubmit={handleSubmit} noValidate>
         <div className="form-grid form-grid--2">
           <div className="field">
             <label htmlFor="idea-username">Username</label>
