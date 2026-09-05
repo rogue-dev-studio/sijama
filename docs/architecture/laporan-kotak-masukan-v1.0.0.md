@@ -24,5 +24,7 @@ Admin codes (hanya superadmin): `app_report_admin.*`, `app_feedback_admin.*`, `a
 
 ## UI
 
-- Galeri (`Informasi Testimoni & Apresiasi`): carousel read-only.
-- Daftar (`Daftar Testimoni & Apresiasi`): superadmin tampilkan/sembunyikan (`is_published`).
+- Galeri (`Informasi Testimoni & Apresiasi`): carousel read-only; kartu menampilkan cuplikan + detail modal (pesan lengkap + gambar).
+- Payload galeri (`GET …/galeri-testimoni` via `AppFeedbackGalleryResource`): hanya nama, jabatan/relasi, judul, isi, rating, gambar — **tanpa** `reporter_username`, `contact`, atau nested user account.
+- Kirim testimoni: boleh lebih dari satu kali; tampilan tetap dikontrol admin lewat `is_published`.
+- Daftar (`Daftar Testimoni & Apresiasi`): superadmin tampilkan/sembunyikan (`is_published`); kontak/username tetap tersedia di admin.

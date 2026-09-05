@@ -201,7 +201,6 @@ class AppFeedbackService
     public function listPublishedTestimonials(int $limit = 100): Collection
     {
         return AppFeedback::query()
-            ->with(['user:id,name,username', 'jamaah:id,nama'])
             ->where('kind', 'testimonial')
             ->where('is_published', true)
             ->orderByDesc('created_at')

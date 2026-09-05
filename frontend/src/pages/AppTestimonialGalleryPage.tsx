@@ -2,7 +2,7 @@
  * @Author: rogue-dev-studio
  * @Date: 2026-09-04 16:55:00
  * @Last Modified by: rogue-dev-studio
- * @Last Modified time: 2026-09-05 19:35:00
+ * @Last Modified time: 2026-09-05 19:45:00
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -194,13 +194,6 @@ export function AppTestimonialGalleryPage() {
                     <div className="testimonial-carousel__meta">
                       <strong>{name}</strong>
                       {item.role_label ? <span>{item.role_label}</span> : null}
-                      {item.reporter_username || item.contact ? (
-                        <span className="testimonial-carousel__subtle">
-                          {[item.reporter_username ? `@${item.reporter_username}` : null, item.contact]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </span>
-                      ) : null}
                     </div>
                   </div>
                 </article>
@@ -259,16 +252,6 @@ export function AppTestimonialGalleryPage() {
               <div className="testimonial-carousel__meta">
                 <strong>{selected.reporter_name || 'Anonim'}</strong>
                 {selected.role_label ? <span>{selected.role_label}</span> : null}
-                {selected.reporter_username || selected.contact ? (
-                  <span className="testimonial-carousel__subtle">
-                    {[
-                      selected.reporter_username ? `@${selected.reporter_username}` : null,
-                      selected.contact,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </span>
-                ) : null}
               </div>
             </div>
             <div className="app-confirm__actions" style={{ marginTop: '1rem' }}>

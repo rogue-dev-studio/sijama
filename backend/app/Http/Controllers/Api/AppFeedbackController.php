@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAppFeedbackRequest;
 use App\Http\Requests\UpdateAppFeedbackRequest;
 use App\Http\Requests\UpdateAppTestimonialVisibilityRequest;
+use App\Http\Resources\AppFeedbackGalleryResource;
 use App\Http\Resources\AppFeedbackResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\AppFeedbackService;
@@ -42,7 +43,7 @@ class AppFeedbackController extends Controller
     {
         $rows = $this->appFeedbackService->listPublishedTestimonials();
 
-        return ApiResponse::success(AppFeedbackResource::collection($rows));
+        return ApiResponse::success(AppFeedbackGalleryResource::collection($rows));
     }
 
     public function mine(Request $request): JsonResponse
