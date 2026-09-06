@@ -37,6 +37,15 @@
   border-radius: 0.4rem;
 }
 
+.app-shell__sidebar-brand img {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 0.45rem;
+  object-fit: contain;
+}
+
 .app-shell__menu-toggle {
   background: none;
   border: 1px solid var(--color-border);

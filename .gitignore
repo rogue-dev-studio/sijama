@@ -29,6 +29,7 @@ pgdata/
 *.sql
 !backend/database/migrations/definitions/
 !backend/database/migrations/definitions/**/*.sql
+backend/database/seeders/sql/
 *.dump
 *.sqlite
 *.sqlite3
