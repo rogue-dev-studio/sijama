@@ -2,7 +2,12 @@
 
 Unggulan: **face recognition** di browser — absensi pengajian lewat kamera lokal, tanpa kirim wajah ke cloud (`face-api.js`).
 
-Aplikasi web pendataan anggota organisasi: data anggota, jadwal pengajian, kegiatan, dan absensi pengajian.
+Aplikasi web pendataan anggota organisasi: data jamaah & keluarga, wilayah berjenjang, jadwal/kegiatan (termasuk **jadwal rutin** yang generate otomatis), absensi wajah, laporan, serta kotak masukan (ide/saran & testimoni).
+
+**Rilis terkini:** [v0.3.0](docs/release/RELEASE-v0.3.0.md) — object storage R2/S3, galeri testimoni, cuplikan UI (`github-contents/`), UX jadwal rutin.  
+Sebelumnya: [v0.2.0](https://github.com/rogue-dev-studio/sijama/releases/tag/v0.2.0) (CI/CD & Render).
+
+Demo production: https://sijama-web.onrender.com
 
 ## Stack
 
@@ -10,8 +15,9 @@ Aplikasi web pendataan anggota organisasi: data anggota, jadwal pengajian, kegia
 |-------|-----------|
 | Backend | Laravel 11, Sanctum |
 | Frontend | React + Vite + TypeScript |
-| DB | PostgreSQL 16 |
-| Infra | Docker Compose |
+| DB | PostgreSQL 16 (lokal Docker / Aiven production) |
+| Media | Lokal `storage` atau S3/Cloudflare R2 |
+| Infra | Docker Compose · GitLab CI · Render |
 | Face ID | face-api.js (browser, tanpa cloud) |
 
 ## Quick start
@@ -48,11 +54,11 @@ docker compose exec backend php artisan db:seed
 docker compose exec backend php artisan migrate:fresh --seed --force
 ```
 
-9 akun demo (`admin`, `admin.pusat`, …) dibuat otomatis lewat `WilayahSeeder` → `DemoUsersSeeder` (lokal **dan** release). Password lokal: `password`; release: env `BOOTSTRAP_DEMO_PASSWORD` (min. 8 karakter). Akun demo dilindungi — tidak dapat diedit, dinonaktifkan, diganti password, atau dihapus dari aplikasi. Dapukan sistem terkait juga terkunci.  
+9 akun demo (`admin`, `admin.pusat`, …) dibuat otomatis lewat `WilayahSeeder` → `DemoUsersSeeder` (lokal **dan** release). Password lokal: `password`; release: env `BOOTSTRAP_DEMO_PASSWORD` (min. 8 karakter). Akun demo dilindungi — tidak dapat diedit, dinonaktifkan, diganti password, atau dihapus dari aplikasi. Dapukan sistem terkait juga terkunci.
 
 ## Hierarki wilayah
 
-Wilayah berjenjang sampai unit terkecil, lalu data anggota.
+Wilayah fungsional berjenjang (pusat → daerah → desa → kelompok → sub-kelompok) plus master wilayah administrasi, lalu data jamaah/keluarga.
 
 ## Peran & cakupan
 
@@ -77,19 +83,29 @@ Wilayah berjenjang sampai unit terkecil, lalu data anggota.
 
 ## Modul
 
-1. Master RBAC (peran, menu, fitur, hak akses, matriks, pengguna)
-2. Master wilayah
-3. Anggota + enroll wajah
-4. Pengajian, kegiatan, dan absensi pengajian (face recognition)
-5. Dashboard
+1. Master RBAC (peran/dapukan, menu, fitur, hak akses, matriks, pengguna)
+2. Master wilayah fungsional & administrasi, lokasi, pemateri, materi, kategori
+3. Jamaah + keluarga + enroll wajah
+4. Kegiatan, **jadwal rutin** (generate instance otomatis), kalender, absensi face recognition
+5. Laporan kehadiran / jamaah / kegiatan
+6. Aplikasi: konfig, audit, log, laporkan masalah, kotak masukan & galeri testimoni
+7. Dashboard
 
-## Deploy (GitLab CI + Aiven)
+Status kegiatan dapat diperbarui otomatis oleh scheduler (`events:update-statuses`, tiap ~5 menit): hari H → berlangsung; lewat jam selesai → selesai.
 
+## Cuplikan UI
+
+Screenshot PC/mobile (dengan blur data sensitif) ada di [`github-contents/`](github-contents/) — dipakai README/portfolio. Lihat [github-contents/README.md](github-contents/README.md).
+
+## Deploy
+
+- Render + Aiven: [docs/render-deploy.md](docs/render-deploy.md)
 - DB cloud: [docs/database-aiven.md](docs/database-aiven.md)
-- CI/CD + VPS deploy: [docs/gitlab-ci.md](docs/gitlab-ci.md)
-- Kolaborasi (MR, protected `main`): [docs/gitlab-collaboration.md](docs/gitlab-collaboration.md)
-- Backlog v0.3.0: [docs/planning/backlog-v0.3.md](docs/planning/backlog-v0.3.md)
-- Setup kolaborator (mesin kosong): [docs/contributor-setup.md](docs/contributor-setup.md)
+- CI/CD GitLab: [docs/gitlab-ci.md](docs/gitlab-ci.md)
+- Kolaborasi MR: [docs/gitlab-collaboration.md](docs/gitlab-collaboration.md)
+- Release notes: [docs/release/](docs/release/)
+- Backlog: [docs/planning/backlog-v0.3.md](docs/planning/backlog-v0.3.md)
+- Setup kolaborator: [docs/contributor-setup.md](docs/contributor-setup.md)
 
 ## Attribution
 
