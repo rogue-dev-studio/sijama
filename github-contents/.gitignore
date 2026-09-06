@@ -1,0 +1,6 @@
+# Hanya hasil screenshot root yang di-push (pc_halaman_*.png / mobile_halaman_*.png).
+# Script, deps, README, backup pc/mobile, summary, dll. tidak ikut.
+*
+!.gitignore
+!pc_halaman_*.png
+!mobile_halaman_*.png
