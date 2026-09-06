@@ -83,7 +83,7 @@ class KegiatanJadwalRutinService
         return PaginationHelper::paginate($builder, $perPage, $page);
     }
 
-    public function create(array $data, User $actor): KegiatanJadwalRutinResource
+    public function create(array $data, User $actor): array
     {
         $materiIds = $this->extractMateriIds($data);
         $attributes = $this->normalizeScopeAttributes($data, $actor);
@@ -94,11 +94,14 @@ class KegiatanJadwalRutinService
 
         $jadwal = KegiatanJadwalRutin::query()->create($attributes);
         $jadwal->materi()->sync($materiIds);
-        $this->generatorService->syncSchedule($jadwal->fresh());
+        $created = $this->generatorService->syncSchedule($jadwal->fresh());
 
-        return new KegiatanJadwalRutinResource(
-            $jadwal->fresh()->load($this->defaultRelations())
-        );
+        return [
+            'created' => $created,
+            'jadwal' => new KegiatanJadwalRutinResource(
+                $jadwal->fresh()->load($this->defaultRelations())
+            ),
+        ];
     }
 
     public function find(int $id, User $actor): KegiatanJadwalRutinResource

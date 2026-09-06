@@ -83,6 +83,19 @@ function buildColumns(hariOptions: LookupOption[]): GatedColumn<KegiatanJadwalRu
       exportValue: (item) => new Date(item.effective_from).toLocaleDateString('id-ID'),
     },
     {
+      key: 'last_generated_until',
+      label: 'Ter-generate s.d.',
+      sortKey: 'last_generated_until',
+      cell: (item) =>
+        item.last_generated_until
+          ? new Date(item.last_generated_until).toLocaleDateString('id-ID')
+          : '—',
+      exportValue: (item) =>
+        item.last_generated_until
+          ? new Date(item.last_generated_until).toLocaleDateString('id-ID')
+          : '—',
+    },
+    {
       key: 'is_active',
       label: 'Status',
       sortKey: 'is_active',
@@ -94,7 +107,7 @@ function buildColumns(hariOptions: LookupOption[]): GatedColumn<KegiatanJadwalRu
 
 export function KegiatanJadwalRutinPage() {
   const { can } = useAuth()
-  const { notifyDeleted } = useToast()
+  const { notifyDeleted, notifySuccess } = useToast()
   const { confirm } = useConfirm()
   const [hariMingguOptions, setHariMingguOptions] = useState<LookupOption[]>([])
   const [reloadNonce, setReloadNonce] = useState(0)
@@ -128,7 +141,15 @@ export function KegiatanJadwalRutinPage() {
   async function handleGenerate(id: number) {
     const result = await kegiatanJadwalRutinService.generate(id)
     setReloadNonce((value) => value + 1)
-    alert(`Berhasil membuat ${result.created} kegiatan dari jadwal.`)
+    if (result.created > 0) {
+      notifySuccess(
+        `${result.created} kegiatan baru dibuat. Buka menu Kegiatan (filter tanggal mencakup 90 hari ke depan).`,
+      )
+    } else {
+      notifySuccess(
+        'Tidak ada kegiatan baru (horizon sudah terisi atau belum ada tanggal cocok). Cek Kegiatan dengan rentang tanggal ke depan.',
+      )
+    }
   }
 
   function renderRowActions(item: KegiatanJadwalRutin): ReactNode {
@@ -176,7 +197,7 @@ export function KegiatanJadwalRutinPage() {
   return (
     <SimpleMasterListPage<KegiatanJadwalRutin>
       title="Jadwal Rutin Kegiatan"
-      description="Atur kegiatan mingguan/bulanan/tahunan per daerah, desa, atau kelompok. Ubah jadwal dengan nonaktifkan yang lama lalu buat jadwal baru."
+      description="Atur kegiatan mingguan/bulanan/tahunan. Saat disimpan, sistem otomatis membuat kegiatan ke depan. Hasilnya di menu Kegiatan (bukan hanya hari ini). Kolom “Ter-generate s.d.” menunjukkan horizon yang sudah diisi."
       entityLabel="jadwal rutin"
       basePath="/kegiatan/jadwal-rutin"
       permissionPrefix="kegiatan"

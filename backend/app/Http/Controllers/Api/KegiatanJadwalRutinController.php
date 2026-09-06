@@ -51,9 +51,13 @@ class KegiatanJadwalRutinController extends Controller
 
     public function store(StoreKegiatanJadwalRutinRequest $request): JsonResponse
     {
-        $jadwal = $this->service->create($request->validated(), $request->user());
+        $result = $this->service->create($request->validated(), $request->user());
+        $created = (int) ($result['created'] ?? 0);
+        $message = $created > 0
+            ? "Jadwal rutin berhasil ditambahkan dan {$created} kegiatan dibuat."
+            : 'Jadwal rutin berhasil ditambahkan. Belum ada tanggal yang cocok pada horizon generate; cek frekuensi/hari atau tekan Generate nanti.';
 
-        return ApiResponse::success($jadwal, 'Jadwal rutin kegiatan berhasil ditambahkan', 201);
+        return ApiResponse::success($result, $message, 201);
     }
 
     public function show(Request $request, int $jadwal): JsonResponse
@@ -78,7 +82,11 @@ class KegiatanJadwalRutinController extends Controller
     public function generate(Request $request, int $jadwal): JsonResponse
     {
         $result = $this->service->generateNow($jadwal, $request->user());
+        $created = (int) ($result['created'] ?? 0);
+        $message = $created > 0
+            ? "Berhasil membuat {$created} kegiatan dari jadwal."
+            : 'Tidak ada kegiatan baru. Horizon sudah terisi atau belum ada tanggal yang cocok — cek daftar Kegiatan dengan rentang tanggal ke depan.';
 
-        return ApiResponse::success($result, 'Pembuatan kegiatan dari jadwal selesai');
+        return ApiResponse::success($result, $message);
     }
 }

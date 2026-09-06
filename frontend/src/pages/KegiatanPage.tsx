@@ -18,12 +18,14 @@ import { SearchableSelect } from '../components/SearchableSelect'
 import { PermissionLink } from '../components/PermissionLink'
 import { listButtonAccess } from '../lib/listUiAccess'
 import {
+  addDaysIsoDate,
   dateRangeFilterFields,
-  isDefaultDateRange,
+  isDefaultUpcomingDateRange,
   todayIsoDate,
 } from '../lib/dateRangeFilters'
 
 const PREFIX = 'kegiatan'
+const DEFAULT_RANGE_DAYS = 90
 
 function formatWaktu(item: Kegiatan): string {
   const parts: string[] = []
@@ -98,7 +100,7 @@ export function KegiatanPage() {
   const [kategoriFilter, setKategoriFilter] = useState('')
   const [kategoriOptions, setKategoriOptions] = useState<KategoriKegiatan[]>([])
   const [dateFrom, setDateFrom] = useState(todayIsoDate)
-  const [dateTo, setDateTo] = useState(todayIsoDate)
+  const [dateTo, setDateTo] = useState(() => addDaysIsoDate(DEFAULT_RANGE_DAYS))
 
   const createAccess = listButtonAccess(can, PREFIX, 'create')
 
@@ -113,20 +115,21 @@ export function KegiatanPage() {
   }, [])
 
   function clearExtraFilters() {
-    const today = todayIsoDate()
     setStatusFilter('')
     setKategoriFilter('')
-    setDateFrom(today)
-    setDateTo(today)
+    setDateFrom(todayIsoDate())
+    setDateTo(addDaysIsoDate(DEFAULT_RANGE_DAYS))
   }
 
   const hasExtraFilters =
-    statusFilter !== '' || kategoriFilter !== '' || !isDefaultDateRange(dateFrom, dateTo)
+    statusFilter !== '' ||
+    kategoriFilter !== '' ||
+    !isDefaultUpcomingDateRange(dateFrom, dateTo, DEFAULT_RANGE_DAYS)
 
   return (
     <SimpleMasterListPage<Kegiatan>
       title="Kegiatan"
-      description="Agenda kegiatan jamaah dan masjid."
+      description="Agenda kegiatan jamaah dan masjid. Default menampilkan 90 hari ke depan (termasuk hasil jadwal rutin)."
       entityLabel="kegiatan"
       basePath="/kegiatan"
       permissionPrefix={PREFIX}

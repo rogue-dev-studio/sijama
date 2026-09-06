@@ -1385,7 +1385,10 @@ export const kegiatanJadwalRutinService = {
     return apiRequest<KegiatanJadwalRutin>(`/kegiatan-jadwal-rutin/${id}`)
   },
   create(data: KegiatanJadwalRutinInput) {
-    return apiRequest<KegiatanJadwalRutin>('/kegiatan-jadwal-rutin', { method: 'POST', body: data })
+    return apiRequest<{ created: number; jadwal: KegiatanJadwalRutin }>('/kegiatan-jadwal-rutin', {
+      method: 'POST',
+      body: data,
+    })
   },
   update(id: number, data: Partial<KegiatanJadwalRutinInput>) {
     return apiRequest<KegiatanJadwalRutin>(`/kegiatan-jadwal-rutin/${id}`, { method: 'PUT', body: data })

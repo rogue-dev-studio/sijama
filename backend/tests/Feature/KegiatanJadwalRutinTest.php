@@ -48,9 +48,10 @@ class KegiatanJadwalRutinTest extends TestCase
                 'generate_horizon_days' => 30,
             ]);
 
-        $response->assertCreated()->assertJsonPath('data.judul', 'Pengajian Rutin Ahad');
+        $response->assertCreated()->assertJsonPath('data.jadwal.judul', 'Pengajian Rutin Ahad');
+        $this->assertGreaterThan(0, (int) $response->json('data.created'));
 
-        $jadwalId = (int) $response->json('data.id');
+        $jadwalId = (int) $response->json('data.jadwal.id');
         $this->assertGreaterThan(0, Kegiatan::query()->where('jadwal_rutin_id', $jadwalId)->count());
     }
 
@@ -73,7 +74,7 @@ class KegiatanJadwalRutinTest extends TestCase
             ])
             ->assertCreated();
 
-        $jadwalId = (int) $create->json('data.id');
+        $jadwalId = (int) $create->json('data.jadwal.id');
 
         $this->actingAs($actor, 'sanctum')
             ->postJson('/api/kegiatan-jadwal-rutin/'.$jadwalId.'/deactivate')

@@ -18,10 +18,22 @@ export function todayIsoDate(date = new Date()) {
   return localIsoDate(date)
 }
 
+/** Tambah N hari ke tanggal lokal (YYYY-MM-DD). */
+export function addDaysIsoDate(days: number, from = new Date()) {
+  const next = new Date(from)
+  next.setDate(next.getDate() + days)
+  return localIsoDate(next)
+}
+
 /** True jika rentang masih default (hari ini → hari ini). */
 export function isDefaultDateRange(dateFrom: string, dateTo: string) {
   const today = todayIsoDate()
   return dateFrom === today && dateTo === today
+}
+
+/** True jika rentang masih default agenda (hari ini → +N hari). */
+export function isDefaultUpcomingDateRange(dateFrom: string, dateTo: string, daysAhead = 90) {
+  return dateFrom === todayIsoDate() && dateTo === addDaysIsoDate(daysAhead)
 }
 
 export type DateRangeFilterFieldsProps = {

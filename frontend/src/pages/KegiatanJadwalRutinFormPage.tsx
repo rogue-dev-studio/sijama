@@ -71,7 +71,7 @@ export function KegiatanJadwalRutinFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
-  const { notifySaved } = useToast()
+  const { notifySaved, notifySuccess } = useToast()
   const { user } = useAuth()
   const [form, setForm] = useState<KegiatanJadwalRutinInput>(emptyForm)
   const [loading, setLoading] = useState(true)
@@ -230,10 +230,19 @@ export function KegiatanJadwalRutinFormPage() {
     try {
       if (isEdit && id) {
         await kegiatanJadwalRutinService.update(Number(id), payload)
+        notifySaved('jadwal rutin kegiatan', 'update')
       } else {
-        await kegiatanJadwalRutinService.create(payload)
+        const result = await kegiatanJadwalRutinService.create(payload)
+        if (result.created > 0) {
+          notifySuccess(
+            `Jadwal disimpan. ${result.created} kegiatan dibuat — lihat di menu Kegiatan (rentang tanggal ke depan).`,
+          )
+        } else {
+          notifySuccess(
+            'Jadwal disimpan. Belum ada tanggal cocok di horizon generate; cek hari/frekuensi atau tekan Generate di daftar jadwal.',
+          )
+        }
       }
-      notifySaved('jadwal rutin kegiatan', isEdit ? 'update' : 'create')
       navigate('/kegiatan/jadwal-rutin')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Gagal menyimpan jadwal')
